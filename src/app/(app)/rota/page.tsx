@@ -55,7 +55,10 @@ export default function RotaPage() {
       ...(eventsRes.data ?? []).map((r) => r.date),
       todayISO(),
     ];
-    const weeks = Array.from(new Set(allDates.map((d) => weekStartOf(d)))).sort();
+    const currentWeek = weekStartOf(todayISO());
+    const weeks = Array.from(new Set(allDates.map((d) => weekStartOf(d))))
+      .filter((w) => w >= currentWeek) // hide past weeks — Prev still reaches them if needed
+      .sort();
     setAvailableWeeks(weeks);
   }, [supabase]);
 
