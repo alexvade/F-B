@@ -13,19 +13,21 @@ import {
   MessageCircle,
   FileStack,
   Users,
+  ClipboardList,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { bg, border, ink, inkSoft, navy, orange, surface } from "@/lib/design-tokens";
 
 const NAV_ITEMS = [
+  { href: "/drinks", label: "Drinks", icon: Wine },
   { href: "/updates", label: "Updates", icon: MessageCircle },
   { href: "/rota", label: "Rota", icon: CalendarDays },
   { href: "/checklists", label: "Checklists", icon: CheckSquare },
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/sops", label: "SOPs", icon: BookOpen },
   { href: "/colleague-of-the-month", label: "Colleague of the Month", icon: Award },
-  { href: "/drinks", label: "Drinks", icon: Wine },
   { href: "/function-sheets", label: "Function Sheets", icon: FileStack },
+  { href: "/stock-orders", label: "Stock Orders", icon: ClipboardList },
 ];
 
 export function NavShell({

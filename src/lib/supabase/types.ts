@@ -258,6 +258,40 @@ export interface Database {
           uploaded_at?: string;
         }
       >;
+      stock_products: Table<
+        {
+          id: number;
+          tab_gid: string;
+          tab_label: string;
+          category: string;
+          row_number: number;
+          order_col_letter: string;
+          code: string | null;
+          product: string;
+          cellar_code: string | null;
+          supplier: string | null;
+          sort_order: number;
+          quantity: number | null;
+          updated_by: string | null;
+          updated_at: string | null;
+        },
+        {
+          id?: number;
+          tab_gid: string;
+          tab_label: string;
+          category: string;
+          row_number: number;
+          order_col_letter: string;
+          code?: string | null;
+          product: string;
+          cellar_code?: string | null;
+          supplier?: string | null;
+          sort_order: number;
+          quantity?: number | null;
+          updated_by?: string | null;
+          updated_at?: string | null;
+        }
+      >;
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;
