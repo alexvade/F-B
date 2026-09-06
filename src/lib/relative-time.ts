@@ -1,3 +1,13 @@
+/** e.g. "07 Sep, 09:14" */
+export function timestamp(iso: string): string {
+  return new Date(iso).toLocaleString(undefined, {
+    day: "2-digit",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
 export function relativeTime(iso: string): string {
   const diffMs = Date.now() - new Date(iso).getTime();
   const minutes = Math.floor(diffMs / 60000);

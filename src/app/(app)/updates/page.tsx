@@ -1,11 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Camera, Paperclip, FileText, X } from "lucide-react";
+import { Camera, Paperclip, FileText, Trash2, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useProfile } from "@/lib/profile-context";
 import { uploadAttachment } from "@/lib/storage";
-import { relativeTime } from "@/lib/relative-time";
+import { relativeTime, timestamp } from "@/lib/relative-time";
 import { initials } from "@/lib/shift-status";
 import { Section } from "@/components/section";
 import { bg, border, ink, inkSoft, navy, navyText, orange, orangeSoft, surface } from "@/lib/design-tokens";
@@ -20,6 +20,7 @@ type Comment = {
 };
 type Post = {
   id: number;
+  authorId: string | null;
   authorName: string;
   text: string | null;
   photo_url: string | null;
@@ -76,6 +77,7 @@ export default function UpdatesPage() {
   const [newPhoto, setNewPhoto] = useState<File | null>(null);
   const [newFile, setNewFile] = useState<File | null>(null);
   const [posting, setPosting] = useState(false);
+  const [postError, setPostError] = useState<string | null>(null);
   const [commentDrafts, setCommentDrafts] = useState<Record<number, string>>({});
   const [commentPhoto, setCommentPhoto] = useState<Record<number, File | null>>({});
   const [commentFile, setCommentFile] = useState<Record<number, File | null>>({});
@@ -106,6 +108,7 @@ export default function UpdatesPage() {
     setPosts(
       (postRows ?? []).map((p) => ({
         id: p.id,
+        authorId: p.author_id,
         authorName: nameById.get(p.author_id ?? "") ?? "Someone",
         text: p.text,
         photo_url: p.photo_url,
@@ -141,25 +144,35 @@ export default function UpdatesPage() {
   const addPost = async () => {
     if (!newPost.trim() && !newPhoto && !newFile) return;
     setPosting(true);
+    setPostError(null);
     try {
       const photoUrl = newPhoto ? await uploadAttachment(newPhoto, "posts") : null;
       const fileUrl = newFile ? await uploadAttachment(newFile, "posts") : null;
-      await supabase.from("posts").insert({
+      const { error } = await supabase.from("posts").insert({
         author_id: profile.id,
         text: newPost.trim() || null,
         photo_url: photoUrl,
         file_url: fileUrl,
         file_name: newFile?.name ?? null,
       });
+      if (error) throw error;
       setNewPost("");
       setNewPhoto(null);
       setNewFile(null);
       if (photoInputRef.current) photoInputRef.current.value = "";
       if (fileInputRef.current) fileInputRef.current.value = "";
       loadPosts();
+    } catch (err) {
+      setPostError((err as Error).message || "Couldn't post — try again.");
     } finally {
       setPosting(false);
     }
+  };
+
+  const deletePost = async (post: Post) => {
+    if (!confirm("Delete this post?")) return;
+    await supabase.from("posts").delete().eq("id", post.id);
+    loadPosts();
   };
 
   const addComment = async (postId: number) => {
@@ -167,20 +180,25 @@ export default function UpdatesPage() {
     const photo = commentPhoto[postId];
     const file = commentFile[postId];
     if (!text && !photo && !file) return;
-    const photoUrl = photo ? await uploadAttachment(photo, "comments") : null;
-    const fileUrl = file ? await uploadAttachment(file, "comments") : null;
-    await supabase.from("comments").insert({
-      post_id: postId,
-      author_id: profile.id,
-      text: text || null,
-      photo_url: photoUrl,
-      file_url: fileUrl,
-      file_name: file?.name ?? null,
-    });
-    setCommentDrafts((prev) => ({ ...prev, [postId]: "" }));
-    setCommentPhoto((prev) => ({ ...prev, [postId]: null }));
-    setCommentFile((prev) => ({ ...prev, [postId]: null }));
-    loadPosts();
+    try {
+      const photoUrl = photo ? await uploadAttachment(photo, "comments") : null;
+      const fileUrl = file ? await uploadAttachment(file, "comments") : null;
+      const { error } = await supabase.from("comments").insert({
+        post_id: postId,
+        author_id: profile.id,
+        text: text || null,
+        photo_url: photoUrl,
+        file_url: fileUrl,
+        file_name: file?.name ?? null,
+      });
+      if (error) throw error;
+      setCommentDrafts((prev) => ({ ...prev, [postId]: "" }));
+      setCommentPhoto((prev) => ({ ...prev, [postId]: null }));
+      setCommentFile((prev) => ({ ...prev, [postId]: null }));
+      loadPosts();
+    } catch (err) {
+      setPostError((err as Error).message || "Couldn't post that reply — try again.");
+    }
   };
 
   return (
@@ -208,6 +226,11 @@ export default function UpdatesPage() {
             isImage={newFile.type.startsWith("image/")}
             onRemove={() => setNewFile(null)}
           />
+        )}
+        {postError && (
+          <p className="text-xs mt-2" style={{ color: "#C24A3B" }}>
+            {postError}
+          </p>
         )}
         <div className="flex items-center justify-between mt-2">
           <div className="flex items-center gap-4">
@@ -258,8 +281,15 @@ export default function UpdatesPage() {
                 </span>
                 <span className="text-sm font-medium">{p.authorName}</span>
               </span>
-              <span className="text-xs" style={{ color: inkSoft }}>
-                {relativeTime(p.created_at)}
+              <span className="flex items-center gap-2 shrink-0">
+                <span className="text-xs whitespace-nowrap" style={{ color: inkSoft }}>
+                  {relativeTime(p.created_at)} · {timestamp(p.created_at)}
+                </span>
+                {(p.authorId === profile.id || profile.role === "admin") && (
+                  <button onClick={() => deletePost(p)} style={{ color: inkSoft }} title="Delete post">
+                    <Trash2 size={13} />
+                  </button>
+                )}
               </span>
             </div>
             {p.text && (
