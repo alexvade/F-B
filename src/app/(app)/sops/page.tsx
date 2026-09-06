@@ -24,6 +24,7 @@ export default function SopsPage() {
   const supabase = createClient();
 
   const [sops, setSops] = useState<Sop[]>([]);
+  const [category, setCategory] = useState<string | null>(null);
   const [activeSop, setActiveSop] = useState<Sop | null>(null);
   const [form, setForm] = useState<typeof EMPTY_FORM | null>(null);
   const [saving, setSaving] = useState(false);
@@ -31,6 +32,7 @@ export default function SopsPage() {
   const loadSops = useCallback(async () => {
     const { data } = await supabase.from("sops").select("*").order("sort_order").order("id");
     setSops(data ?? []);
+    setCategory((current) => current ?? data?.[0]?.category ?? null);
   }, [supabase]);
 
   useEffect(() => {
@@ -43,7 +45,7 @@ export default function SopsPage() {
     setForm(
       sop
         ? { id: sop.id, category: sop.category, title: sop.title, steps: sop.steps.join("\n"), photo: null }
-        : { ...EMPTY_FORM }
+        : { ...EMPTY_FORM, category: category ?? "" }
     );
   };
 
@@ -66,6 +68,7 @@ export default function SopsPage() {
           photo_url: photo_url ?? null,
         });
       }
+      setCategory(form.category.trim());
       setForm(null);
       setActiveSop(null);
       loadSops();
@@ -186,39 +189,60 @@ export default function SopsPage() {
     );
   }
 
+  const categorySops = sops.filter((s) => s.category === category);
+
   return (
     <Section title="Standard operating procedures" subtitle={`${sops.length} reference guides`}>
+      <div className="flex gap-1.5 overflow-x-auto mb-4 pb-1" style={{ scrollbarWidth: "thin" }}>
+        {categories.map((cat) => {
+          const active = cat === category;
+          return (
+            <button
+              key={cat}
+              onClick={() => setCategory(cat)}
+              className="text-xs px-3.5 py-1.5 rounded-2xl shrink-0 whitespace-nowrap"
+              style={{
+                background: active ? navy : surface,
+                color: active ? "#FFFFFF" : ink,
+                border: `1px solid ${active ? navy : border}`,
+                fontWeight: active ? 600 : 400,
+              }}
+            >
+              {cat}
+            </button>
+          );
+        })}
+      </div>
+
       {isAdmin && (
         <button
           onClick={() => openEdit()}
           className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-2xl mb-4"
           style={{ background: orangeSoft, color: navy }}
         >
-          <Plus size={13} /> Add SOP
+          <Plus size={13} /> Add SOP{category ? ` to ${category}` : ""}
         </button>
       )}
-      {categories.map((cat) => (
-        <div key={cat} className="mb-5">
-          <div className="text-xs font-semibold mb-2" style={{ color: orange }}>
-            {cat.toUpperCase()}
-          </div>
-          <div className="flex flex-col gap-1">
-            {sops
-              .filter((s) => s.category === cat)
-              .map((sop) => (
-                <button
-                  key={sop.id}
-                  onClick={() => setActiveSop(sop)}
-                  className="flex items-center justify-between p-3 rounded-2xl text-left"
-                  style={{ background: surface, border: `1px solid ${border}` }}
-                >
-                  <span className="text-sm font-medium">{sop.title}</span>
-                  <ChevronRight size={16} style={{ color: inkSoft }} />
-                </button>
-              ))}
-          </div>
+
+      {categorySops.length === 0 ? (
+        <p className="text-sm" style={{ color: inkSoft }}>
+          No SOPs yet in this category.
+        </p>
+      ) : (
+        <div className="flex flex-col gap-1">
+          {categorySops.map((sop) => (
+            <button
+              key={sop.id}
+              onClick={() => setActiveSop(sop)}
+              className="flex items-center justify-between p-3 rounded-2xl text-left"
+              style={{ background: surface, border: `1px solid ${border}` }}
+            >
+              <span className="text-sm font-medium">{sop.title}</span>
+              <ChevronRight size={16} style={{ color: inkSoft }} />
+            </button>
+          ))}
         </div>
-      ))}
+      )}
     </Section>
   );
 }
