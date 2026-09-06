@@ -66,6 +66,10 @@ export interface Database {
         { date: string; gih_count: number | null; breakfast_count: number | null },
         { date: string; gih_count?: number | null; breakfast_count?: number | null }
       >;
+      rota_staff_order: Table<
+        { staff_name: string; sort_order: number },
+        { staff_name: string; sort_order: number }
+      >;
       daily_events: Table<
         { id: number; date: string; room: string | null; title: string; details: string | null },
         { id?: number; date: string; room?: string | null; title: string; details?: string | null }

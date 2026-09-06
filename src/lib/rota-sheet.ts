@@ -16,6 +16,8 @@ export type ParsedRotaSheet = {
   covers: ParsedCovers[];
   events: ParsedEvent[];
   dates: string[];
+  /** Staff names in the order their rows appear in the sheet. */
+  staffOrder: string[];
 };
 
 function toIsoDate(ddmmyyyy: string): string | null {
@@ -114,6 +116,7 @@ export function parseRotaSheet(csvText: string): ParsedRotaSheet {
 
   // --- Section below "Day": staff shift rows ---
   const shifts: ParsedShift[] = [];
+  const staffOrder: string[] = [];
   const staffStartIdx = (dayRowIdx === -1 ? dateRowIdx : dayRowIdx) + 1;
   for (let r = staffStartIdx; r < rows.length; r++) {
     const row = rows[r];
@@ -124,6 +127,7 @@ export function parseRotaSheet(csvText: string): ParsedRotaSheet {
     const nameMatch = STAFF_NAME_RE.exec(label);
     const staffName = (nameMatch ? nameMatch[1] : label).trim();
     if (!staffName) continue;
+    staffOrder.push(staffName);
 
     for (const d of dayColumns) {
       const v1 = (row[d.col] ?? "").trim();
@@ -148,6 +152,7 @@ export function parseRotaSheet(csvText: string): ParsedRotaSheet {
   return {
     shifts,
     covers,
+    staffOrder,
     events: Array.from(eventsByRoomDate.values()),
     dates: dayColumns.map((d) => d.date),
   };

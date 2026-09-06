@@ -60,7 +60,7 @@ export default function RotaPage() {
   }, [supabase]);
 
   const loadData = useCallback(async () => {
-    const [staffRes, shiftsRes, coversRes, eventsRes] = await Promise.all([
+    const [staffRes, shiftsRes, coversRes, eventsRes, orderRes] = await Promise.all([
       supabase.from("profiles").select("id, name").order("name"),
       supabase
         .from("rota_shifts")
@@ -74,14 +74,26 @@ export default function RotaPage() {
         .gte("date", weekStart)
         .lte("date", weekEnd)
         .order("id"),
+      supabase.from("rota_staff_order").select("staff_name, sort_order"),
     ]);
 
     const idByName = new Map((staffRes.data ?? []).map((p) => [p.name, p.id]));
     const names = new Set((staffRes.data ?? []).map((p) => p.name));
     for (const s of shiftsRes.data ?? []) names.add(s.staff_name);
+
+    // Order matches the sheet's own row order; anyone the sheet's never
+    // mentioned (e.g. a brand-new invite) sorts alphabetically after that.
+    const orderByName = new Map((orderRes.data ?? []).map((o) => [o.staff_name, o.sort_order]));
     setStaff(
       Array.from(names)
-        .sort((a, b) => a.localeCompare(b))
+        .sort((a, b) => {
+          const oa = orderByName.get(a);
+          const ob = orderByName.get(b);
+          if (oa !== undefined && ob !== undefined) return oa - ob;
+          if (oa !== undefined) return -1;
+          if (ob !== undefined) return 1;
+          return a.localeCompare(b);
+        })
         .map((name) => ({ name, id: idByName.get(name) ?? null }))
     );
 

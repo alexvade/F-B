@@ -90,6 +90,16 @@ export async function POST(request: Request) {
     }
   }
 
+  // Row order in the sheet is the venue's own ordering (e.g. grouped by
+  // contract type) — keep the Rota screen matching it instead of A-Z.
+  if (parsed.staffOrder.length) {
+    const orderRows = parsed.staffOrder.map((staff_name, sort_order) => ({ staff_name, sort_order }));
+    const { error } = await supabase
+      .from("rota_staff_order")
+      .upsert(orderRows, { onConflict: "staff_name" });
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
   return NextResponse.json({
     ok: true,
     datesSynced: parsed.dates,
