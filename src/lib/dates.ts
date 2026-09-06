@@ -39,13 +39,16 @@ export function checklistDayISO(date: Date = new Date()): string {
   return local.toISOString().slice(0, 10);
 }
 
-const DAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+const DAY_LABELS_FROM_SUNDAY = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
-/** Monday of the week containing `iso` (or today if omitted), as YYYY-MM-DD. */
-export function mondayOf(iso?: string): string {
+/** The venue's rota week runs Friday→Thursday (matches the F&B Rota sheet), not the ISO Monday start. */
+const ROTA_WEEK_START_DAY = 5; // 0 = Sunday, 5 = Friday
+
+/** Start-of-rota-week (Friday) containing `iso` (or today if omitted), as YYYY-MM-DD. */
+export function weekStartOf(iso?: string, startDay: number = ROTA_WEEK_START_DAY): string {
   const base = iso ? new Date(iso + "T00:00:00Z") : new Date(todayISO() + "T00:00:00Z");
-  const dow = base.getUTCDay(); // 0 = Sunday
-  const diff = dow === 0 ? -6 : 1 - dow;
+  const dow = base.getUTCDay();
+  const diff = -((dow - startDay + 7) % 7);
   base.setUTCDate(base.getUTCDate() + diff);
   return base.toISOString().slice(0, 10);
 }
@@ -56,14 +59,14 @@ export function addDaysISO(iso: string, days: number): string {
   return d.toISOString().slice(0, 10);
 }
 
-/** The 7 dates (Mon–Sun) of the week starting at `mondayIso`. */
-export function weekDates(mondayIso: string) {
+/** The 7 dates of the rota week starting at `weekStartIso` (a Friday). */
+export function weekDates(weekStartIso: string) {
   return Array.from({ length: 7 }, (_, i) => {
-    const date = addDaysISO(mondayIso, i);
+    const date = addDaysISO(weekStartIso, i);
     const d = new Date(date + "T00:00:00Z");
     return {
       date,
-      day: DAY_LABELS[i],
+      day: DAY_LABELS_FROM_SUNDAY[d.getUTCDay()],
       label: d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", timeZone: "UTC" }),
     };
   });

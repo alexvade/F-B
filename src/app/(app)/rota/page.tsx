@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Pencil, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useProfile } from "@/lib/profile-context";
-import { todayISO, mondayOf, addDaysISO, weekDates } from "@/lib/dates";
+import { todayISO, weekStartOf, addDaysISO, weekDates } from "@/lib/dates";
 import type { ShiftStatus } from "@/lib/supabase/types";
 import {
   bg,
@@ -30,7 +30,7 @@ export default function RotaPage() {
   const isAdmin = profile.role === "admin";
   const supabase = createClient();
 
-  const [monday, setMonday] = useState(() => mondayOf(todayISO()));
+  const [weekStart, setWeekStart] = useState(() => weekStartOf(todayISO()));
   const [editing, setEditing] = useState(false);
   const [staff, setStaff] = useState<Staff[]>([]);
   const [shifts, setShifts] = useState<Record<string, Record<string, Shift>>>({});
@@ -38,9 +38,9 @@ export default function RotaPage() {
   const [events, setEvents] = useState<Record<string, EventRow[]>>({});
   const [newEventDraft, setNewEventDraft] = useState<Record<string, { room: string; title: string; details: string }>>({});
 
-  const days = useMemo(() => weekDates(monday), [monday]);
+  const days = useMemo(() => weekDates(weekStart), [weekStart]);
   const today = todayISO();
-  const weekEnd = addDaysISO(monday, 6);
+  const weekEnd = addDaysISO(weekStart, 6);
 
   const loadData = useCallback(async () => {
     const [staffRes, shiftsRes, coversRes, eventsRes] = await Promise.all([
@@ -48,13 +48,13 @@ export default function RotaPage() {
       supabase
         .from("rota_shifts")
         .select("staff_id, date, status, start_time, end_time")
-        .gte("date", monday)
+        .gte("date", weekStart)
         .lte("date", weekEnd),
-      supabase.from("daily_covers").select("*").gte("date", monday).lte("date", weekEnd),
+      supabase.from("daily_covers").select("*").gte("date", weekStart).lte("date", weekEnd),
       supabase
         .from("daily_events")
         .select("*")
-        .gte("date", monday)
+        .gte("date", weekStart)
         .lte("date", weekEnd)
         .order("id"),
     ]);
@@ -82,7 +82,7 @@ export default function RotaPage() {
       eventsMap[e.date].push(e);
     }
     setEvents(eventsMap);
-  }, [supabase, monday, weekEnd]);
+  }, [supabase, weekStart, weekEnd]);
 
   useEffect(() => {
     loadData();
@@ -155,21 +155,21 @@ export default function RotaPage() {
           <button
             className="text-xs px-3 py-1 rounded-2xl"
             style={{ border: `1px solid ${border}`, color: ink }}
-            onClick={() => setMonday((m) => addDaysISO(m, -7))}
+            onClick={() => setWeekStart((w) => addDaysISO(w, -7))}
           >
             ← Prev
           </button>
           <button
             className="text-xs px-3 py-1 rounded-2xl"
             style={{ border: `1px solid ${border}`, color: ink }}
-            onClick={() => setMonday(mondayOf(todayISO()))}
+            onClick={() => setWeekStart(weekStartOf(todayISO()))}
           >
             This week
           </button>
           <button
             className="text-xs px-3 py-1 rounded-2xl"
             style={{ border: `1px solid ${border}`, color: ink }}
-            onClick={() => setMonday((m) => addDaysISO(m, 7))}
+            onClick={() => setWeekStart((w) => addDaysISO(w, 7))}
           >
             Next →
           </button>

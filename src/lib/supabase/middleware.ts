@@ -1,7 +1,10 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-const PUBLIC_PATHS = ["/login", "/auth"];
+// API routes handle their own auth (session cookie, admin check, or a
+// shared secret for server-to-server calls like the rota sheet webhook) —
+// the blanket redirect-to-login below is only meant for page navigation.
+const PUBLIC_PATHS = ["/login", "/auth", "/api"];
 
 export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({ request });
