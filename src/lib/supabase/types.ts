@@ -45,7 +45,8 @@ export interface Database {
       rota_shifts: Table<
         {
           id: number;
-          staff_id: string;
+          staff_id: string | null;
+          staff_name: string;
           date: string;
           status: ShiftStatus;
           start_time: string | null;
@@ -53,7 +54,8 @@ export interface Database {
         },
         {
           id?: number;
-          staff_id: string;
+          staff_id?: string | null;
+          staff_name: string;
           date: string;
           status: ShiftStatus;
           start_time?: string | null;

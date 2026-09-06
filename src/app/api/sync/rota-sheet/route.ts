@@ -47,27 +47,28 @@ export async function POST(request: Request) {
   const { data: profiles } = await supabase.from("profiles").select("id, name");
   const idByName = new Map((profiles ?? []).map((p) => [p.name.trim().toLowerCase(), p.id]));
 
+  // Every sheet row gets written — staff_name is always known, staff_id is
+  // just an optional enrichment for whoever's already been invited. Someone
+  // without an account yet still shows up on the Rota screen; they just
+  // can't log in to see it themselves until they are.
   const unmatched = new Set<string>();
-  const shiftRows = [];
-  for (const s of parsed.shifts) {
-    const staffId = idByName.get(s.staffName.trim().toLowerCase());
-    if (!staffId) {
-      unmatched.add(s.staffName);
-      continue;
-    }
-    shiftRows.push({
+  const shiftRows = parsed.shifts.map((s) => {
+    const staffId = idByName.get(s.staffName.trim().toLowerCase()) ?? null;
+    if (!staffId) unmatched.add(s.staffName);
+    return {
       staff_id: staffId,
+      staff_name: s.staffName,
       date: s.date,
       status: s.status,
       start_time: s.start_time,
       end_time: s.end_time,
-    });
-  }
+    };
+  });
 
   if (shiftRows.length) {
     const { error } = await supabase
       .from("rota_shifts")
-      .upsert(shiftRows, { onConflict: "staff_id,date" });
+      .upsert(shiftRows, { onConflict: "staff_name,date" });
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   }
 

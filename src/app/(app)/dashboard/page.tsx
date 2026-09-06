@@ -55,7 +55,7 @@ export default function DashboardPage() {
       supabase.from("daily_covers").select("*").eq("date", today).maybeSingle(),
       supabase
         .from("rota_shifts")
-        .select("staff_id, start_time, end_time, status")
+        .select("staff_id, staff_name, start_time, end_time, status")
         .eq("date", today)
         .eq("status", "work"),
       supabase.from("daily_events").select("*").eq("date", today).order("id"),
@@ -75,7 +75,7 @@ export default function DashboardPage() {
     setCovers(coversRes.data ?? null);
     setEvents(eventsRes.data ?? []);
 
-    const staffIds = (shiftsRes.data ?? []).map((s) => s.staff_id);
+    const staffIds = (shiftsRes.data ?? []).map((s) => s.staff_id).filter(Boolean) as string[];
     const allTodoIds = [
       ...(todayTodosRes.data ?? []).flatMap((t) => [t.added_by, t.completed_by].filter(Boolean)),
       ...(outstandingRes.data ?? []).flatMap((t) => [t.added_by, t.completed_by].filter(Boolean)),
@@ -89,7 +89,7 @@ export default function DashboardPage() {
     setWorking(
       (shiftsRes.data ?? [])
         .map((s) => ({
-          name: nameById.get(s.staff_id) ?? "Unknown",
+          name: (s.staff_id && nameById.get(s.staff_id)) || s.staff_name,
           start: s.start_time,
           end: s.end_time,
         }))

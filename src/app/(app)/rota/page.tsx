@@ -20,7 +20,7 @@ import {
   warn,
 } from "@/lib/design-tokens";
 
-type Staff = { id: string; name: string };
+type Staff = { name: string; id: string | null };
 type Shift = { status: ShiftStatus; start_time: string | null; end_time: string | null };
 type Covers = { gih_count: number | null; breakfast_count: number | null };
 type EventRow = { id: number; room: string | null; title: string; details: string | null };
@@ -31,6 +31,7 @@ export default function RotaPage() {
   const supabase = createClient();
 
   const [weekStart, setWeekStart] = useState(() => weekStartOf(todayISO()));
+  const [availableWeeks, setAvailableWeeks] = useState<string[]>([]);
   const [editing, setEditing] = useState(false);
   const [staff, setStaff] = useState<Staff[]>([]);
   const [shifts, setShifts] = useState<Record<string, Record<string, Shift>>>({});
@@ -42,12 +43,28 @@ export default function RotaPage() {
   const today = todayISO();
   const weekEnd = addDaysISO(weekStart, 6);
 
+  const loadAvailableWeeks = useCallback(async () => {
+    const [coversRes, shiftsRes, eventsRes] = await Promise.all([
+      supabase.from("daily_covers").select("date"),
+      supabase.from("rota_shifts").select("date"),
+      supabase.from("daily_events").select("date"),
+    ]);
+    const allDates = [
+      ...(coversRes.data ?? []).map((r) => r.date),
+      ...(shiftsRes.data ?? []).map((r) => r.date),
+      ...(eventsRes.data ?? []).map((r) => r.date),
+      todayISO(),
+    ];
+    const weeks = Array.from(new Set(allDates.map((d) => weekStartOf(d)))).sort();
+    setAvailableWeeks(weeks);
+  }, [supabase]);
+
   const loadData = useCallback(async () => {
     const [staffRes, shiftsRes, coversRes, eventsRes] = await Promise.all([
       supabase.from("profiles").select("id, name").order("name"),
       supabase
         .from("rota_shifts")
-        .select("staff_id, date, status, start_time, end_time")
+        .select("staff_id, staff_name, date, status, start_time, end_time")
         .gte("date", weekStart)
         .lte("date", weekEnd),
       supabase.from("daily_covers").select("*").gte("date", weekStart).lte("date", weekEnd),
@@ -59,12 +76,19 @@ export default function RotaPage() {
         .order("id"),
     ]);
 
-    setStaff(staffRes.data ?? []);
+    const idByName = new Map((staffRes.data ?? []).map((p) => [p.name, p.id]));
+    const names = new Set((staffRes.data ?? []).map((p) => p.name));
+    for (const s of shiftsRes.data ?? []) names.add(s.staff_name);
+    setStaff(
+      Array.from(names)
+        .sort((a, b) => a.localeCompare(b))
+        .map((name) => ({ name, id: idByName.get(name) ?? null }))
+    );
 
     const shiftMap: Record<string, Record<string, Shift>> = {};
     for (const s of shiftsRes.data ?? []) {
-      shiftMap[s.staff_id] ??= {};
-      shiftMap[s.staff_id][s.date] = {
+      shiftMap[s.staff_name] ??= {};
+      shiftMap[s.staff_name][s.date] = {
         status: s.status,
         start_time: s.start_time,
         end_time: s.end_time,
@@ -85,19 +109,27 @@ export default function RotaPage() {
   }, [supabase, weekStart, weekEnd]);
 
   useEffect(() => {
+    loadAvailableWeeks();
+  }, [loadAvailableWeeks]);
+
+  useEffect(() => {
     loadData();
   }, [loadData]);
 
-  const saveShift = async (staffId: string, date: string, shift: Shift) => {
-    setShifts((prev) => ({ ...prev, [staffId]: { ...prev[staffId], [date]: shift } }));
+  const saveShift = async (person: Staff, date: string, shift: Shift) => {
+    setShifts((prev) => ({ ...prev, [person.name]: { ...prev[person.name], [date]: shift } }));
     await supabase
       .from("rota_shifts")
-      .upsert({ staff_id: staffId, date, ...shift }, { onConflict: "staff_id,date" });
+      .upsert(
+        { staff_id: person.id, staff_name: person.name, date, ...shift },
+        { onConflict: "staff_name,date" }
+      );
   };
 
   const saveCovers = async (date: string, next: Covers) => {
     setCovers((prev) => ({ ...prev, [date]: next }));
     await supabase.from("daily_covers").upsert({ date, ...next });
+    loadAvailableWeeks();
   };
 
   const addEvent = async (date: string) => {
@@ -147,7 +179,31 @@ export default function RotaPage() {
           </button>
         )}
       </div>
-      <div className="flex items-center justify-between mb-6 mt-2">
+
+      {/* Week picker — one pill per week that has any data, plus the current week */}
+      <div className="flex gap-1.5 overflow-x-auto mb-3 pb-1" style={{ scrollbarWidth: "thin" }}>
+        {availableWeeks.map((ws) => {
+          const wd = weekDates(ws);
+          const active = ws === weekStart;
+          return (
+            <button
+              key={ws}
+              onClick={() => setWeekStart(ws)}
+              className="text-xs px-3 py-1.5 rounded-2xl shrink-0 whitespace-nowrap"
+              style={{
+                background: active ? navy : surface,
+                color: active ? "#FFFFFF" : ink,
+                border: `1px solid ${active ? navy : border}`,
+                fontWeight: active ? 600 : 400,
+              }}
+            >
+              {wd[0].label} – {wd[6].label}
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="flex items-center justify-between mb-6">
         <p className="text-sm" style={{ color: inkSoft }}>
           {days[0].label} – {days[6].label}
         </p>
@@ -209,15 +265,20 @@ export default function RotaPage() {
           </thead>
           <tbody>
             {staff.map((person, pi) => (
-              <tr key={person.id} style={{ background: pi % 2 === 0 ? surface : bg }}>
+              <tr key={person.name} style={{ background: pi % 2 === 0 ? surface : bg }}>
                 <td
                   className="p-2 sticky left-0"
                   style={{ background: pi % 2 === 0 ? surface : bg, fontWeight: 500 }}
                 >
                   {person.name}
+                  {!person.id && (
+                    <span className="ml-1.5 text-[10px]" style={{ color: inkSoft }}>
+                      (not invited)
+                    </span>
+                  )}
                 </td>
                 {days.map((d) => {
-                  const shift = shifts[person.id]?.[d.date];
+                  const shift = shifts[person.name]?.[d.date];
                   return (
                     <td
                       key={d.date}
@@ -229,7 +290,7 @@ export default function RotaPage() {
                           <select
                             value={shift?.status ?? "off"}
                             onChange={(e) =>
-                              saveShift(person.id, d.date, {
+                              saveShift(person, d.date, {
                                 status: e.target.value as ShiftStatus,
                                 start_time: shift?.start_time ?? "09:00",
                                 end_time: shift?.end_time ?? "17:00",
@@ -248,7 +309,7 @@ export default function RotaPage() {
                                 type="time"
                                 value={shift.start_time ?? ""}
                                 onChange={(e) =>
-                                  saveShift(person.id, d.date, { ...shift, start_time: e.target.value })
+                                  saveShift(person, d.date, { ...shift, start_time: e.target.value })
                                 }
                                 className="text-xs rounded px-1 py-0.5 w-[68px]"
                                 style={inputStyle}
@@ -257,7 +318,7 @@ export default function RotaPage() {
                                 type="time"
                                 value={shift.end_time ?? ""}
                                 onChange={(e) =>
-                                  saveShift(person.id, d.date, { ...shift, end_time: e.target.value })
+                                  saveShift(person, d.date, { ...shift, end_time: e.target.value })
                                 }
                                 className="text-xs rounded px-1 py-0.5 w-[68px]"
                                 style={inputStyle}
