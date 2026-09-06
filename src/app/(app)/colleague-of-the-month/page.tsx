@@ -1,10 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Award, ThumbsUp } from "lucide-react";
+import { Award, ThumbsUp, Trash2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useProfile } from "@/lib/profile-context";
 import { initials } from "@/lib/shift-status";
+import { relativeTime, timestamp } from "@/lib/relative-time";
 import { Section } from "@/components/section";
 import { bg, border, ink, inkSoft, navy, navyText, orange, orangeSoft, surface } from "@/lib/design-tokens";
 
@@ -12,7 +13,9 @@ type Nomination = {
   id: number;
   nominee_name: string;
   reason: string;
+  nominatedById: string | null;
   nominatedByName: string;
+  created_at: string;
   votes: string[];
 };
 
@@ -40,7 +43,9 @@ export default function ColleagueOfTheMonthPage() {
         id: n.id,
         nominee_name: n.nominee_name,
         reason: n.reason,
+        nominatedById: n.nominated_by,
         nominatedByName: nameById.get(n.nominated_by ?? "") ?? "Someone",
+        created_at: n.created_at,
         votes: (voteRes.data ?? []).filter((v) => v.nomination_id === n.id).map((v) => v.user_id),
       }))
     );
@@ -84,6 +89,12 @@ export default function ColleagueOfTheMonthPage() {
     } else {
       await supabase.from("nomination_votes").insert({ nomination_id: nom.id, user_id: profile.id });
     }
+    loadData();
+  };
+
+  const deleteNomination = async (nom: Nomination) => {
+    if (!confirm("Delete this nomination?")) return;
+    await supabase.from("nominations").delete().eq("id", nom.id);
     loadData();
   };
 
@@ -145,6 +156,16 @@ export default function ColleagueOfTheMonthPage() {
               <p className="text-sm mt-2" style={{ color: ink }}>
                 {nom.reason}
               </p>
+              <div className="flex items-center justify-between mt-1.5">
+                <span className="text-xs whitespace-nowrap" style={{ color: inkSoft }}>
+                  {relativeTime(nom.created_at)} · {timestamp(nom.created_at)}
+                </span>
+                {(nom.nominatedById === profile.id || profile.role === "admin") && (
+                  <button onClick={() => deleteNomination(nom)} style={{ color: inkSoft }} title="Delete nomination">
+                    <Trash2 size={13} />
+                  </button>
+                )}
+              </div>
               <div className="flex items-center justify-between mt-3">
                 <button
                   onClick={() => toggleVote(nom)}
