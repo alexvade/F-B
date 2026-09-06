@@ -275,7 +275,7 @@ export default function DashboardPage() {
                         fontWeight: isIn ? 600 : 400,
                       }}
                     >
-                      {p.name}
+                      {p.name.split(" ")[0]}
                     </span>
                     {isIn && (
                       <span
