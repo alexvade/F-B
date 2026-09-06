@@ -75,8 +75,8 @@ export interface Database {
         { id?: number; date: string; room?: string | null; title: string; details?: string | null }
       >;
       checklists: Table<
-        { id: number; title: string; sort_order: number },
-        { id?: number; title: string; sort_order?: number }
+        { id: number; title: string; section: string; sort_order: number },
+        { id?: number; title: string; section?: string; sort_order?: number }
       >;
       checklist_items: Table<
         { id: number; checklist_id: number; text: string; sort_order: number },
