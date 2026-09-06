@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { useProfile } from "@/lib/profile-context";
 import { Section } from "@/components/section";
 import { bg, border, ink, inkSoft, navy, navyText, orange, surface } from "@/lib/design-tokens";
 
@@ -18,6 +19,7 @@ type Product = {
 };
 
 export default function StockOrdersPage() {
+  const profile = useProfile();
   const supabase = createClient();
   const [tabs, setTabs] = useState<string[]>([]);
   const [tab, setTab] = useState<string | null>(null);
@@ -78,6 +80,16 @@ export default function StockOrdersPage() {
 
   const tabProducts = products.filter((p) => p.tab_label === tab);
   const categories = Array.from(new Set(tabProducts.map((p) => p.category)));
+
+  if (profile.role !== "admin") {
+    return (
+      <Section title="Stock Orders">
+        <p className="text-sm" style={{ color: inkSoft }}>
+          Admins only.
+        </p>
+      </Section>
+    );
+  }
 
   return (
     <Section title="Stock Orders" subtitle="Add a quantity for anything that needs ordering">

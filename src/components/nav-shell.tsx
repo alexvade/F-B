@@ -27,7 +27,7 @@ const NAV_ITEMS = [
   { href: "/sops", label: "SOPs", icon: BookOpen },
   { href: "/colleague-of-the-month", label: "Colleague of the Month", icon: Award },
   { href: "/function-sheets", label: "Function Sheets", icon: FileStack },
-  { href: "/stock-orders", label: "Stock Orders", icon: ClipboardList },
+  { href: "/stock-orders", label: "Stock Orders", icon: ClipboardList, adminOnly: true },
 ];
 
 export function NavShell({
@@ -68,7 +68,7 @@ export function NavShell({
           </div>
         </div>
         <nav className="flex flex-col gap-1">
-          {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
+          {NAV_ITEMS.filter((item) => !item.adminOnly || isAdmin).map(({ href, label, icon: Icon }) => {
             const active = isActive(href);
             return (
               <Link
@@ -113,7 +113,7 @@ export function NavShell({
         className="sm:hidden fixed bottom-0 left-0 right-0 flex justify-around py-2 z-10"
         style={{ background: surface, borderTop: `1px solid ${border}` }}
       >
-        {NAV_ITEMS.map(({ href, icon: Icon }) => {
+        {NAV_ITEMS.filter((item) => !item.adminOnly || isAdmin).map(({ href, icon: Icon }) => {
           const active = isActive(href);
           return (
             <Link
