@@ -1,0 +1,30 @@
+[
+  {
+    "gih": 73,
+    "breakfast": 30
+  },
+  {
+    "gih": 45,
+    "breakfast": 73
+  },
+  {
+    "gih": 43,
+    "breakfast": 45
+  },
+  {
+    "gih": 55,
+    "breakfast": 43
+  },
+  {
+    "gih": 25,
+    "breakfast": 55
+  },
+  {
+    "gih": 32,
+    "breakfast": 25
+  },
+  {
+    "gih": 50,
+    "breakfast": 32
+  }
+]

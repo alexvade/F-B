@@ -1,0 +1,296 @@
+[
+  {
+    "id": 1,
+    "title": "Bar Opening Checklist",
+    "items": [
+      {
+        "id": 1,
+        "text": "Turn on music",
+        "done": false
+      },
+      {
+        "id": 2,
+        "text": "Refill bar caddie if required",
+        "done": false
+      },
+      {
+        "id": 3,
+        "text": "Clean all tables",
+        "done": false
+      },
+      {
+        "id": 4,
+        "text": "Drinks and food menus on all tables",
+        "done": false
+      },
+      {
+        "id": 5,
+        "text": "Empty bottle bins",
+        "done": false
+      },
+      {
+        "id": 6,
+        "text": "Clean fridge doors",
+        "done": false
+      },
+      {
+        "id": 7,
+        "text": "Prepare all garnishes",
+        "done": false
+      },
+      {
+        "id": 8,
+        "text": "Prepare bar nibbles (min 4)",
+        "done": false
+      },
+      {
+        "id": 9,
+        "text": "Fill up ice sink",
+        "done": false
+      },
+      {
+        "id": 10,
+        "text": "Stock up fridges",
+        "done": false
+      },
+      {
+        "id": 11,
+        "text": "Stock up wine fridge",
+        "done": false
+      },
+      {
+        "id": 12,
+        "text": "Refill back bar",
+        "done": false
+      },
+      {
+        "id": 13,
+        "text": "Set up utensils",
+        "done": false
+      },
+      {
+        "id": 14,
+        "text": "Attach beer nozzles",
+        "done": false
+      },
+      {
+        "id": 15,
+        "text": "Extra till and PDQ paper",
+        "done": false
+      },
+      {
+        "id": 16,
+        "text": "Wipe down bar top",
+        "done": false
+      }
+    ]
+  },
+  {
+    "id": 2,
+    "title": "Bar Closing Checklist",
+    "items": [
+      {
+        "id": 1,
+        "text": "Turn off music",
+        "done": false
+      },
+      {
+        "id": 2,
+        "text": "Refill bar caddie",
+        "done": false
+      },
+      {
+        "id": 3,
+        "text": "Clean all tables",
+        "done": false
+      },
+      {
+        "id": 4,
+        "text": "Take off all drinks and food menus on all tables",
+        "done": false
+      },
+      {
+        "id": 5,
+        "text": "Check cellar",
+        "done": false
+      },
+      {
+        "id": 6,
+        "text": "Clean fridge doors",
+        "done": false
+      },
+      {
+        "id": 7,
+        "text": "Wrap garnishes and day label",
+        "done": false
+      },
+      {
+        "id": 8,
+        "text": "Dispose of bar nibbles",
+        "done": false
+      },
+      {
+        "id": 9,
+        "text": "Remove candles/tealights",
+        "done": false
+      },
+      {
+        "id": 10,
+        "text": "Wash all glasses and refill",
+        "done": false
+      },
+      {
+        "id": 11,
+        "text": "Stock up wine fridge",
+        "done": false
+      },
+      {
+        "id": 12,
+        "text": "Wash drip trays",
+        "done": false
+      },
+      {
+        "id": 13,
+        "text": "Wash utensils",
+        "done": false
+      },
+      {
+        "id": 14,
+        "text": "Detach beer nozzles",
+        "done": false
+      },
+      {
+        "id": 15,
+        "text": "Organise trays",
+        "done": false
+      },
+      {
+        "id": 16,
+        "text": "Wipe down bar top",
+        "done": false
+      }
+    ]
+  },
+  {
+    "id": 3,
+    "title": "Bar Daily Cleaning Checklist",
+    "items": [
+      {
+        "id": 1,
+        "text": "Drip trays",
+        "done": false
+      },
+      {
+        "id": 2,
+        "text": "Work surface",
+        "done": false
+      },
+      {
+        "id": 3,
+        "text": "Fridge doors",
+        "done": false
+      },
+      {
+        "id": 4,
+        "text": "Till area",
+        "done": false
+      },
+      {
+        "id": 5,
+        "text": "Spirit/wine pourers",
+        "done": false
+      },
+      {
+        "id": 6,
+        "text": "Service trays",
+        "done": false
+      },
+      {
+        "id": 7,
+        "text": "Sweep floors",
+        "done": false
+      },
+      {
+        "id": 8,
+        "text": "Beer fonts",
+        "done": false
+      },
+      {
+        "id": 9,
+        "text": "Beer nozzles",
+        "done": false
+      },
+      {
+        "id": 10,
+        "text": "Bar utensils",
+        "done": false
+      },
+      {
+        "id": 11,
+        "text": "Bar menus",
+        "done": false
+      }
+    ]
+  },
+  {
+    "id": 4,
+    "title": "Bar Weekly Cleaning Checklist",
+    "items": [
+      {
+        "id": 1,
+        "text": "Ice machine",
+        "done": false
+      },
+      {
+        "id": 2,
+        "text": "Drinks fridge",
+        "done": false
+      },
+      {
+        "id": 3,
+        "text": "Shelves",
+        "done": false
+      },
+      {
+        "id": 4,
+        "text": "Bins",
+        "done": false
+      },
+      {
+        "id": 5,
+        "text": "Bottles on display",
+        "done": false
+      },
+      {
+        "id": 6,
+        "text": "Ice buckets and stands",
+        "done": false
+      },
+      {
+        "id": 7,
+        "text": "Ice sink",
+        "done": false
+      },
+      {
+        "id": 8,
+        "text": "Glasswasher",
+        "done": false
+      },
+      {
+        "id": 9,
+        "text": "Beer line cleaning",
+        "done": false
+      },
+      {
+        "id": 10,
+        "text": "Clean cellar",
+        "done": false
+      },
+      {
+        "id": 11,
+        "text": "Bar caddie",
+        "done": false
+      }
+    ]
+  }
+]

@@ -1,0 +1,1481 @@
+[
+  {
+    "id": 1,
+    "name": "Amaretto Sour",
+    "category": "Cocktail",
+    "shape": "rocks",
+    "color": "#E8A33D",
+    "garnish": "Orange twist and a cherry",
+    "ingredients": [
+      "50ml Amaretto",
+      "25ml fresh lemon juice",
+      "15ml sugar syrup",
+      "1 egg white (optional)",
+      "Dash of Angostura bitters"
+    ],
+    "method": [
+      "Add all ingredients to a shaker with ice.",
+      "Shake hard until well chilled.",
+      "Strain into a rocks glass over fresh ice.",
+      "Garnish and serve."
+    ]
+  },
+  {
+    "id": 2,
+    "name": "French 75",
+    "category": "Cocktail",
+    "shape": "flute",
+    "color": "#EEDD9A",
+    "garnish": "Lemon twist",
+    "ingredients": [
+      "25ml gin",
+      "15ml fresh lemon juice",
+      "10ml sugar syrup",
+      "Top with Champagne"
+    ],
+    "method": [
+      "Shake gin, lemon juice and syrup with ice.",
+      "Strain into a chilled flute.",
+      "Top slowly with Champagne.",
+      "Garnish and serve."
+    ]
+  },
+  {
+    "id": 3,
+    "name": "Passion Fruit Martini",
+    "category": "Cocktail",
+    "shape": "martini",
+    "color": "#F2A93B",
+    "garnish": "Half a passion fruit on the rim",
+    "ingredients": [
+      "40ml vodka",
+      "15ml passion fruit liqueur",
+      "20ml passion fruit puree",
+      "10ml vanilla syrup",
+      "10ml lime juice",
+      "Side shot of Prosecco"
+    ],
+    "method": [
+      "Shake all ingredients (except Prosecco) hard with ice.",
+      "Double strain into a chilled martini glass.",
+      "Serve with a side shot of Prosecco.",
+      "Garnish and serve."
+    ]
+  },
+  {
+    "id": 4,
+    "name": "Whiskey Sour",
+    "category": "Cocktail",
+    "shape": "rocks",
+    "color": "#C9832C",
+    "garnish": "Orange twist and a cherry",
+    "ingredients": [
+      "50ml bourbon",
+      "25ml fresh lemon juice",
+      "15ml sugar syrup",
+      "1 egg white (optional)"
+    ],
+    "method": [
+      "Dry shake all ingredients without ice.",
+      "Add ice and shake again until chilled.",
+      "Strain into a rocks glass over ice.",
+      "Garnish and serve."
+    ]
+  },
+  {
+    "id": 5,
+    "name": "Bloody Mary",
+    "category": "Cocktail",
+    "shape": "highball",
+    "color": "#B23A2E",
+    "garnish": "Celery stick",
+    "ingredients": [
+      "50ml vodka",
+      "100ml tomato juice",
+      "10ml fresh lemon juice",
+      "2 dashes Worcestershire sauce",
+      "2 dashes Tabasco",
+      "Pinch of celery salt and black pepper"
+    ],
+    "method": [
+      "Build all ingredients in a highball glass over ice.",
+      "Stir gently to combine.",
+      "Garnish and serve."
+    ]
+  },
+  {
+    "id": 6,
+    "name": "Aperol Spritz",
+    "category": "Cocktail",
+    "shape": "balloon",
+    "color": "#E2622B",
+    "garnish": "Orange slice",
+    "ingredients": [
+      "50ml Aperol",
+      "75ml Prosecco",
+      "Splash of soda water"
+    ],
+    "method": [
+      "Fill a balloon glass with ice.",
+      "Add Aperol, then Prosecco.",
+      "Top with a splash of soda water.",
+      "Stir gently, garnish and serve."
+    ]
+  },
+  {
+    "id": 7,
+    "name": "Negroni",
+    "category": "Cocktail",
+    "shape": "rocks",
+    "color": "#8B2A2A",
+    "garnish": "Orange peel",
+    "ingredients": [
+      "25ml gin",
+      "25ml Campari",
+      "25ml sweet vermouth"
+    ],
+    "method": [
+      "Add all ingredients to a mixing glass with ice.",
+      "Stir until well chilled.",
+      "Strain into a rocks glass over ice.",
+      "Garnish and serve."
+    ]
+  },
+  {
+    "id": 8,
+    "name": "Espresso Martini",
+    "category": "Cocktail",
+    "shape": "martini",
+    "color": "#4A3020",
+    "garnish": "Three coffee beans",
+    "ingredients": [
+      "40ml vodka",
+      "20ml coffee liqueur",
+      "25ml fresh espresso",
+      "10ml sugar syrup"
+    ],
+    "method": [
+      "Shake all ingredients hard with plenty of ice.",
+      "Double strain into a chilled martini glass.",
+      "Garnish and serve."
+    ]
+  },
+  {
+    "id": 9,
+    "name": "Hennessy Ginger",
+    "category": "Cocktail",
+    "shape": "highball",
+    "color": "#B5732E",
+    "garnish": "Lime wedge",
+    "ingredients": [
+      "50ml Hennessy cognac",
+      "Top with ginger ale",
+      "Squeeze of fresh lime"
+    ],
+    "method": [
+      "Fill a highball glass with ice.",
+      "Add Hennessy and a squeeze of lime.",
+      "Top with ginger ale and stir gently.",
+      "Garnish and serve."
+    ]
+  },
+  {
+    "id": 10,
+    "name": "Mojito",
+    "category": "Cocktail",
+    "shape": "highball",
+    "color": "#8FBF7A",
+    "garnish": "Mint sprig",
+    "ingredients": [
+      "50ml white rum",
+      "8 mint leaves",
+      "25ml fresh lime juice",
+      "15ml sugar syrup",
+      "Top with soda water"
+    ],
+    "method": [
+      "Muddle mint gently with lime juice and syrup.",
+      "Add rum and fill glass with crushed ice.",
+      "Top with soda water and stir.",
+      "Garnish and serve."
+    ]
+  },
+  {
+    "id": 11,
+    "name": "Daiquiri",
+    "category": "Cocktail",
+    "shape": "coupe",
+    "color": "#E8DFB0",
+    "garnish": "Lime wheel",
+    "ingredients": [
+      "50ml white rum",
+      "25ml fresh lime juice",
+      "15ml sugar syrup"
+    ],
+    "method": [
+      "Shake all ingredients hard with ice.",
+      "Double strain into a chilled coupe.",
+      "Garnish and serve."
+    ]
+  },
+  {
+    "id": 12,
+    "name": "Limoncello Spritz",
+    "category": "Cocktail",
+    "shape": "balloon",
+    "color": "#EDE28A",
+    "garnish": "Lemon slice",
+    "ingredients": [
+      "50ml limoncello",
+      "75ml Prosecco",
+      "Splash of soda water"
+    ],
+    "method": [
+      "Fill a balloon glass with ice.",
+      "Add limoncello, then Prosecco.",
+      "Top with soda water and stir gently.",
+      "Garnish and serve."
+    ]
+  },
+  {
+    "id": 13,
+    "name": "Margarita",
+    "category": "Cocktail",
+    "shape": "coupe",
+    "color": "#DCE7A8",
+    "garnish": "Lime wheel, salt rim",
+    "ingredients": [
+      "50ml tequila",
+      "20ml triple sec",
+      "25ml fresh lime juice",
+      "Salt for the rim"
+    ],
+    "method": [
+      "Salt the rim of a coupe or rocks glass.",
+      "Shake all ingredients hard with ice.",
+      "Strain into the prepared glass over ice.",
+      "Garnish and serve."
+    ]
+  },
+  {
+    "id": 14,
+    "name": "Old Fashioned",
+    "category": "Cocktail",
+    "shape": "rocks",
+    "color": "#A5601F",
+    "garnish": "Orange twist",
+    "ingredients": [
+      "50ml bourbon",
+      "1 sugar cube",
+      "2–3 dashes Angostura bitters",
+      "Splash of water"
+    ],
+    "method": [
+      "Muddle the sugar cube with bitters and a splash of water.",
+      "Add bourbon and a large ice cube.",
+      "Stir until chilled.",
+      "Garnish and serve."
+    ]
+  },
+  {
+    "id": 15,
+    "name": "Champagne Cocktail",
+    "category": "Cocktail",
+    "shape": "flute",
+    "color": "#EDDA9E",
+    "garnish": "Lemon twist",
+    "ingredients": [
+      "1 sugar cube",
+      "2–3 dashes Angostura bitters",
+      "Top with Champagne",
+      "Dash of brandy (optional)"
+    ],
+    "method": [
+      "Soak the sugar cube in bitters and drop into a flute.",
+      "Add a dash of brandy if using.",
+      "Top slowly with Champagne.",
+      "Garnish and serve."
+    ]
+  },
+  {
+    "id": 16,
+    "name": "Bellini",
+    "category": "Cocktail",
+    "shape": "flute",
+    "color": "#F0B98E",
+    "garnish": "None",
+    "ingredients": [
+      "25ml peach puree",
+      "Top with Prosecco"
+    ],
+    "method": [
+      "Add peach puree to a chilled flute.",
+      "Top slowly with Prosecco.",
+      "Stir gently and serve."
+    ]
+  },
+  {
+    "id": 17,
+    "name": "Kir Royale",
+    "category": "Cocktail",
+    "shape": "flute",
+    "color": "#C23B5E",
+    "garnish": "None",
+    "ingredients": [
+      "15ml crème de cassis",
+      "Top with Champagne"
+    ],
+    "method": [
+      "Add crème de cassis to a chilled flute.",
+      "Top slowly with Champagne.",
+      "Serve immediately."
+    ]
+  },
+  {
+    "id": 18,
+    "name": "Hugo Spritz",
+    "category": "Cocktail",
+    "shape": "balloon",
+    "color": "#CBE0A0",
+    "garnish": "Mint sprig and lime",
+    "ingredients": [
+      "25ml elderflower cordial or liqueur",
+      "Top with Prosecco",
+      "Splash of soda water",
+      "Fresh mint"
+    ],
+    "method": [
+      "Fill a balloon glass with ice and mint.",
+      "Add elderflower, then Prosecco.",
+      "Top with soda water and stir gently.",
+      "Garnish and serve."
+    ]
+  },
+  {
+    "id": 19,
+    "name": "Vodka Martini",
+    "category": "Cocktail",
+    "shape": "martini",
+    "color": "#DDE6E8",
+    "garnish": "Olive or lemon twist",
+    "ingredients": [
+      "50ml vodka",
+      "10ml dry vermouth"
+    ],
+    "method": [
+      "Stir (or shake) with ice until well chilled.",
+      "Strain into a chilled martini glass.",
+      "Garnish and serve."
+    ]
+  },
+  {
+    "id": 20,
+    "name": "Gin Martini",
+    "category": "Cocktail",
+    "shape": "martini",
+    "color": "#DCE8DC",
+    "garnish": "Olive or lemon twist",
+    "ingredients": [
+      "50ml gin",
+      "10ml dry vermouth"
+    ],
+    "method": [
+      "Stir with ice until well chilled.",
+      "Strain into a chilled martini glass.",
+      "Garnish and serve."
+    ]
+  },
+  {
+    "id": 21,
+    "name": "Baileys Hot Chocolate",
+    "category": "Cocktail",
+    "shape": "mug",
+    "color": "#5C3A24",
+    "garnish": "Chocolate shavings and cream",
+    "ingredients": [
+      "50ml Baileys",
+      "Hot chocolate, filled to the top",
+      "Whipped cream"
+    ],
+    "method": [
+      "Add Baileys to a warmed mug.",
+      "Top with hot chocolate.",
+      "Finish with whipped cream and garnish."
+    ]
+  },
+  {
+    "id": 22,
+    "name": "Baileys Coffee",
+    "category": "Cocktail",
+    "shape": "mug",
+    "color": "#4A3122",
+    "garnish": "Cream float",
+    "ingredients": [
+      "50ml Baileys",
+      "Hot filter coffee, filled to the top",
+      "Cream to float"
+    ],
+    "method": [
+      "Add Baileys to a warmed glass.",
+      "Top with hot coffee.",
+      "Float cream gently on top and serve."
+    ]
+  },
+  {
+    "id": 23,
+    "name": "Irish Coffee",
+    "category": "Cocktail",
+    "shape": "mug",
+    "color": "#3F2A1C",
+    "garnish": "Cream float",
+    "ingredients": [
+      "50ml Irish whiskey",
+      "Hot filter coffee, filled to the top",
+      "1 tsp brown sugar",
+      "Cream to float"
+    ],
+    "method": [
+      "Dissolve sugar in the whiskey in a warmed glass.",
+      "Top with hot coffee and stir.",
+      "Float cream gently on top and serve."
+    ]
+  },
+  {
+    "id": 24,
+    "name": "Virgin Mojito",
+    "category": "Mocktail",
+    "shape": "highball",
+    "color": "#9ED18A",
+    "garnish": "Mint sprig",
+    "ingredients": [
+      "8 mint leaves",
+      "25ml fresh lime juice",
+      "15ml sugar syrup",
+      "Top with soda water"
+    ],
+    "method": [
+      "Muddle mint gently with lime juice and syrup.",
+      "Fill glass with crushed ice.",
+      "Top with soda water and stir.",
+      "Garnish and serve."
+    ]
+  },
+  {
+    "id": 25,
+    "name": "Shirley Temple",
+    "category": "Mocktail",
+    "shape": "highball",
+    "color": "#E8A0A8",
+    "garnish": "Maraschino cherry",
+    "ingredients": [
+      "Top with ginger ale",
+      "15ml grenadine",
+      "Maraschino cherry"
+    ],
+    "method": [
+      "Fill a highball glass with ice.",
+      "Add grenadine, then top with ginger ale.",
+      "Stir gently, garnish and serve."
+    ]
+  },
+  {
+    "id": 26,
+    "name": "Elderflower Spritz (Non Alc)",
+    "category": "Mocktail",
+    "shape": "balloon",
+    "color": "#DDEAB8",
+    "garnish": "Lime wheel",
+    "ingredients": [
+      "25ml elderflower cordial",
+      "Top with soda water",
+      "Squeeze of fresh lime"
+    ],
+    "method": [
+      "Fill a balloon glass with ice.",
+      "Add elderflower cordial and lime juice.",
+      "Top with soda water and stir gently.",
+      "Garnish and serve."
+    ]
+  },
+  {
+    "id": 27,
+    "name": "Light & Zesty Mocktail",
+    "category": "Mocktail",
+    "shape": "highball",
+    "color": "#EDE07A",
+    "garnish": "Citrus wheel",
+    "ingredients": [
+      "Fresh orange juice",
+      "Fresh lemon juice",
+      "Fresh lime juice",
+      "Top with soda water",
+      "Fresh mint"
+    ],
+    "method": [
+      "Build citrus juices over ice in a highball glass.",
+      "Top with soda water and stir.",
+      "Garnish with mint and a citrus wheel."
+    ]
+  },
+  {
+    "id": 28,
+    "name": "Crimson Cooler Mocktail",
+    "category": "Mocktail",
+    "shape": "highball",
+    "color": "#B23050",
+    "garnish": "Lime wedge",
+    "ingredients": [
+      "Cranberry juice",
+      "Top with ginger ale",
+      "Squeeze of fresh lime",
+      "Dash of grenadine"
+    ],
+    "method": [
+      "Build cranberry juice and grenadine over ice.",
+      "Top with ginger ale and a squeeze of lime.",
+      "Stir gently, garnish and serve."
+    ]
+  },
+  {
+    "id": 29,
+    "name": "Non Alc Italian Orange Spritz",
+    "category": "Mocktail",
+    "shape": "balloon",
+    "color": "#E8823A",
+    "garnish": "Orange slice",
+    "ingredients": [
+      "Italian orange soda (e.g. San Bitter style)",
+      "Top with soda water",
+      "Orange slice"
+    ],
+    "method": [
+      "Fill a balloon glass with ice.",
+      "Add orange soda and top with soda water.",
+      "Stir gently, garnish and serve."
+    ]
+  },
+  {
+    "id": 30,
+    "name": "Mai Tai",
+    "category": "Cocktail",
+    "shape": "rocks",
+    "color": "#C9762E",
+    "garnish": "Mint sprig and lime wheel",
+    "ingredients": [
+      "50ml aged rum",
+      "15ml orange curaçao",
+      "15ml orgeat syrup",
+      "20ml fresh lime juice"
+    ],
+    "method": [
+      "Shake all ingredients hard with crushed ice.",
+      "Pour unstrained into a rocks glass.",
+      "Garnish and serve with a straw."
+    ]
+  },
+  {
+    "id": 31,
+    "name": "Piña Colada",
+    "category": "Cocktail",
+    "shape": "balloon",
+    "color": "#EDE6A8",
+    "garnish": "Pineapple wedge and cherry",
+    "ingredients": [
+      "50ml white rum",
+      "50ml coconut cream",
+      "50ml pineapple juice"
+    ],
+    "method": [
+      "Blend all ingredients with ice until smooth.",
+      "Pour into a balloon glass.",
+      "Garnish and serve with a straw."
+    ]
+  },
+  {
+    "id": 32,
+    "name": "Cosmopolitan",
+    "category": "Cocktail",
+    "shape": "martini",
+    "color": "#C23A5E",
+    "garnish": "Orange twist",
+    "ingredients": [
+      "40ml vodka",
+      "15ml triple sec",
+      "15ml fresh lime juice",
+      "30ml cranberry juice"
+    ],
+    "method": [
+      "Shake all ingredients hard with ice.",
+      "Double strain into a chilled martini glass.",
+      "Garnish and serve."
+    ]
+  },
+  {
+    "id": 33,
+    "name": "Manhattan",
+    "category": "Cocktail",
+    "shape": "coupe",
+    "color": "#7A2E1E",
+    "garnish": "Maraschino cherry",
+    "ingredients": [
+      "50ml rye or bourbon whiskey",
+      "20ml sweet vermouth",
+      "2 dashes Angostura bitters"
+    ],
+    "method": [
+      "Stir all ingredients with ice until well chilled.",
+      "Strain into a chilled coupe.",
+      "Garnish and serve."
+    ]
+  },
+  {
+    "id": 34,
+    "name": "Sidecar",
+    "category": "Cocktail",
+    "shape": "coupe",
+    "color": "#C9832C",
+    "garnish": "Orange twist, sugar rim",
+    "ingredients": [
+      "40ml Cognac",
+      "20ml triple sec",
+      "20ml fresh lemon juice"
+    ],
+    "method": [
+      "Shake all ingredients hard with ice.",
+      "Strain into a sugar-rimmed coupe.",
+      "Garnish and serve."
+    ]
+  },
+  {
+    "id": 35,
+    "name": "Tom Collins",
+    "category": "Cocktail",
+    "shape": "highball",
+    "color": "#EDE6A0",
+    "garnish": "Lemon wheel and cherry",
+    "ingredients": [
+      "50ml gin",
+      "25ml fresh lemon juice",
+      "15ml sugar syrup",
+      "Top with soda water"
+    ],
+    "method": [
+      "Shake gin, lemon juice and syrup with ice.",
+      "Strain into a highball over fresh ice.",
+      "Top with soda water, garnish and serve."
+    ]
+  },
+  {
+    "id": 36,
+    "name": "Gin Fizz",
+    "category": "Cocktail",
+    "shape": "highball",
+    "color": "#EDEAD0",
+    "garnish": "Lemon twist",
+    "ingredients": [
+      "50ml gin",
+      "25ml fresh lemon juice",
+      "15ml sugar syrup",
+      "Top with soda water"
+    ],
+    "method": [
+      "Shake gin, lemon juice and syrup hard with ice.",
+      "Strain into a highball over ice.",
+      "Top with soda water, garnish and serve."
+    ]
+  },
+  {
+    "id": 37,
+    "name": "Singapore Sling",
+    "category": "Cocktail",
+    "shape": "highball",
+    "color": "#D9536A",
+    "garnish": "Pineapple wedge and cherry",
+    "ingredients": [
+      "30ml gin",
+      "15ml cherry liqueur",
+      "10ml Cointreau",
+      "10ml Bénédictine",
+      "10ml grenadine",
+      "120ml pineapple juice",
+      "15ml lime juice",
+      "Dash of Angostura bitters"
+    ],
+    "method": [
+      "Shake all ingredients hard with ice.",
+      "Strain into a highball over ice.",
+      "Garnish and serve."
+    ]
+  },
+  {
+    "id": 38,
+    "name": "Dark 'n' Stormy",
+    "category": "Cocktail",
+    "shape": "highball",
+    "color": "#8B4A1E",
+    "garnish": "Lime wedge",
+    "ingredients": [
+      "50ml dark rum",
+      "Top with ginger beer",
+      "Squeeze of fresh lime"
+    ],
+    "method": [
+      "Fill a highball with ice.",
+      "Add lime juice, then float the dark rum on top of the ginger beer.",
+      "Garnish and serve."
+    ]
+  },
+  {
+    "id": 39,
+    "name": "Moscow Mule",
+    "category": "Cocktail",
+    "shape": "mug",
+    "color": "#DDE6A8",
+    "garnish": "Lime wedge and mint",
+    "ingredients": [
+      "50ml vodka",
+      "Top with ginger beer",
+      "Squeeze of fresh lime"
+    ],
+    "method": [
+      "Fill a copper mug with ice.",
+      "Add vodka and lime juice.",
+      "Top with ginger beer, garnish and serve."
+    ]
+  },
+  {
+    "id": 40,
+    "name": "Paloma",
+    "category": "Cocktail",
+    "shape": "highball",
+    "color": "#E8926A",
+    "garnish": "Grapefruit wedge, salt rim",
+    "ingredients": [
+      "50ml tequila",
+      "Top with grapefruit soda",
+      "Squeeze of fresh lime",
+      "Salt for the rim"
+    ],
+    "method": [
+      "Salt the rim of a highball glass.",
+      "Fill with ice and add tequila and lime juice.",
+      "Top with grapefruit soda, garnish and serve."
+    ]
+  },
+  {
+    "id": 41,
+    "name": "Long Island Iced Tea",
+    "category": "Cocktail",
+    "shape": "highball",
+    "color": "#B5732E",
+    "garnish": "Lemon wedge",
+    "ingredients": [
+      "15ml vodka",
+      "15ml gin",
+      "15ml white rum",
+      "15ml tequila",
+      "15ml triple sec",
+      "25ml fresh lemon juice",
+      "Top with cola"
+    ],
+    "method": [
+      "Shake all spirits and lemon juice with ice.",
+      "Strain into a highball over ice.",
+      "Top with cola, garnish and serve."
+    ]
+  },
+  {
+    "id": 42,
+    "name": "White Russian",
+    "category": "Cocktail",
+    "shape": "rocks",
+    "color": "#E8DCC8",
+    "garnish": "None",
+    "ingredients": [
+      "50ml vodka",
+      "20ml coffee liqueur",
+      "Top with fresh cream or milk"
+    ],
+    "method": [
+      "Build vodka and coffee liqueur over ice in a rocks glass.",
+      "Float cream on top.",
+      "Stir gently and serve."
+    ]
+  },
+  {
+    "id": 43,
+    "name": "Black Russian",
+    "category": "Cocktail",
+    "shape": "rocks",
+    "color": "#4A2E1A",
+    "garnish": "None",
+    "ingredients": [
+      "50ml vodka",
+      "20ml coffee liqueur"
+    ],
+    "method": [
+      "Build both ingredients over ice in a rocks glass.",
+      "Stir gently and serve."
+    ]
+  },
+  {
+    "id": 44,
+    "name": "Mudslide",
+    "category": "Cocktail",
+    "shape": "rocks",
+    "color": "#6B4226",
+    "garnish": "Chocolate drizzle",
+    "ingredients": [
+      "25ml vodka",
+      "25ml coffee liqueur",
+      "25ml Irish cream",
+      "25ml fresh cream"
+    ],
+    "method": [
+      "Shake or blend all ingredients with ice.",
+      "Pour into a rocks glass.",
+      "Garnish and serve."
+    ]
+  },
+  {
+    "id": 45,
+    "name": "Zombie",
+    "category": "Cocktail",
+    "shape": "highball",
+    "color": "#B5401E",
+    "garnish": "Mint sprig and pineapple",
+    "ingredients": [
+      "30ml white rum",
+      "30ml dark rum",
+      "30ml overproof rum",
+      "20ml lime juice",
+      "15ml falernum",
+      "15ml grapefruit juice",
+      "Dash of grenadine"
+    ],
+    "method": [
+      "Shake all ingredients hard with crushed ice.",
+      "Pour unstrained into a tall glass.",
+      "Garnish and serve with a straw."
+    ]
+  },
+  {
+    "id": 46,
+    "name": "Hurricane",
+    "category": "Cocktail",
+    "shape": "balloon",
+    "color": "#D9496A",
+    "garnish": "Orange slice and cherry",
+    "ingredients": [
+      "30ml white rum",
+      "30ml dark rum",
+      "20ml passion fruit syrup",
+      "15ml fresh lime juice",
+      "15ml fresh orange juice",
+      "Dash of grenadine"
+    ],
+    "method": [
+      "Shake all ingredients hard with ice.",
+      "Pour into a hurricane or balloon glass.",
+      "Garnish and serve."
+    ]
+  },
+  {
+    "id": 47,
+    "name": "Sex on the Beach",
+    "category": "Cocktail",
+    "shape": "highball",
+    "color": "#E8608A",
+    "garnish": "Orange slice",
+    "ingredients": [
+      "30ml vodka",
+      "15ml peach schnapps",
+      "60ml orange juice",
+      "60ml cranberry juice"
+    ],
+    "method": [
+      "Build all ingredients over ice in a highball glass.",
+      "Stir gently, garnish and serve."
+    ]
+  },
+  {
+    "id": 48,
+    "name": "Blue Lagoon",
+    "category": "Cocktail",
+    "shape": "highball",
+    "color": "#3E7AC9",
+    "garnish": "Lemon slice and cherry",
+    "ingredients": [
+      "40ml vodka",
+      "20ml blue curaçao",
+      "Top with lemonade"
+    ],
+    "method": [
+      "Build vodka and blue curaçao over ice in a highball.",
+      "Top with lemonade, garnish and serve."
+    ]
+  },
+  {
+    "id": 49,
+    "name": "Sea Breeze",
+    "category": "Cocktail",
+    "shape": "highball",
+    "color": "#D96A78",
+    "garnish": "Lime wedge",
+    "ingredients": [
+      "50ml vodka",
+      "75ml cranberry juice",
+      "25ml grapefruit juice"
+    ],
+    "method": [
+      "Build all ingredients over ice in a highball glass.",
+      "Stir gently, garnish and serve."
+    ]
+  },
+  {
+    "id": 50,
+    "name": "Bay Breeze",
+    "category": "Cocktail",
+    "shape": "highball",
+    "color": "#E8A08A",
+    "garnish": "Pineapple wedge",
+    "ingredients": [
+      "50ml vodka",
+      "75ml pineapple juice",
+      "25ml cranberry juice"
+    ],
+    "method": [
+      "Build all ingredients over ice in a highball glass.",
+      "Stir gently, garnish and serve."
+    ]
+  },
+  {
+    "id": 51,
+    "name": "Screwdriver",
+    "category": "Cocktail",
+    "shape": "highball",
+    "color": "#E89A3E",
+    "garnish": "Orange slice",
+    "ingredients": [
+      "50ml vodka",
+      "Top with fresh orange juice"
+    ],
+    "method": [
+      "Build vodka over ice in a highball glass.",
+      "Top with orange juice.",
+      "Stir gently, garnish and serve."
+    ]
+  },
+  {
+    "id": 52,
+    "name": "Tequila Sunrise",
+    "category": "Cocktail",
+    "shape": "highball",
+    "color": "#E8762E",
+    "garnish": "Orange slice and cherry",
+    "ingredients": [
+      "50ml tequila",
+      "Top with orange juice",
+      "15ml grenadine"
+    ],
+    "method": [
+      "Build tequila and orange juice over ice in a highball.",
+      "Slowly pour grenadine so it sinks and settles.",
+      "Garnish and serve."
+    ]
+  },
+  {
+    "id": 53,
+    "name": "Gimlet",
+    "category": "Cocktail",
+    "shape": "coupe",
+    "color": "#CDE0A0",
+    "garnish": "Lime wheel",
+    "ingredients": [
+      "50ml gin",
+      "20ml fresh lime juice",
+      "15ml sugar syrup"
+    ],
+    "method": [
+      "Shake all ingredients hard with ice.",
+      "Strain into a chilled coupe.",
+      "Garnish and serve."
+    ]
+  },
+  {
+    "id": 54,
+    "name": "Rusty Nail",
+    "category": "Cocktail",
+    "shape": "rocks",
+    "color": "#8B5A20",
+    "garnish": "Lemon twist",
+    "ingredients": [
+      "40ml Scotch whisky",
+      "20ml Drambuie"
+    ],
+    "method": [
+      "Build both ingredients over ice in a rocks glass.",
+      "Stir gently, garnish and serve."
+    ]
+  },
+  {
+    "id": 55,
+    "name": "Godfather",
+    "category": "Cocktail",
+    "shape": "rocks",
+    "color": "#A5691E",
+    "garnish": "None",
+    "ingredients": [
+      "40ml Scotch whisky",
+      "20ml Amaretto"
+    ],
+    "method": [
+      "Build both ingredients over ice in a rocks glass.",
+      "Stir gently and serve."
+    ]
+  },
+  {
+    "id": 56,
+    "name": "Godmother",
+    "category": "Cocktail",
+    "shape": "rocks",
+    "color": "#C9D0A8",
+    "garnish": "None",
+    "ingredients": [
+      "40ml vodka",
+      "20ml Amaretto"
+    ],
+    "method": [
+      "Build both ingredients over ice in a rocks glass.",
+      "Stir gently and serve."
+    ]
+  },
+  {
+    "id": 57,
+    "name": "Grasshopper",
+    "category": "Cocktail",
+    "shape": "coupe",
+    "color": "#8ECB8A",
+    "garnish": "Chocolate shavings",
+    "ingredients": [
+      "25ml green crème de menthe",
+      "25ml crème de cacao",
+      "25ml fresh cream"
+    ],
+    "method": [
+      "Shake all ingredients hard with ice.",
+      "Strain into a chilled coupe.",
+      "Garnish and serve."
+    ]
+  },
+  {
+    "id": 58,
+    "name": "Brandy Alexander",
+    "category": "Cocktail",
+    "shape": "coupe",
+    "color": "#D9C8A8",
+    "garnish": "Nutmeg dusting",
+    "ingredients": [
+      "25ml Cognac",
+      "25ml crème de cacao",
+      "25ml fresh cream"
+    ],
+    "method": [
+      "Shake all ingredients hard with ice.",
+      "Strain into a chilled coupe.",
+      "Garnish and serve."
+    ]
+  },
+  {
+    "id": 59,
+    "name": "Sazerac",
+    "category": "Cocktail",
+    "shape": "rocks",
+    "color": "#A5601F",
+    "garnish": "Lemon twist",
+    "ingredients": [
+      "50ml rye whiskey",
+      "1 sugar cube",
+      "3 dashes Peychaud's bitters",
+      "Rinse of absinthe"
+    ],
+    "method": [
+      "Rinse a chilled rocks glass with absinthe and discard the excess.",
+      "Muddle sugar cube with bitters, add whiskey and ice.",
+      "Stir until chilled and strain into the prepared glass.",
+      "Garnish and serve."
+    ]
+  },
+  {
+    "id": 60,
+    "name": "Mint Julep",
+    "category": "Cocktail",
+    "shape": "rocks",
+    "color": "#A5691E",
+    "garnish": "Large mint bouquet",
+    "ingredients": [
+      "60ml bourbon",
+      "10 mint leaves",
+      "10ml sugar syrup"
+    ],
+    "method": [
+      "Muddle mint gently with sugar syrup.",
+      "Add bourbon and pack the glass with crushed ice.",
+      "Stir until frosted, garnish and serve."
+    ]
+  },
+  {
+    "id": 61,
+    "name": "Boulevardier",
+    "category": "Cocktail",
+    "shape": "rocks",
+    "color": "#8B2A2A",
+    "garnish": "Orange twist",
+    "ingredients": [
+      "30ml bourbon",
+      "30ml Campari",
+      "30ml sweet vermouth"
+    ],
+    "method": [
+      "Stir all ingredients with ice until well chilled.",
+      "Strain into a rocks glass over ice.",
+      "Garnish and serve."
+    ]
+  },
+  {
+    "id": 62,
+    "name": "Vieux Carré",
+    "category": "Cocktail",
+    "shape": "rocks",
+    "color": "#8B4A2E",
+    "garnish": "Lemon twist",
+    "ingredients": [
+      "20ml rye whiskey",
+      "20ml Cognac",
+      "20ml sweet vermouth",
+      "Dash of Bénédictine",
+      "Dash of Peychaud's bitters"
+    ],
+    "method": [
+      "Stir all ingredients with ice until well chilled.",
+      "Strain into a rocks glass over ice.",
+      "Garnish and serve."
+    ]
+  },
+  {
+    "id": 63,
+    "name": "Corpse Reviver No. 2",
+    "category": "Cocktail",
+    "shape": "coupe",
+    "color": "#EDE8A0",
+    "garnish": "Absinthe rinse, lemon twist",
+    "ingredients": [
+      "20ml gin",
+      "20ml triple sec",
+      "20ml Lillet Blanc",
+      "20ml fresh lemon juice",
+      "Dash of absinthe"
+    ],
+    "method": [
+      "Rinse a chilled coupe with absinthe.",
+      "Shake remaining ingredients hard with ice.",
+      "Strain into the prepared glass.",
+      "Garnish and serve."
+    ]
+  },
+  {
+    "id": 64,
+    "name": "Clover Club",
+    "category": "Cocktail",
+    "shape": "coupe",
+    "color": "#D9506A",
+    "garnish": "Raspberries",
+    "ingredients": [
+      "45ml gin",
+      "15ml fresh lemon juice",
+      "15ml raspberry syrup",
+      "1 egg white"
+    ],
+    "method": [
+      "Dry shake all ingredients without ice.",
+      "Add ice and shake again until well chilled.",
+      "Strain into a chilled coupe.",
+      "Garnish and serve."
+    ]
+  },
+  {
+    "id": 65,
+    "name": "Bramble",
+    "category": "Cocktail",
+    "shape": "rocks",
+    "color": "#8B2E4A",
+    "garnish": "Lemon wedge and blackberry",
+    "ingredients": [
+      "50ml gin",
+      "25ml fresh lemon juice",
+      "15ml sugar syrup",
+      "15ml blackberry liqueur"
+    ],
+    "method": [
+      "Shake gin, lemon juice and syrup with ice.",
+      "Strain into a rocks glass filled with crushed ice.",
+      "Drizzle blackberry liqueur over the top.",
+      "Garnish and serve."
+    ]
+  },
+  {
+    "id": 66,
+    "name": "Aviation",
+    "category": "Cocktail",
+    "shape": "coupe",
+    "color": "#D9CDE0",
+    "garnish": "Maraschino cherry",
+    "ingredients": [
+      "45ml gin",
+      "15ml maraschino liqueur",
+      "15ml fresh lemon juice",
+      "Dash of crème de violette"
+    ],
+    "method": [
+      "Shake all ingredients hard with ice.",
+      "Strain into a chilled coupe.",
+      "Garnish and serve."
+    ]
+  },
+  {
+    "id": 67,
+    "name": "Last Word",
+    "category": "Cocktail",
+    "shape": "coupe",
+    "color": "#8ECB8A",
+    "garnish": "None",
+    "ingredients": [
+      "20ml gin",
+      "20ml green Chartreuse",
+      "20ml maraschino liqueur",
+      "20ml fresh lime juice"
+    ],
+    "method": [
+      "Shake all ingredients hard with ice.",
+      "Strain into a chilled coupe.",
+      "Serve."
+    ]
+  },
+  {
+    "id": 68,
+    "name": "Paper Plane",
+    "category": "Cocktail",
+    "shape": "coupe",
+    "color": "#D97A3E",
+    "garnish": "None",
+    "ingredients": [
+      "20ml bourbon",
+      "20ml Aperol",
+      "20ml Amaro Nonino",
+      "20ml fresh lemon juice"
+    ],
+    "method": [
+      "Shake all ingredients hard with ice.",
+      "Strain into a chilled coupe.",
+      "Serve."
+    ]
+  },
+  {
+    "id": 69,
+    "name": "Penicillin",
+    "category": "Cocktail",
+    "shape": "rocks",
+    "color": "#B5731E",
+    "garnish": "Candied ginger",
+    "ingredients": [
+      "50ml blended Scotch whisky",
+      "20ml fresh lemon juice",
+      "20ml honey-ginger syrup",
+      "Float of Islay Scotch"
+    ],
+    "method": [
+      "Shake blended Scotch, lemon juice and honey-ginger syrup with ice.",
+      "Strain into a rocks glass over ice.",
+      "Float the Islay Scotch on top.",
+      "Garnish and serve."
+    ]
+  },
+  {
+    "id": 70,
+    "name": "Amaretto Stone Sour",
+    "category": "Cocktail",
+    "shape": "highball",
+    "color": "#E8A33D",
+    "garnish": "Orange slice and cherry",
+    "ingredients": [
+      "50ml Amaretto",
+      "25ml fresh orange juice",
+      "25ml fresh lemon juice",
+      "15ml sugar syrup"
+    ],
+    "method": [
+      "Shake all ingredients hard with ice.",
+      "Strain into a highball over ice.",
+      "Garnish and serve."
+    ]
+  },
+  {
+    "id": 71,
+    "name": "Cuba Libre",
+    "category": "Cocktail",
+    "shape": "highball",
+    "color": "#5C3A20",
+    "garnish": "Lime wedge",
+    "ingredients": [
+      "50ml white rum",
+      "Top with cola",
+      "Squeeze of fresh lime"
+    ],
+    "method": [
+      "Build rum and lime juice over ice in a highball.",
+      "Top with cola, garnish and serve."
+    ]
+  },
+  {
+    "id": 72,
+    "name": "Dirty Martini",
+    "category": "Cocktail",
+    "shape": "martini",
+    "color": "#DDE0C8",
+    "garnish": "Olives",
+    "ingredients": [
+      "50ml vodka or gin",
+      "10ml dry vermouth",
+      "10ml olive brine"
+    ],
+    "method": [
+      "Stir all ingredients with ice until well chilled.",
+      "Strain into a chilled martini glass.",
+      "Garnish and serve."
+    ]
+  },
+  {
+    "id": 73,
+    "name": "Caipirinha",
+    "category": "Cocktail",
+    "shape": "rocks",
+    "color": "#DCE7A0",
+    "garnish": "Lime wedges",
+    "ingredients": [
+      "50ml cachaça",
+      "1 fresh lime, cut into wedges",
+      "15ml sugar syrup"
+    ],
+    "method": [
+      "Muddle lime wedges with sugar syrup in a rocks glass.",
+      "Fill with crushed ice and add cachaça.",
+      "Stir well, garnish and serve."
+    ]
+  },
+  {
+    "id": 74,
+    "name": "Mimosa",
+    "category": "Cocktail",
+    "shape": "flute",
+    "color": "#EDB86E",
+    "garnish": "None",
+    "ingredients": [
+      "Fresh orange juice",
+      "Top with Champagne"
+    ],
+    "method": [
+      "Add orange juice to a chilled flute.",
+      "Top slowly with Champagne.",
+      "Stir gently and serve."
+    ]
+  },
+  {
+    "id": 75,
+    "name": "French Connection",
+    "category": "Cocktail",
+    "shape": "rocks",
+    "color": "#B5732E",
+    "garnish": "None",
+    "ingredients": [
+      "35ml Cognac",
+      "35ml Amaretto"
+    ],
+    "method": [
+      "Build both ingredients over ice in a rocks glass.",
+      "Stir gently and serve."
+    ]
+  },
+  {
+    "id": 76,
+    "name": "B-52",
+    "category": "Cocktail",
+    "shape": "rocks",
+    "color": "#4A3020",
+    "garnish": "None (layered shot)",
+    "ingredients": [
+      "20ml coffee liqueur",
+      "20ml Irish cream",
+      "20ml orange liqueur"
+    ],
+    "method": [
+      "Pour coffee liqueur into a glass first.",
+      "Layer Irish cream slowly over the back of a spoon.",
+      "Layer orange liqueur on top the same way.",
+      "Serve immediately."
+    ]
+  },
+  {
+    "id": 77,
+    "name": "Irish Mule",
+    "category": "Cocktail",
+    "shape": "mug",
+    "color": "#DDE6A8",
+    "garnish": "Lime wedge",
+    "ingredients": [
+      "50ml Irish whiskey",
+      "Top with ginger beer",
+      "Squeeze of fresh lime"
+    ],
+    "method": [
+      "Fill a copper mug with ice.",
+      "Add whiskey and lime juice.",
+      "Top with ginger beer, garnish and serve."
+    ]
+  },
+  {
+    "id": 78,
+    "name": "Jack Rose",
+    "category": "Cocktail",
+    "shape": "coupe",
+    "color": "#D9506A",
+    "garnish": "None",
+    "ingredients": [
+      "50ml applejack or Calvados",
+      "20ml fresh lime juice",
+      "15ml grenadine"
+    ],
+    "method": [
+      "Shake all ingredients hard with ice.",
+      "Strain into a chilled coupe.",
+      "Serve."
+    ]
+  },
+  {
+    "id": 79,
+    "name": "French Martini",
+    "category": "Cocktail",
+    "shape": "martini",
+    "color": "#E8B03E",
+    "garnish": "None",
+    "ingredients": [
+      "40ml vodka",
+      "20ml Chambord raspberry liqueur",
+      "40ml pineapple juice"
+    ],
+    "method": [
+      "Shake all ingredients hard with ice.",
+      "Double strain into a chilled martini glass.",
+      "Serve."
+    ]
+  }
+]

@@ -1,0 +1,21 @@
+[
+  {
+    "id": 1,
+    "nominee": "Ellis Cooper-Murray",
+    "reason": "Covered two extra shifts at short notice this month and still showed up with a great attitude every time.",
+    "nominatedBy": "Natalie Dunham",
+    "votes": [
+      "Natalie Dunham",
+      "Gabi Vadeanu"
+    ]
+  },
+  {
+    "id": 2,
+    "nominee": "Jamie Brunskill",
+    "reason": "Fixed the walk-in fridge issue on a Sunday before it became a food safety problem — saved us a lot of stock.",
+    "nominatedBy": "Gabi Vadeanu",
+    "votes": [
+      "Gabi Vadeanu"
+    ]
+  }
+]

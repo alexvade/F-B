@@ -1,0 +1,17 @@
+[
+  {
+    "id": 1,
+    "time": "9:00am",
+    "title": "Fire alarm test"
+  },
+  {
+    "id": 2,
+    "time": "10:30am",
+    "title": "Stock delivery — sign at back door"
+  },
+  {
+    "id": 3,
+    "time": "2:00pm",
+    "title": "Team catch-up (15 min, staff room)"
+  }
+]

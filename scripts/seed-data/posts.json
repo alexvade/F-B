@@ -1,0 +1,59 @@
+[
+  {
+    "id": 1,
+    "author": "Paeony Richards",
+    "time": "Just now",
+    "text": "Terrace looking gorgeous for tonight's dinner service ☀️",
+    "photo": null,
+    "file": null,
+    "comments": []
+  },
+  {
+    "id": 2,
+    "author": "Max Buchanan",
+    "time": "2 hours ago",
+    "text": "Bar's all set up and ready for the wedding party arriving at 6!",
+    "photo": null,
+    "file": null,
+    "comments": [
+      {
+        "id": 1,
+        "author": "Zoe Gill",
+        "text": "Looks great, thank you!"
+      }
+    ]
+  },
+  {
+    "id": 3,
+    "author": "Emma Fenton",
+    "time": "Yesterday",
+    "text": "Fire alarm test scheduled for Thursday 9am — no action needed, just a heads up so nobody panics.",
+    "photo": null,
+    "file": null,
+    "comments": [
+      {
+        "id": 1,
+        "author": "Will Carr",
+        "text": "Thanks for the heads up, I'll let the delivery driver know too."
+      }
+    ]
+  },
+  {
+    "id": 4,
+    "author": "Joel Tanner",
+    "time": "Monday",
+    "text": "New supplier for cleaning stock starts this week. Order sheet is in the SOPs tab under Facilities.",
+    "photo": null,
+    "file": null,
+    "comments": []
+  },
+  {
+    "id": 5,
+    "author": "Zoe Gill",
+    "time": "Monday",
+    "text": "Quick team briefing before the Saturday rush — great energy from everyone today 👏",
+    "photo": null,
+    "file": null,
+    "comments": []
+  }
+]

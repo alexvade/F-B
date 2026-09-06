@@ -1,0 +1,37 @@
+[
+  {
+    "date": "2026-09-04",
+    "day": "Fri",
+    "label": "04 Sep"
+  },
+  {
+    "date": "2026-09-05",
+    "day": "Sat",
+    "label": "05 Sep"
+  },
+  {
+    "date": "2026-09-06",
+    "day": "Sun",
+    "label": "06 Sep"
+  },
+  {
+    "date": "2026-09-07",
+    "day": "Mon",
+    "label": "07 Sep"
+  },
+  {
+    "date": "2026-09-08",
+    "day": "Tue",
+    "label": "08 Sep"
+  },
+  {
+    "date": "2026-09-09",
+    "day": "Wed",
+    "label": "09 Sep"
+  },
+  {
+    "date": "2026-09-10",
+    "day": "Thu",
+    "label": "10 Sep"
+  }
+]

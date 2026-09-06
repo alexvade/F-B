@@ -1,0 +1,620 @@
+[
+  {
+    "id": 1,
+    "category": "Wine Service",
+    "title": "Glassware Handling & Checking",
+    "steps": [
+      "Always hold a stemmed glass by the stem, gripping between thumb and index finger — never by the bowl or rim.",
+      "Hold stemless glasses (hi-ball, tumbler) by the base, thumb/index/middle finger with the other fingers resting on the base.",
+      "Check glasses coming out of the glasswasher, and all glasses on tables ahead of every service.",
+      "Hold the glass by the stem/base and lift to the light to check for chips, marks, dirt or watermarks.",
+      "Never present a guest with a glass that isn't properly polished — get a new one and re-polish the first following the Polishing Glassware SOP.",
+      "All wine glasses are held the same way regardless of the wine being served."
+    ],
+    "imageFile": "sop-1.jpg"
+  },
+  {
+    "id": 2,
+    "category": "Wine Service",
+    "title": "Balancing & Carrying a Tray",
+    "steps": [
+      "Use a tray for all glassware (clean or dirty) and most restaurant items — except wine bottles, which can overbalance.",
+      "Select a 12\" stainless steel tray with a black non-slip liner so glasses don't slip.",
+      "Check the tray is clean, with no greasy or sticky residue, before use.",
+      "Pick up the tray with a flat hand under the centre, fingers and palm resting on the surface, held at waist height.",
+      "Load from the centre out with the heaviest drinks in the middle — do several trips rather than overloading.",
+      "Carry at waist height with one hand so you can open doors; use your second hand only for extra stability if needed.",
+      "Remove glasses from the outside of the tray working inwards, holding by the stem or base only.",
+      "Place or clear glasses to the guest's right-hand side where possible, since most people are right-handed."
+    ],
+    "imageFile": "sop-2.jpg"
+  },
+  {
+    "id": 3,
+    "category": "Wine Service",
+    "title": "Polishing Glassware",
+    "steps": [
+      "Use two professional polishing cloths per glass — one for the bowl, one to hold the base — replacing them once wet.",
+      "Pick the glass up by the stem, hold the base with one cloth, and twist the second cloth inside the bowl from bottom to top.",
+      "Never twist the stem and bowl in opposite directions — this can snap the stem and cause injury.",
+      "Polish the outside by moving your hand up the stem and bowl with the base cloth, again without excessive pressure.",
+      "Polish the base with small circular motions to buff out fingerprints or streaks.",
+      "Check the finished glass by holding it to the light for chips, marks, dirt or watermarks, and repeat any step if needed.",
+      "Glassware on tables that shows marks ahead of service should be steamed manually using the same polishing technique."
+    ],
+    "imageFile": "sop-3.jpg"
+  },
+  {
+    "id": 4,
+    "category": "Wine Service",
+    "title": "Using & Maintaining a Glasswasher",
+    "steps": [
+      "At the start of the day, check the chemical drawers (glass wash detergent and rinse aid) are full, following COSHH procedures.",
+      "Check salt levels where applicable — salt softens the water and prevents limescale build-up and shiny glasses.",
+      "Fill the machine with water and turn it on, using the correct button for your machine type.",
+      "Place glasses upside down in the correct size racks, fully rinsed of any liquid or residue, and not overhanging the rack.",
+      "Run the wash cycle, then remove the rack once complete and place on a clean surface to reach room temperature before polishing.",
+      "At the end of the day, drain the machine, remove and rinse the filter and arms, then clean the interior with a soft brush and non-foaming sanitiser — never soap.",
+      "Wipe the exterior with a damp cloth, reassemble, and run one more cycle to clear any cleaning residue."
+    ],
+    "imageFile": "sop-4.jpg"
+  },
+  {
+    "id": 5,
+    "category": "Wine Service",
+    "title": "Folding a Drop Cloth",
+    "steps": [
+      "Check the table is clean and dry, and the cloth is clean, ironed and free of marks.",
+      "Lay the cloth flat with the seams facing upward so they fold inwards.",
+      "Fold the bottom third up and the top third down over it, leaving a one-third-wide strip.",
+      "Crease the fold using the back of your hands, which carry less bacteria than your palms.",
+      "Fold the strip in half lengthways, keeping it flat and tight, pressing firmly along the crease.",
+      "Fold each end in to meet at the centre (mark the middle with your index finger), then fold in half again.",
+      "The finished cloth gives 8 clean surfaces you can flip through as needed, and fits neatly in your pocket."
+    ],
+    "imageFile": "sop-5.jpg"
+  },
+  {
+    "id": 6,
+    "category": "Wine Service",
+    "title": "Coasters",
+    "steps": [
+      "Coasters must be Hand Picked branded, clean and free of ring stains or marks before use.",
+      "Place with the logo facing the guest, on their right-hand side (most guests are right-handed).",
+      "Used in the bar, restaurant, terraces, C&B and guest rooms — including under sparkling water so no need to ask which water a guest has.",
+      "Used for all cold drinks and any glass bottles left on the table (wine, beer, soft drinks, water).",
+      "Place the coaster once an order is taken, so other staff can see at a glance that the order is in."
+    ],
+    "imageFile": "sop-6.jpg"
+  },
+  {
+    "id": 7,
+    "category": "Wine Service",
+    "title": "Reading a Wine Label",
+    "steps": [
+      "Check the label against the wine list — no extra or missing words; if in doubt, ask a manager to double check.",
+      "As a minimum, check six items: the producer, the village/vineyard/wine name, grape variety, vintage/year, any special denomination (e.g. \"Grand Cru\"), and bottle size.",
+      "Both the person who fetches the bottle and the person who serves it are responsible for confirming it's the correct wine.",
+      "A more specific area name (e.g. \"Gevrey-Chambertin\" vs plain \"Bourgogne\") usually signals a more premium, more expensive wine — as does wording like \"Grand Cru\"."
+    ],
+    "imageFile": null
+  },
+  {
+    "id": 8,
+    "category": "Wine Service",
+    "title": "Presenting the Wine List",
+    "steps": [
+      "Introduce the food menu to all guests first; only present the wine list once that's done.",
+      "Check the list is clean, uncreased and clearly printed before taking it to the table.",
+      "Ask \"Who would like to see the wine list?\" rather than \"Would you like to see the wine list?\" — always present one.",
+      "Open to the introduction page from Julia Hands, Founder and Chair of Hand Picked Hotels, and be ready to talk guests through it if they're interested.",
+      "Mention the private cellar selection and the diverse range from around the world, and that pricing is kept lower than other hotels by design.",
+      "If the guest doesn't want to read it immediately, close the cover and leave it on the table rather than taking it away."
+    ],
+    "imageFile": null
+  },
+  {
+    "id": 9,
+    "category": "Wine Service",
+    "title": "Finding Wine in the Cellar & Fridges",
+    "steps": [
+      "Identify the wine ordered on the wine list first — this tells you whether it's stored in a cellar or a fridge.",
+      "Cellars are usually organised in country order matching the wine list; every cellar has its own guide to help locate bottles.",
+      "Fridges usually have a copy of the wine list with location codes (e.g. G17 = Row G, Column 17) and shelf labels.",
+      "Cellar and fridge layouts differ between hotels — always check with your manager.",
+      "Wipe the bottle to remove dust or condensation, then check the label against the \"Reading a Wine Label\" SOP before delivering it to the table.",
+      "Practice finding wines during quiet periods to build speed and accuracy."
+    ],
+    "imageFile": "sop-9.jpg"
+  },
+  {
+    "id": 10,
+    "category": "Wine Service",
+    "title": "Carrying & Presenting a Bottle of Wine",
+    "steps": [
+      "Carry the bottle label-forward in the palm of your hand, three middle fingers underneath the base, cradled in your arm.",
+      "Extend your cradling arm towards the guest who ordered the wine, steadying the neck with your second hand if needed.",
+      "Read three things to the guest: the name of the wine/producer, the vintage, and any special denomination (e.g. \"Grand Cru\").",
+      "Wait a few seconds for the guest to confirm acceptance — a simple nod is enough."
+    ],
+    "imageFile": "sop-10.jpg"
+  },
+  {
+    "id": 11,
+    "category": "In Room Dining",
+    "title": "Delivery to the Room",
+    "steps": [
+      "Call the room ahead of delivery: greet the guest by name, introduce yourself and where you're calling from, and confirm the order will arrive within 5 minutes.",
+      "Confirm any final details (e.g. condiments) and let the guest end the call first.",
+      "Knock clearly 3 times and announce \"In Room Dining\"; if there's no answer, wait 10 seconds and knock again.",
+      "Greet the guest by name with a smile and ask permission to enter the room.",
+      "Ask where they'd like the tray placed, and position chairs for the guest(s) if appropriate.",
+      "Offer to set up the table properly, and offer to pour any coffee/tea/bottled drinks — pouring cold drinks only half full and leaving the rest for the guest.",
+      "Remove cloches/stancaps unless the guest prefers them left on, and clearly announce the food and drink delivered.",
+      "Present the bill in a branded folder, invite the guest to check it, and show them where to sign.",
+      "Explain the two tray-collection options: leave it outside the room, or call reception to collect it.",
+      "Wish the guest a warm farewell by name, and take the cloches and signed bill folder with you."
+    ],
+    "imageFile": "sop-11.jpg"
+  },
+  {
+    "id": 12,
+    "category": "In Room Dining",
+    "title": "Phone Talk Liners",
+    "steps": [
+      "Answer with a time-appropriate greeting and your name, then confirm the guest wants In Room Dining.",
+      "Confirm the surname on the reservation, and ask about allergies or intolerances before taking the order.",
+      "For food: ask what they'd like, whether they want any sides, desserts, and any beverages (ice, hot milk for an americano, etc). Confirm the full order back to the guest including any changes.",
+      "Give a time estimate of around 30 minutes for food — call back proactively if there's a delay (e.g. a function is being plated at the same time).",
+      "For drinks orders: follow the same greeting and allergy check, then ask about ice, garnish (especially soft drinks), tea preference, or hot milk for an americano.",
+      "Give a time estimate of 10–15 minutes for drinks, and call back if there's a delay."
+    ],
+    "imageFile": null
+  },
+  {
+    "id": 13,
+    "category": "In Room Dining",
+    "title": "Dinner Tray Set Up",
+    "steps": [
+      "Reference: Wood Hall Hotel Food & Beverage SOP — In Room Dining Tray.",
+      "Follow the pictured dinner tray layout exactly so trays are consistent across every delivery."
+    ],
+    "imageFile": "sop-13.jpg"
+  },
+  {
+    "id": 14,
+    "category": "In Room Dining",
+    "title": "Additional Tray Items",
+    "steps": [
+      "Include one set of crockery, cutlery (Robert Welch Norton) and glassware per person: cup/saucer/teaspoon, side plate, breakfast juice glass, 2 knives (main and side), fork and dessert spoon.",
+      "One napkin per person, folded to the in-room dining standard.",
+      "Coffee cafetière or teapot, milk jug, brown and white sugar lumps plus 4 sweetener sachets, and salt and pepper.",
+      "Butter, a toast rack, and a selection of 4 preserves (e.g. 2 jams, 1 honey, 1 marmalade).",
+      "Relevant accompaniments (brown sauce, tomato sauce, mustard, mayonnaise, horseradish, mint sauce) per the Condiments Food Specification.",
+      "Cloche(s), plate stacker(s), and a flask for soup to be decanted into bowls in the room.",
+      "Include nibbles automatically with any drinks-only order."
+    ],
+    "imageFile": null
+  },
+  {
+    "id": 15,
+    "category": "Weddings & Private Dining",
+    "title": "Function Roles & Responsibilities",
+    "steps": [
+      "Host/In Room Contact: welcome and meet guests, confirm allergens against the function sheet, keep a presence in the room, have place cards ready, and check buffet cutlery/allergen cards if relevant.",
+      "Table Waiters: break napkins to the guest's left folded to the right, pour water and wine, serve bread and butter, check back on every course, and keep the buffet topped up if applicable.",
+      "Back Bar/Drinks Waiter: set up the bar per the function sheet, bring up pre-ordered wines/drinks, prep fruit garnishes in advance, check cellar stock, and offer a round of drinks after every course.",
+      "Pass/Kitchen: confirm table numbers and allergy info once seated, polish cutlery and glasses, communicate timings with the chef, and confirm check-backs with the room host after every course."
+    ],
+    "imageFile": null
+  },
+  {
+    "id": 16,
+    "category": "Weddings & Private Dining",
+    "title": "Wedding Day: Order of Service",
+    "steps": [
+      "Pre-arrival: collect the table plan, function and briefing sheets; check all areas; greet vendors and direct deliveries.",
+      "Mise en place: prepare all glassware, cutlery, crockery, salt/pepper, butter, water jugs, wine and napkins per the function sheet numbers, all clean and undamaged.",
+      "Wedding breakfast set-up: place the top table first and build the room around it, cross-check vendor drop-offs, allocate team tasks, then lay tables, cloths and centrepieces.",
+      "Brief the chef on timings, numbers, plating, dietary requirements and flow of service.",
+      "Brief the team: allocate tables, explain the menu and order of service, walk through dietaries, confirm wines and speech/break timing.",
+      "Pre-arrival drinks: check stock and glassware, liaise with bar staff, and pour to the function sheet timings.",
+      "Speeches: confirm number, order and length; test the microphone; agree on announcements vs rolling speech; time drink pouring around the speeches; stay in the room throughout.",
+      "Service sequence: break napkins, pour wine, serve bread, serve and clear starters, top up drinks, serve and clear mains (plus side plates/condiments), drop dessert cutlery, serve and clear desserts, clear glassware.",
+      "Turn around for the evening reception: clear unneeded mise en place, set up tables per the function sheet, lay the dance floor, set up the DJ, hoover the room, and check any in-room buffet.",
+      "First dance & cake cutting: confirm the track with the DJ (with a backup), ensure the cake knife is clean and polished, confirm what the couple want done with the cake afterwards, and pause all service during these moments.",
+      "Buffet set-up & clearance: confirm placement and items with the chef, ready chafing dishes/serving cutlery/allergen cards, present food at least 5 minutes before service, top up as needed, and begin clear-down 90 minutes after it's put out.",
+      "Wedding close-down: wash and put away all glasses and cutlery, clear rubbish from every room used, empty bins, close and lock the bar, and wrap any leftover cake for the couple."
+    ],
+    "imageFile": null
+  },
+  {
+    "id": 17,
+    "category": "Weddings & Private Dining",
+    "title": "Wedding Day: Ceremony In-House",
+    "steps": [
+      "Pre-arrival: collect the table plan, function and briefing sheets, check all areas, greet vendors, and check the weather if the ceremony may move outside.",
+      "Meet & greet the bride: introduce yourself, check if she needs anything, explain when/where she'll meet the registrar, give the 15-minute pre-call warning, and direct the bridesmaids.",
+      "Meet & greet the groom: introduce yourself, check if he needs anything, connect him with the florist for buttonholes, confirm music, and explain the registrar meeting.",
+      "Set up the ceremony room per the function sheet, work with vendors on placement, reconfirm indoor/outdoor with the couple if weather is uncertain, liaise with registrars, and hoover the walkway carpet if indoors.",
+      "Ceremony: bring the groom to the registrar, seat all guests with no drinks in the room, cue entrance music, collect the bride, guide bridesmaids to the entrance, and stay in the room until the ceremony (and signing) is complete.",
+      "From here, the day continues into the standard Wedding Day: Order of Service — turnaround for the wedding breakfast, staff briefing, speeches, service, evening reception, first dance, buffet and close-down."
+    ],
+    "imageFile": null
+  },
+  {
+    "id": 18,
+    "category": "Weddings & Private Dining",
+    "title": "Wedding Place Setting",
+    "steps": [
+      "Tables in good condition and stable, positioned per the table plan.",
+      "Cloths clean, white and pressed with no tears, stains or creases, covering the table neatly and evenly.",
+      "Chairs (banqueting or Chiavari) clean, in good condition, placed neatly with any requested cover and ribbon secured.",
+      "One set per person: mains knife & fork, starter knife & fork (or soup spoon), dessert fork & spoon, side plate & small knife, wine glass, champagne flute and water glass, plus a napkin folded as agreed.",
+      "Mains knife to the right (cutting edge left) and fork to the left, both a thumb-width from the table edge.",
+      "Starter cutlery placed just outside the mains cutlery, blades/prongs level with the mains pieces; soup spoon to the left of the mains knife if used instead.",
+      "Side plate to the left of the starter/mains fork with its knife on the right, cutting edge facing left.",
+      "Dessert fork and spoon placed above the setting — fork first with prongs right, spoon above with handle left.",
+      "Napkin in the agreed fold, centred on the place setting; glasses in a triangle with wine glass and flute at the back, water glass at the front by the starter cutlery.",
+      "Table also needs fresh iced water jugs, full salt & pepper, fresh butter, and 2 menus per table — plus favours, table numbers, place cards or flowers if requested."
+    ],
+    "imageFile": "sop-18.jpg"
+  },
+  {
+    "id": 19,
+    "category": "Breakfast",
+    "title": "Roles & Responsibilities",
+    "steps": [
+      "Host: welcome guests with a smile, use their name, guide them to their table, offer tea/coffee/toast, explain the buffet for first-timers, track table availability, and say farewell to every guest.",
+      "Waiter: take hot drink and food orders (following the allergy procedure), clear and re-lay tables (window tables first), check back on every table, run food from the kitchen, and help manage the buffet.",
+      "Buffet management: keep the buffet set up per SOP, full and appealing at all times, clean of spillages/crumbs, with serving utensils replaced as needed.",
+      "Tea/coffee: keep the still room stocked with tea, coffee, butter, milk and crockery; ensure coffee is freshly ground, not bulk brew; pour coffee and offer to pour tea.",
+      "Pass: run food to the correct tables following the allergy procedure, confirm food is correct and presentable before it leaves the kitchen, and offer sauces or anything else needed.",
+      "In Room Dining: track room service orders, prepare trays in advance, and follow the In Room Dining Delivery SOP for accuracy and timing."
+    ],
+    "imageFile": null
+  },
+  {
+    "id": 20,
+    "category": "Breakfast",
+    "title": "Order of Service",
+    "steps": [
+      "Meet & greet: stay near the host stand, greet with a warm \"Good Morning\", acknowledge waiting guests, confirm name/room number and party size, and use the guest's name at least twice.",
+      "Show to table: offer a couple of table options, match the guest's pace, assist with seating, explain the buffet/self-serve toaster/menu for first-timers, offer tea/coffee/juice, and remove excess place settings.",
+      "Take the order: ask if they'd like anything from the menu, check allergies/dietary requirements, remove the menu once the table is seen to, and send the order to the kitchen immediately.",
+      "Serve: pour coffee/juice and offer tea, serve ladies or the eldest guest first, announce food/drink as served, and check the table has everything needed before clearing (only once everyone has finished).",
+      "Check back at least once per table, offering more tea/coffee/juice and checking satisfaction.",
+      "Farewell every guest warmly on the way out, and log any preferences for their next stay in Resdiary or Opera."
+    ],
+    "imageFile": null
+  },
+  {
+    "id": 21,
+    "category": "Breakfast",
+    "title": "Table Set Up",
+    "steps": [
+      "Tables and chairs stable, in good condition and free of marks, stains or crumbs.",
+      "Tablecloth clean, ironed, with equal overhangs on all sides.",
+      "Side plate clean and chip-free, placed to the left of the setting.",
+      "Napkin clean and creaseless, folded in the breakfast fold, centred on the cutlery.",
+      "Breakfast menu closed, flat and central under the napkin — remove once the guest has been offered table-service food options.",
+      "Cutlery: small and large fork on the left (small fork nearest the side plate); large knife and spoon on the right (spoon to the right of the knife); small knife on the side plate, blade away from the guest.",
+      "Glassware clean and chip-free, placed above and slightly right of the large knife.",
+      "Cup and saucer to the right of the setting, handle facing right, teaspoon at the front of the cup.",
+      "Extra items: a well-presented flower/plant, full salt & pepper in front of it, and clean unopened jam/honey/marmalade jars on a black napkin with labels facing forward."
+    ],
+    "imageFile": null
+  },
+  {
+    "id": 22,
+    "category": "Breakfast",
+    "title": "Hosting Script",
+    "steps": [
+      "Greet warmly: \"Good morning, how are you today? How was your evening?\" and ask for the surname and party size.",
+      "Guide the guest to their table by name and seat them, pulling out at least one chair.",
+      "For first-time guests, explain how service works, mention the cold buffet self-service, provide the menu and explain the dish of the day.",
+      "Ask about allergies or intolerances before offering tea, coffee or juice — check coffee type and milk preference (hot or cold) if a cafetière is ordered.",
+      "Log the table under the guest's name with any allergies noted, and put the hot drinks order through the till; pour any juice ordered.",
+      "Hand over: \"My colleague (name) will be with you shortly to take your order. Thank you, enjoy your breakfast.\"",
+      "Pass any allergens noted during breakfast to reception to add to the guest's profile, and note it in the PM shift handover if they're staying another night."
+    ],
+    "imageFile": null
+  },
+  {
+    "id": 23,
+    "category": "Afternoon Tea",
+    "title": "Order of Service",
+    "steps": [
+      "Meet & greet: host welcomes guests with a smile, recognises regulars, confirms the guest's name and room/reservation details, and uses their name at least twice during service.",
+      "Show to table: match the guest's pace, let them settle before offering water, make polite conversation, and offer a Champagne/Prosecco upgrade.",
+      "Explaining teas: reconfirm allergies/dietaries, present the tea box and varieties, let guests smell/touch the teas, and offer a hot drink later if they're starting with something cold.",
+      "Tea service: always loose leaf, one hot water pot between two guests, milk/honey/lemon offered per tea, tea timer explained, and tea refreshed at least once (with a clean cup if switching tea).",
+      "Place the order with the kitchen immediately, including tea/coffee on the till, with allergy/dietary messages checked verbally with the chef.",
+      "Food delivery: add a side table for the stand if needed, explain the sandwiches/savouries/sweets, check if anything else is needed, and check satisfaction at least twice through service.",
+      "Departure: offer to box up leftovers in branded takeaway boxes, check the bill (including vouchers) before presenting it in a folder with a branded pen, then thank and farewell the guest."
+    ],
+    "imageFile": null
+  },
+  {
+    "id": 24,
+    "category": "Afternoon Tea",
+    "title": "Table Set Up",
+    "steps": [
+      "Tables and chairs stable and free of marks/crumbs; add a side table alongside for the afternoon tea stand if needed.",
+      "Tablecloth clean and ironed with equal overhangs.",
+      "Side plate clean and chip-free — one on the larger plate, one centred on the place setting.",
+      "Cup and saucer matching across the table, handle facing right, with a polished teaspoon handle also facing right.",
+      "Napkin clean and creaseless, centred on the side plate.",
+      "Cutlery clean, polished and consistent across the table — small fork and knife either side of the central plate, small knife angled on the napkin with the blade away from the guest.",
+      "A champagne flute (clean, chip-free) placed between the side plate and cup/saucer regardless of the tea booked — removed if the guest declines the upgrade.",
+      "Extra items: a full sugar pot with tongs, an attractive flower/plant, one menu per two guests, and a personalised card for special occasions.",
+      "Tables and place settings are checked by a manager or supervisor before service begins."
+    ],
+    "imageFile": null
+  },
+  {
+    "id": 25,
+    "category": "Afternoon Tea",
+    "title": "Service — Tea-ware & Measuring",
+    "steps": [
+      "Teapots, filters/strainers and milk jugs must be clean, polished and free of chips, cracks or old tea leaves.",
+      "Use Camellia's loose leaf tea as standard, kept sealed in the branded tin — replace or discard tea showing signs it's no longer fresh.",
+      "Measure using a clean spoon: 1 teaspoon per person plus 2 for the pot (e.g. 5 teaspoons for a pot serving 3 guests).",
+      "Prepare the full tray per the ticket: clean tray, teapot(s), an extra pot of hot water, milk/honey/lemon as needed, and a tea timer started as soon as it's brewing.",
+      "At the table, serve without asking who ordered what, announce the tea as you serve it, place items within easy reach (adjusting for left-handed guests or children), and explain/set the tea timer.",
+      "Ask if guests need anything else before leaving the table, and invite them to enjoy their tea."
+    ],
+    "imageFile": null
+  },
+  {
+    "id": 26,
+    "category": "Afternoon Tea",
+    "title": "Tea Storage",
+    "steps": [
+      "Decant large bags into small Camellia's tins, refilling in smaller amounts as needed — always reapply the stopper and lid immediately after use.",
+      "Store large bags sealed in a cool, dry place away from moisture, heat or strong odours.",
+      "Keep still-room tins sealed with lid and stopper, away from heat sources like toasters or the glasswasher.",
+      "Never store tea unsealed, open, in sunlight or in glass containers — this damages freshness and flavour."
+    ],
+    "imageFile": null
+  },
+  {
+    "id": 27,
+    "category": "Afternoon Tea",
+    "title": "Preparing the Tea — Loose Leaf",
+    "steps": [
+      "Select a clean, dry, polished china teapot or infuser.",
+      "Warm the pot with boiling water, then discard it.",
+      "Add freshly boiled water at the correct temperature for the tea (see the Camellia Tea Selection Guide).",
+      "Add the correct amount of loose leaf or infusion to the infuser basket.",
+      "Fill a clean hot water pot with freshly boiled water and serve it alongside the teapot.",
+      "Provide one clean tea strainer and holder for every tea served."
+    ],
+    "imageFile": null
+  },
+  {
+    "id": 28,
+    "category": "Afternoon Tea",
+    "title": "Camellia Tea Selection Guide",
+    "steps": [
+      "English Breakfast — Black, traditional. Brew 3–4 min at 100°C, remove leaves. Robust with elegant tannins, hints of golden syrup. Serve with milk & sugar.",
+      "Afternoon Tea blend — Black. Brew 3–4 min, remove leaves. Served without milk & sugar.",
+      "Earl Grey — Black/Fusion. Brew 3–4 min, remove leaves. Serve with a lemon slice.",
+      "Ceylon Decaf — Black. Brew 3–4 min, remove leaves. Offer milk & honey.",
+      "White Jasmine & Apricot — White & Green fusion. Brew 2–3 min at 80°C, remove leaves. Apricots and jasmine with gentle ginger spice, golden yellow infusion. Contains sulphites.",
+      "Orange Blossom — White & Green fusion. Brew 2–3 min at 80°C, remove leaves. Soft white tea with crisp orange, bright amber infusion.",
+      "Lung Ching (Dragon's Well) — Green, traditional. Brew 3 min at 80°C, remove leaves. Slightly sweet, soft, refreshing vegetal notes.",
+      "Lemon & Ginger — Herbal tisane. Brew 5 min, remove leaves. Juicy lemon with a spicy ginger bite, pale yellow cup.",
+      "Rooibos Orange & Cactus Fig — Herbal tisane. Brew 5+ min, leave in pot. Sweet and mellow with a citrus finish, intense red-orange cup. Best without milk.",
+      "Very Berry — Fruit tisane. Brew 5+ min, leave in pot. Vibrant summer fruits, sweet with tart balance, rich red-pink cup — a good one for children.",
+      "Chamomile Flowers — Mono-herb tisane. Brew 5 min, remove leaves. Floral sweetness with a creamy long finish, golden cup, boiling water only.",
+      "Peppermint — Mono-herb tisane. Brew 5 min, remove leaves. Bold minty flavour with a lingering sweetness, boiling water only."
+    ],
+    "imageFile": null
+  },
+  {
+    "id": 29,
+    "category": "Afternoon Tea",
+    "title": "Camellia Tea Equipment",
+    "steps": [
+      "Loose leaf delivery bags arrive as 1kg (Peppermint as 2x 0.5kg); keep sealed and stored per the Tea Storage SOP, and tell your manager to reorder once the last bag is a quarter full.",
+      "The presentation box holds 9 small lidded containers — fill each according to the label on the base of the tin, and empty/refresh contents monthly.",
+      "Keep a loose leaf measuring spoon in circulation at all times for consistent tea measures."
+    ],
+    "imageFile": "sop-29.jpg"
+  },
+  {
+    "id": 30,
+    "category": "Bar",
+    "title": "Cleaning Instructions",
+    "steps": [
+      "Drip trays: through the dishwasher daily, wipe off excess water and air dry.",
+      "Ice machine (weekly): remove all ice, pre-clean, apply sanitiser for 2 minutes, wipe away and air dry.",
+      "Work surfaces (as you go): pre-clean, sanitise for 2 minutes, wipe over and air dry.",
+      "Drinks fridge & shelves (weekly): empty, pre-clean, sanitise or detergent-wash, rinse and air dry.",
+      "Bins (weekly, wear gloves): pre-clean, apply detergent for 2 minutes, rinse and air dry.",
+      "Fridge doors and till area (daily): pre-clean, sanitise for 2 minutes, wipe over/rinse and air dry.",
+      "Service trays (as you go): pre-clean debris; black trays through the dishwasher, silver trays sanitised for 2 minutes then wiped clean.",
+      "Sweep floors as you go and at the end of shift, disposing of debris correctly.",
+      "Beer fonts (start of shift): sanitise for 2 minutes, wipe over, air dry. Beer nozzles (end of shift): soak overnight in D10 solution, wash in warm water before use.",
+      "Bottles on display (weekly): wipe with a hot, damp cloth and air dry.",
+      "Spirit/wine pourers (end of shift): pre-clean with cold water, run through the dishwasher, wipe and air dry.",
+      "Ice buckets, stands and ice sink (weekly): pre-clean, sanitise for 2 minutes, rinse and air dry.",
+      "Glasswasher (weekly): switch off, drain, remove and rinse the waste pipe, sanitise for 2 minutes, wipe, rinse, then run one cycle before use.",
+      "Bar caddie (weekly): empty, run through the dishwasher, air dry. Beer line cleaning (weekly) to be done by trained F&B assistants only."
+    ],
+    "imageFile": null
+  },
+  {
+    "id": 31,
+    "category": "Bar",
+    "title": "Nibbles",
+    "steps": [
+      "Service plates and bowls must be clean, dry, polished and free of chips or cracks.",
+      "Prepare nibbles onto bowls as part of the opening checklist — never empty value packs into bowls in front of a guest.",
+      "Choose from Chilli Rice Crackers, Pretzels, Wasabi Peas or similar — keep at least three options in stock, and tell your manager when stock runs low.",
+      "Serve nibbles any time drinks-only orders are taken in the bar/lounge or via in-room dining.",
+      "Announce the nibbles served so guests are aware of dietary content, ensure containers carry allergen labels, and always serve with black napkins."
+    ],
+    "imageFile": null
+  },
+  {
+    "id": 32,
+    "category": "Bar",
+    "title": "Opening Checklist",
+    "steps": [
+      "Turn on music.",
+      "Refill the bar caddie if required.",
+      "Clean all tables and put out drinks and food menus.",
+      "Empty bottle bins and clean fridge doors.",
+      "Prepare all garnishes and at least 4 bar nibbles.",
+      "Fill the ice sink and stock up fridges, including the wine fridge.",
+      "Refill the back bar and set up utensils; attach beer nozzles.",
+      "Check till/PDQ paper is stocked and wipe down the bar top."
+    ],
+    "imageFile": null
+  },
+  {
+    "id": 33,
+    "category": "Bar",
+    "title": "Closing Checklist",
+    "steps": [
+      "Turn off music and refill the bar caddie.",
+      "Clean all tables and remove drinks/food menus.",
+      "Check the cellar and clean fridge doors.",
+      "Wrap garnishes with a day label and dispose of bar nibbles.",
+      "Remove candles/tealights.",
+      "Wash and refill all glasses, and stock up the wine fridge.",
+      "Wash drip trays and utensils, and detach beer nozzles.",
+      "Organise trays and wipe down the bar top."
+    ],
+    "imageFile": null
+  },
+  {
+    "id": 34,
+    "category": "Bar",
+    "title": "Daily Cleaning Checklist",
+    "steps": [
+      "Drip trays, work surfaces and fridge doors.",
+      "Till area and spirit/wine pourers.",
+      "Service trays and sweep floors.",
+      "Beer fonts and beer nozzles.",
+      "Bar utensils and bar menus.",
+      "Sign off with your supervisor once complete."
+    ],
+    "imageFile": null
+  },
+  {
+    "id": 35,
+    "category": "Bar",
+    "title": "Weekly Cleaning Checklist",
+    "steps": [
+      "Ice machine, drinks fridge and shelves.",
+      "Bins and bottles on display.",
+      "Ice buckets, stands and ice sink.",
+      "Glasswasher and beer line cleaning.",
+      "Clean the cellar and the bar caddie.",
+      "Sign off with your supervisor once complete."
+    ],
+    "imageFile": null
+  },
+  {
+    "id": 36,
+    "category": "Facilities & General",
+    "title": "Fire Walk Route",
+    "steps": [
+      "Vavasour, window 1, right.",
+      "Fire door, Vavasour lobby.",
+      "Fire door in the main bar, near the curtains.",
+      "Drawing room, above the fireplace, right side.",
+      "Fire door between the Georgian room and the Linton.",
+      "Entrance to the Italian gardens, right side.",
+      "Inside the Wharfedale, in the window opposite the courtyard rooms.",
+      "Outside door to the HR office.",
+      "Fire door outside, next to bedroom Spruce.",
+      "Fire door at the end of the corridor near room 33.",
+      "Container next to the smoking area.",
+      "Fire door inside the pool plant room, and the door into the plant room.",
+      "Between the Ladies & Gents changing rooms in the spa.",
+      "Spa exit/reception and spa entrance.",
+      "Generator outside Vavasour.",
+      "Bin area at the back of the kitchen.",
+      "Beer cellar, and check the boiler room."
+    ],
+    "imageFile": null
+  },
+  {
+    "id": 37,
+    "category": "Facilities & General",
+    "title": "Linen SOP",
+    "steps": [
+      "Empty dirty linen bins and separate into piles by size (90x90 white, 90x90 black, 70x144, 70x70 napkins, 54x54 cloths).",
+      "Count each pile and record it in the linen count document.",
+      "Put all linen together in the GREEN bag, tie it correctly, and take it downstairs to sit along the wall outside the lift.",
+      "Clean linen bags are stored outside the F&B linen storage area, or check the HSK storage area (checking the label before opening).",
+      "Put clean linen away neatly in its labelled area, following the standard layout.",
+      "Take the empty green bag back upstairs for the next round of dirty linen; leave any other bags neatly in the HSK linen area."
+    ],
+    "imageFile": null
+  },
+  {
+    "id": 38,
+    "category": "Facilities & General",
+    "title": "Stock Transfer Procedure",
+    "steps": [
+      "The chef requests what's needed from the bar via an F&B staff member — no exceptions to this process.",
+      "The F&B staff member collects the items from the bar.",
+      "The chef and F&B staff member complete the stock transfer sheet together, in full: date, item name and measurement, requester's name and signature, and the server's name and signature.",
+      "Initials are not accepted — full signatures only. If the sheet isn't filled out, do not serve or accept the items.",
+      "The sheet stays in the kitchen at all times; ask management or the Head Chef for a new sheet once all lines are used.",
+      "Failure to follow this procedure may result in disciplinary action."
+    ],
+    "imageFile": null
+  },
+  {
+    "id": 39,
+    "category": "Restaurant Service",
+    "title": "Table Set-Up for Children",
+    "steps": [
+      "Check the table, chairs and any high chair/booster seat are stable and in good condition; straps must be clean with no debris, and clips must work correctly. Clean high chairs/booster seats with D10 before and after every use.",
+      "If using a cloth, it should be clean, pressed and placed neatly with the hem facing the table.",
+      "Use children's cutlery for children aged 7 or under; regular glasses, plates and white linen napkins for older children. A children's menu is available for ages 12 and under.",
+      "Per child: a water glass, 1 fork, 1 knife, 1 spoon, 1 teaspoon, 1 napkin, 1 side plate, and a children's menu with a packet of crayons; add a table mat if used and ask whether a booster seat is needed.",
+      "Place settings: mat centred a thumb-width from the table edge, fork to the left, knife to the right (blade inward), dessert spoon right of the knife, teaspoon across the top, glass at the top of the knife, side plate centred on the mat.",
+      "Fold the children's menu so it stands upright, facing the child's place setting.",
+      "Place the napkin centrally on the side plate, clean and crease-free.",
+      "Keep children's cutlery washed separately from regular restaurant cutlery and stored in its own area — it should never be used for room service or banqueting."
+    ],
+    "imageFile": "sop-39.jpg"
+  },
+  {
+    "id": 40,
+    "category": "Restaurant Service",
+    "title": "Serving Food — From the Pass to the Table",
+    "steps": [
+      "At the pass, confirm the table number, what the dish is, that the chef has given the go-ahead, and that it matches the ticket — cross it off as you take it.",
+      "Use a clean cloth to carry hot plates (avoids thumb marks and cross-contamination); use a tray or a colleague's help rather than juggling multiple plates.",
+      "For an allergy order, confirm the allergy plate with the chef, carry it separately, and take the allergy card with it for every course.",
+      "Serve children first, then ladies (eldest to youngest), then gentlemen (eldest to youngest), approaching from the guest's left where possible.",
+      "Announce the dish in detail as you serve it, and warn the guest if the plate is hot.",
+      "Serve with the main element facing the guest, unless the chef has asked for it presented as plated on the pass.",
+      "If you don't know the answer to a food question, don't guess — tell the guest you'll find out and check with a manager or the chef.",
+      "Before leaving the table, check for anything else needed (cutlery, sauces, drinks) and let front of house know if a drinks order or water top-up is needed.",
+      "Sign off with a warm phrase such as \"I hope you enjoy your starter!\""
+    ],
+    "imageFile": null
+  },
+  {
+    "id": 41,
+    "category": "Restaurant Service",
+    "title": "Tasting Menu Service",
+    "steps": [
+      "Set the table for the first course only (e.g. small knife and fork), with cutlery replaced course by course; print tasting menus in colour in advance.",
+      "Explain the concept at the table, offer still or sparkling water, and offer the accompanying wine flight if not already booked — or make an informed recommendation from the wine/bar list.",
+      "Confirm any known allergies/dietary requirements, or ask if none are on file.",
+      "Introduce each course in detail once every guest has their dish, naming at least two more elements on the plate and highlighting local ingredients.",
+      "For the wine flight, pour each pairing just before the dish arrives, present the bottle label-forward, and talk through the wine's name, grape, country/region, any notable background, tasting notes, and why it pairs with the dish."
+    ],
+    "imageFile": null
+  }
+]
