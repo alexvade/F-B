@@ -208,7 +208,7 @@ export default function UpdatesPage() {
           value={newPost}
           onChange={(e) => setNewPost(e.target.value)}
           placeholder="Share an update with the team…"
-          className="w-full text-sm resize-none outline-none px-4 py-3 rounded-full text-center"
+          className="w-full text-sm resize-none outline-none px-4 py-3 rounded-full text-left"
           rows={1}
           style={{ color: ink, background: bg, border: `1px solid ${border}` }}
         />
