@@ -41,18 +41,39 @@ Only `rota_shifts` / `daily_covers` / `daily_events` are touched — never
    name) → Allow**. It only needs permission to make outbound web requests.
 7. Test it: edit any cell in a week tab, then check the app's Rota screen
    for that week — it should update within a couple of seconds.
+8. **Backfill every existing week tab once**: in the Apps Script toolbar,
+   use the function dropdown (next to Run/Debug) to select `syncAllSheets`,
+   then click **Run**. This calls the webhook for every tab in the
+   spreadsheet, not just the one you last edited — so future weeks that
+   already exist as tabs (even if nobody's touched them yet) show up in the
+   app's week picker right away.
+9. **Keep new tabs syncing automatically**: add a second trigger — same
+   **+ Add Trigger** screen, function `syncAllSheets`, event source
+   `Time-driven`, e.g. `Hour timer` → every hour. That way a newly-created
+   week tab appears in the app within the hour even before anyone edits it,
+   on top of the instant per-edit sync from step 5.
 
 ```javascript
 // Apps Script — bound to the F&B Rota Google Sheet.
 const WEBHOOK_URL = "https://f-b-self.vercel.app/api/sync/rota-sheet";
 const SECRET = "PASTE_ROTA_SYNC_SECRET_HERE";
 
+// Fires on every edit — syncs just the tab that changed, near-instantly.
 function onEditInstallable(e) {
-  const gid = e.source.getActiveSheet().getSheetId();
+  syncSheet(e.source.getActiveSheet());
+}
+
+// Run manually once to backfill, or on a time-driven trigger to catch
+// week tabs nobody's edited yet.
+function syncAllSheets() {
+  SpreadsheetApp.getActiveSpreadsheet().getSheets().forEach(syncSheet);
+}
+
+function syncSheet(sheet) {
   UrlFetchApp.fetch(WEBHOOK_URL, {
     method: "post",
     contentType: "application/json",
-    payload: JSON.stringify({ gid: gid }),
+    payload: JSON.stringify({ gid: sheet.getSheetId() }),
     headers: { "x-rota-sync-secret": SECRET },
     muteHttpExceptions: true,
   });
