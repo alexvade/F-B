@@ -345,13 +345,14 @@ export default function CocktailsPage() {
                       {c.name}
                     </span>
                     {inStock && (
-                      <span
-                        className="absolute flex items-center justify-center rounded-full"
-                        style={{ top: 4, right: 4, width: 16, height: 16, background: "#4CAF6E" }}
-                        title="We have ingredients for this"
-                      >
-                        <Check size={11} strokeWidth={3} color="#FFFFFF" />
-                      </span>
+                      <Check
+                        size={14}
+                        strokeWidth={3}
+                        color="#4CAF6E"
+                        className="absolute"
+                        style={{ top: 4, right: 4 }}
+                        aria-label="We have ingredients for this"
+                      />
                     )}
                   </button>
                 );
