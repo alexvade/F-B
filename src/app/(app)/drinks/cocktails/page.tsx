@@ -2,10 +2,11 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { Search, Pencil, Plus, Trash2 } from "lucide-react";
+import { Search, Pencil, Plus, Trash2, Check } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useProfile } from "@/lib/profile-context";
 import { CocktailGlass } from "@/components/cocktail-glass";
+import { buildHaystack, cocktailInStock, type StockHaystack } from "@/lib/cocktail-stock-match";
 import { bg, border, ink, inkSoft, navy, navyText, orange, orangeSoft, surface } from "@/lib/design-tokens";
 
 type Cocktail = {
@@ -42,6 +43,7 @@ export default function CocktailsPage() {
   const [active, setActive] = useState<Cocktail | null>(null);
   const [form, setForm] = useState<typeof EMPTY_FORM | null>(null);
   const [saving, setSaving] = useState(false);
+  const [stockHaystack, setStockHaystack] = useState<StockHaystack | null>(null);
 
   const loadData = useCallback(async () => {
     const { data } = await supabase.from("cocktails").select("*").order("sort_order").order("name");
@@ -51,6 +53,13 @@ export default function CocktailsPage() {
   useEffect(() => {
     loadData();
   }, [loadData]);
+
+  useEffect(() => {
+    supabase
+      .from("stock_products")
+      .select("category, product")
+      .then(({ data }) => setStockHaystack(buildHaystack(data ?? [])));
+  }, [supabase]);
 
   const openEdit = (c?: Cocktail) => {
     setForm(
@@ -320,21 +329,33 @@ export default function CocktailsPage() {
               {cat.toUpperCase()}S
             </div>
             <div className="grid grid-cols-3 gap-3">
-              {matches.map((c) => (
-                <button
-                  key={c.id}
-                  onClick={() => setActive(c)}
-                  className="flex flex-col items-center text-center rounded-3xl p-2"
-                  style={{ background: surface, border: `1px solid ${border}` }}
-                >
-                  <div style={{ width: 56, height: 78 }}>
-                    <CocktailGlass shape={c.glass_shape} color={c.colour} />
-                  </div>
-                  <span className="text-xs mt-1 leading-tight" style={{ color: ink }}>
-                    {c.name}
-                  </span>
-                </button>
-              ))}
+              {matches.map((c) => {
+                const inStock = stockHaystack ? cocktailInStock(c.ingredients, stockHaystack) : false;
+                return (
+                  <button
+                    key={c.id}
+                    onClick={() => setActive(c)}
+                    className="relative flex flex-col items-center text-center rounded-3xl p-2"
+                    style={{ background: surface, border: `1px solid ${border}` }}
+                  >
+                    <div style={{ width: 56, height: 78 }}>
+                      <CocktailGlass shape={c.glass_shape} color={c.colour} />
+                    </div>
+                    <span className="text-xs mt-1 leading-tight" style={{ color: ink }}>
+                      {c.name}
+                    </span>
+                    {inStock && (
+                      <span
+                        className="absolute flex items-center justify-center rounded-full"
+                        style={{ bottom: 4, right: 4, width: 16, height: 16, background: "#4CAF6E" }}
+                        title="We have ingredients for this"
+                      >
+                        <Check size={11} strokeWidth={3} color="#FFFFFF" />
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
             </div>
           </div>
         );
