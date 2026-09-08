@@ -69,7 +69,7 @@ const RULES: { pattern: RegExp; test: Test }[] = [
   { pattern: /\bwatermelon liqueur\b/, test: never },
   { pattern: /\bamaro nonino\b/, test: never },
   { pattern: /\bamer picon\b/, test: never },
-  { pattern: /\bpeach schnapps\b/, test: never },
+  { pattern: /\bpeach schnapps\b/, test: prod("archers") },
   { pattern: /\bpeychaud'?s bitters\b/, test: never },
   { pattern: /\borange bitters\b/, test: never },
   { pattern: /\babsinthe\b/, test: never },
