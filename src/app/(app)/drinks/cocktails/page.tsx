@@ -347,7 +347,7 @@ export default function CocktailsPage() {
                     {inStock && (
                       <span
                         className="absolute flex items-center justify-center rounded-full"
-                        style={{ bottom: 4, right: 4, width: 16, height: 16, background: "#4CAF6E" }}
+                        style={{ top: 4, right: 4, width: 16, height: 16, background: "#4CAF6E" }}
                         title="We have ingredients for this"
                       >
                         <Check size={11} strokeWidth={3} color="#FFFFFF" />
