@@ -69,6 +69,20 @@ export function NavShell({
     }
   }, []);
 
+  // Lock background scroll while the mobile all-tabs sheet is open — on
+  // some mobile browsers, a `position: fixed` overlay left over a page
+  // the user has scrolled gets sized/positioned against the wrong
+  // viewport, so it can render below the visible screen until the page
+  // itself is scrolled. Locking the body avoids that entirely.
+  useEffect(() => {
+    if (!menuOpen) return;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [menuOpen]);
+
   // Once per app load: if it's someone's birthday today, post it to the
   // Noticeboard — unless a post for them already went out today.
   useEffect(() => {
@@ -203,12 +217,13 @@ export function NavShell({
       {menuOpen && (
         <div
           className="sm:hidden fixed inset-0 z-30 flex flex-col justify-end"
-          style={{ background: "rgba(0,0,0,0.4)" }}
+          style={{ background: "rgba(0,0,0,0.4)", height: "100dvh" }}
           onClick={() => setMenuOpen(false)}
         >
           <div
-            className="rounded-t-3xl p-4 pb-8 max-h-[80vh] overflow-y-auto"
-            style={{ background: surface }}
+            ref={(el) => el?.scrollTo(0, 0)}
+            className="rounded-t-3xl p-4 pb-8 overflow-y-auto"
+            style={{ background: surface, maxHeight: "80dvh" }}
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-3 px-2">
