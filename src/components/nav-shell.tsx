@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
@@ -17,6 +17,8 @@ import {
   ClipboardList,
   Sparkles,
   Menu as MenuIcon,
+  Moon,
+  Sun,
   X,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
@@ -52,6 +54,27 @@ export function NavShell({
   const pathname = usePathname();
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [dark, setDark] = useState(false);
+
+  useEffect(() => {
+    try {
+      setDark(localStorage.getItem("theme") === "dark");
+    } catch {
+      // ignore — private browsing / storage blocked
+    }
+  }, []);
+
+  const toggleDark = () => {
+    setDark((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem("theme", next ? "dark" : "light");
+      } catch {
+        // ignore — private browsing / storage blocked
+      }
+      return next;
+    });
+  };
 
   const isActive = (href: string) => pathname === href || pathname.startsWith(href + "/");
   const findItem = (href: string) => NAV_ITEMS.find((item) => item.href === href)!;
@@ -66,7 +89,7 @@ export function NavShell({
   return (
     <div
       className="flex w-full h-screen"
-      style={{ background: bg, color: bgText }}
+      style={{ background: bg, color: bgText, filter: dark ? "invert(1)" : undefined }}
     >
       {/* Sidebar (desktop) */}
       <div
@@ -114,6 +137,13 @@ export function NavShell({
               <Users size={14} /> Manage staff
             </Link>
           )}
+          <button
+            onClick={toggleDark}
+            className="flex items-center gap-2 px-2 py-1.5 text-xs w-full text-left"
+            style={{ color: bgTextSoft }}
+          >
+            {dark ? <Sun size={14} /> : <Moon size={14} />} {dark ? "Light mode" : "Dark mode"}
+          </button>
           <button
             onClick={handleSignOut}
             className="flex items-center gap-2 px-2 py-1.5 text-xs"
@@ -182,6 +212,13 @@ export function NavShell({
                   <Users size={18} style={{ color: orange }} /> Manage staff
                 </Link>
               )}
+              <button
+                onClick={toggleDark}
+                className="flex items-center gap-3 px-4 py-3 rounded-2xl text-sm text-left"
+                style={{ color: ink }}
+              >
+                {dark ? <Sun size={18} /> : <Moon size={18} />} {dark ? "Light mode" : "Dark mode"}
+              </button>
               <button
                 onClick={() => {
                   setMenuOpen(false);
