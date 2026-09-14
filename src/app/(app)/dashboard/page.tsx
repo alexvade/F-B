@@ -224,7 +224,7 @@ export default function DashboardPage() {
       {/* Date & time */}
       <div
         className="flex items-center justify-between p-5 rounded-3xl mb-4"
-        style={{ background: bg }}
+        style={{ background: bg, border: `1px solid ${border}` }}
       >
         <div>
           <div className="text-sm" style={{ color: inkSoft }}>
