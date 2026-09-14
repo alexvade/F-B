@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
-import { Clock, Sparkles, Users, BedDouble, CheckSquare, Cake } from "lucide-react";
+import { Clock, Sparkles, Users, BedDouble, CheckSquare, Cake, Trash2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useProfile } from "@/lib/profile-context";
 import { todayISO, checklistDayISO } from "@/lib/dates";
@@ -72,9 +72,15 @@ type Todo = {
 export default function DashboardPage() {
   const profile = useProfile();
   const supabase = createClient();
-  const [greeting] = useState(
-    () => GREETINGS[Math.floor(Math.random() * GREETINGS.length)](profile.name.split(" ")[0])
-  );
+  // Picked client-side only (not in the initializer) so the server-rendered
+  // HTML and the first client render agree — Math.random() at render time
+  // would otherwise mismatch and force React to redo the initial hydration.
+  const firstName = profile.name.split(" ")[0];
+  const [greeting, setGreeting] = useState(() => GREETINGS[0](firstName));
+  useEffect(() => {
+    setGreeting(GREETINGS[Math.floor(Math.random() * GREETINGS.length)](firstName));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const [now, setNow] = useState(new Date());
   const [covers, setCovers] = useState<{ gih_count: number | null; breakfast_count: number | null } | null>(null);
@@ -201,6 +207,11 @@ export default function DashboardPage() {
       .from("todos")
       .update({ done: !task.done, completed_by: !task.done ? profile.id : null })
       .eq("id", task.id);
+    loadData();
+  };
+
+  const deleteTask = async (task: Todo) => {
+    await supabase.from("todos").delete().eq("id", task.id);
     loadData();
   };
 
@@ -472,50 +483,57 @@ export default function DashboardPage() {
           </p>
         ) : (
           <div className="flex flex-col gap-1">
-            {todayTodos.map((task) => (
-              <button
+            {todayTodos.map((task, i) => (
+              <div
                 key={task.id}
-                onClick={() => toggleTask(task)}
-                className="flex items-center gap-3 py-1.5 w-full text-left"
-                style={{ borderBottom: `1px solid ${border}` }}
+                className="flex items-center gap-3 py-1.5 w-full"
+                style={{ borderBottom: i < todayTodos.length - 1 ? `1px solid ${border}` : "none" }}
               >
-                <span
-                  className="flex items-center justify-center shrink-0"
-                  style={{
-                    width: 18,
-                    height: 18,
-                    borderRadius: 4,
-                    border: `1.5px solid ${task.done ? orange : border}`,
-                    background: task.done ? orange : "transparent",
-                  }}
+                <button
+                  onClick={() => toggleTask(task)}
+                  className="flex items-center gap-3 flex-1 min-w-0 text-left"
                 >
-                  {task.done && (
-                    <span style={{ color: navy, fontSize: 11, lineHeight: 1, fontWeight: 700 }}>
-                      ✓
-                    </span>
-                  )}
-                </span>
-                <span
-                  className="text-sm flex-1"
-                  style={{
-                    color: task.done ? inkSoft : ink,
-                    textDecoration: task.done ? "line-through" : "none",
-                  }}
-                >
-                  {task.text}
-                </span>
-                <span className="flex items-center gap-1.5 shrink-0 ml-3">
                   <span
-                    className="flex items-center justify-center rounded-full text-xs font-medium"
-                    style={{ width: 20, height: 20, background: orangeSoft, color: navyText }}
+                    className="flex items-center justify-center shrink-0"
+                    style={{
+                      width: 18,
+                      height: 18,
+                      borderRadius: 4,
+                      border: `1.5px solid ${task.done ? orange : border}`,
+                      background: task.done ? orange : "transparent",
+                    }}
                   >
-                    {initials(task.done ? task.completed_by_name ?? task.added_by_name : task.added_by_name)}
+                    {task.done && (
+                      <span style={{ color: navy, fontSize: 11, lineHeight: 1, fontWeight: 700 }}>
+                        ✓
+                      </span>
+                    )}
                   </span>
-                  <span className="text-xs" style={{ color: inkSoft }}>
-                    {task.done ? task.completed_by_name : task.added_by_name}
+                  <span
+                    className="text-sm flex-1"
+                    style={{
+                      color: task.done ? inkSoft : ink,
+                      textDecoration: task.done ? "line-through" : "none",
+                    }}
+                  >
+                    {task.text}
                   </span>
-                </span>
-              </button>
+                  <span className="flex items-center gap-1.5 shrink-0 ml-3">
+                    <span
+                      className="flex items-center justify-center rounded-full text-xs font-medium"
+                      style={{ width: 20, height: 20, background: orangeSoft, color: navyText }}
+                    >
+                      {initials(task.done ? task.completed_by_name ?? task.added_by_name : task.added_by_name)}
+                    </span>
+                    <span className="text-xs" style={{ color: inkSoft }}>
+                      {task.done ? task.completed_by_name : task.added_by_name}
+                    </span>
+                  </span>
+                </button>
+                <button onClick={() => deleteTask(task)} className="shrink-0 p-1" aria-label="Delete task">
+                  <Trash2 size={14} style={{ color: inkSoft }} />
+                </button>
+              </div>
             ))}
           </div>
         )}
@@ -557,32 +575,39 @@ export default function DashboardPage() {
             </span>
           </div>
           <div className="flex flex-col gap-1">
-            {outstandingTodos.map((task) => (
-              <button
+            {outstandingTodos.map((task, i) => (
+              <div
                 key={task.id}
-                onClick={() => toggleTask(task)}
-                className="flex items-center gap-3 py-1.5 w-full text-left"
-                style={{ borderBottom: `1px solid ${border}` }}
+                className="flex items-center gap-3 py-1.5 w-full"
+                style={{ borderBottom: i < outstandingTodos.length - 1 ? `1px solid ${border}` : "none" }}
               >
-                <span
-                  className="flex items-center justify-center shrink-0"
-                  style={{ width: 18, height: 18, borderRadius: 4, border: `1.5px solid ${border}` }}
-                />
-                <span className="text-sm flex-1" style={{ color: ink }}>
-                  {task.text}
-                </span>
-                <span className="flex items-center gap-1.5 shrink-0 ml-3">
+                <button
+                  onClick={() => toggleTask(task)}
+                  className="flex items-center gap-3 flex-1 min-w-0 text-left"
+                >
                   <span
-                    className="flex items-center justify-center rounded-full text-xs font-medium"
-                    style={{ width: 20, height: 20, background: orangeSoft, color: navyText }}
-                  >
-                    {initials(task.added_by_name)}
+                    className="flex items-center justify-center shrink-0"
+                    style={{ width: 18, height: 18, borderRadius: 4, border: `1.5px solid ${border}` }}
+                  />
+                  <span className="text-sm flex-1" style={{ color: ink }}>
+                    {task.text}
                   </span>
-                  <span className="text-xs" style={{ color: inkSoft }}>
-                    {task.added_by_name}
+                  <span className="flex items-center gap-1.5 shrink-0 ml-3">
+                    <span
+                      className="flex items-center justify-center rounded-full text-xs font-medium"
+                      style={{ width: 20, height: 20, background: orangeSoft, color: navyText }}
+                    >
+                      {initials(task.added_by_name)}
+                    </span>
+                    <span className="text-xs" style={{ color: inkSoft }}>
+                      {task.added_by_name}
+                    </span>
                   </span>
-                </span>
-              </button>
+                </button>
+                <button onClick={() => deleteTask(task)} className="shrink-0 p-1" aria-label="Delete task">
+                  <Trash2 size={14} style={{ color: inkSoft }} />
+                </button>
+              </div>
             ))}
           </div>
         </div>

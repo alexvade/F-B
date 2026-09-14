@@ -11,6 +11,21 @@ import { Section } from "@/components/section";
 import { EmojiText } from "@/components/emoji-text";
 import { bg, border, fill, ink, inkSoft, navy, navyText, orange, orangeSoft } from "@/lib/design-tokens";
 
+// A grab-bag of composer placeholders — picked once per page load so it
+// doesn't say the exact same thing every time (see Dashboard's GREETINGS).
+const COMPOSER_PLACEHOLDERS = [
+  "Share an update with the team…",
+  "What's on your mind?",
+  "Got something to share?",
+  "Anything the team should know?",
+  "What's happening today?",
+  "Drop a note for the team…",
+  "Any news, gossip, or reminders?",
+  "Tell the team what's up…",
+  "What's new?",
+  "Shout something into the void…",
+];
+
 type Comment = {
   id: number;
   authorName: string;
@@ -73,6 +88,13 @@ export default function UpdatesPage() {
   const profile = useProfile();
   const supabase = createClient();
 
+  // Picked client-side only (not in the initializer) so the server-rendered
+  // HTML and the first client render agree — Math.random() at render time
+  // would otherwise mismatch and force React to redo the initial hydration.
+  const [placeholder, setPlaceholder] = useState(COMPOSER_PLACEHOLDERS[0]);
+  useEffect(() => {
+    setPlaceholder(COMPOSER_PLACEHOLDERS[Math.floor(Math.random() * COMPOSER_PLACEHOLDERS.length)]);
+  }, []);
   const [posts, setPosts] = useState<Post[]>([]);
   const [newPost, setNewPost] = useState("");
   const [newPhoto, setNewPhoto] = useState<File | null>(null);
@@ -208,8 +230,8 @@ export default function UpdatesPage() {
         <textarea
           value={newPost}
           onChange={(e) => setNewPost(e.target.value)}
-          placeholder="Share an update with the team…"
-          className="w-full text-sm resize-none outline-none px-4 py-3 rounded-full text-left"
+          placeholder={placeholder}
+          className="w-full text-sm resize-none outline-none px-4 py-3 rounded-full text-left dark-mode-invert"
           rows={1}
           style={{ color: ink, background: fill, border: `1px solid ${border}` }}
         />
@@ -384,7 +406,7 @@ export default function UpdatesPage() {
                   onChange={(e) => setCommentDrafts((prev) => ({ ...prev, [p.id]: e.target.value }))}
                   onKeyDown={(e) => e.key === "Enter" && addComment(p.id)}
                   placeholder="Reply with more info…"
-                  className="flex-1 text-xs px-3.5 py-2 rounded-full outline-none"
+                  className="flex-1 text-xs px-3.5 py-2 rounded-full outline-none dark-mode-invert"
                   style={{ border: `1px solid ${border}`, color: ink, background: fill }}
                 />
                 <label
