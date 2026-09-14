@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
@@ -15,6 +16,8 @@ import {
   Users,
   ClipboardList,
   Sparkles,
+  Menu as MenuIcon,
+  X,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { bg, border, ink, inkSoft, navy, orange, surface } from "@/lib/design-tokens";
@@ -32,6 +35,11 @@ const NAV_ITEMS = [
   { href: "/stock-orders", label: "Stock Orders", icon: ClipboardList, adminOnly: true },
 ];
 
+// Bottom island (mobile only): Dashboard in the middle, flanked by the
+// most-used tabs. Everything else lives behind the top-left menu.
+const ISLAND_LEFT = ["/drinks", "/updates", "/checklists"];
+const ISLAND_RIGHT = ["/events", "/function-sheets", "/sops"];
+
 export function NavShell({
   name,
   isAdmin,
@@ -43,8 +51,10 @@ export function NavShell({
 }) {
   const pathname = usePathname();
   const router = useRouter();
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const isActive = (href: string) => pathname === href || pathname.startsWith(href + "/");
+  const findItem = (href: string) => NAV_ITEMS.find((item) => item.href === href)!;
 
   const handleSignOut = async () => {
     const supabase = createClient();
@@ -110,31 +120,129 @@ export function NavShell({
         </div>
       </div>
 
-      {/* Bottom nav (mobile) */}
-      <div
-        className="sm:hidden fixed bottom-0 left-0 right-0 flex justify-around py-2 z-10"
-        style={{ background: surface, borderTop: `1px solid ${border}` }}
+      {/* Menu button (mobile) */}
+      <button
+        onClick={() => setMenuOpen(true)}
+        className="sm:hidden fixed top-4 left-4 z-20 p-2.5 rounded-full"
+        style={{ background: surface, border: `1px solid ${border}`, boxShadow: "0 2px 10px rgba(0,0,0,0.10)" }}
+        aria-label="Open menu"
       >
-        {NAV_ITEMS.filter((item) => !item.adminOnly || isAdmin).map(({ href, icon: Icon }) => {
-          const active = isActive(href);
-          return (
-            <Link
-              key={href}
-              href={href}
-              className="p-2.5 rounded-full"
-              style={{
-                background: active ? navy : "transparent",
-                color: active ? orange : inkSoft,
-              }}
-            >
-              <Icon size={20} />
-            </Link>
-          );
-        })}
+        <MenuIcon size={20} style={{ color: ink }} />
+      </button>
+
+      {/* All-tabs menu (mobile) */}
+      {menuOpen && (
+        <div
+          className="sm:hidden fixed inset-0 z-30 flex flex-col justify-end"
+          style={{ background: "rgba(0,0,0,0.4)" }}
+          onClick={() => setMenuOpen(false)}
+        >
+          <div
+            className="rounded-t-3xl p-4 pb-8 max-h-[80vh] overflow-y-auto"
+            style={{ background: surface }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-3 px-2">
+              <div className="text-sm font-semibold">All tabs</div>
+              <button onClick={() => setMenuOpen(false)} className="p-1.5 rounded-full" style={{ color: inkSoft }} aria-label="Close menu">
+                <X size={18} />
+              </button>
+            </div>
+            <nav className="flex flex-col gap-1">
+              {NAV_ITEMS.filter((item) => item.href !== "/dashboard" && (!item.adminOnly || isAdmin)).map(({ href, label, icon: Icon }) => {
+                const active = isActive(href);
+                return (
+                  <Link
+                    key={href}
+                    href={href}
+                    onClick={() => setMenuOpen(false)}
+                    className="flex items-center gap-3 px-4 py-3 rounded-2xl text-sm"
+                    style={{
+                      background: active ? navy : "transparent",
+                      color: active ? "#FFFFFF" : ink,
+                      fontWeight: active ? 600 : 400,
+                    }}
+                  >
+                    <Icon size={18} style={{ color: active ? "#FFFFFF" : orange }} />
+                    {label}
+                  </Link>
+                );
+              })}
+              {isAdmin && (
+                <Link
+                  href="/admin/staff"
+                  onClick={() => setMenuOpen(false)}
+                  className="flex items-center gap-3 px-4 py-3 rounded-2xl text-sm"
+                  style={{ color: ink }}
+                >
+                  <Users size={18} style={{ color: orange }} /> Manage staff
+                </Link>
+              )}
+              <button
+                onClick={() => {
+                  setMenuOpen(false);
+                  handleSignOut();
+                }}
+                className="flex items-center gap-3 px-4 py-3 rounded-2xl text-sm text-left"
+                style={{ color: inkSoft }}
+              >
+                <LogOut size={18} /> Sign out
+              </button>
+            </nav>
+          </div>
+        </div>
+      )}
+
+      {/* Bottom nav island (mobile) */}
+      <div
+        className="sm:hidden fixed bottom-4 left-4 right-4 z-10 flex items-center justify-between px-2 py-2 rounded-full"
+        style={{ background: surface, border: `1px solid ${border}`, boxShadow: "0 8px 24px rgba(0,0,0,0.14)" }}
+      >
+        <div className="flex items-center gap-1">
+          {ISLAND_LEFT.map((href) => {
+            const { icon: Icon } = findItem(href);
+            const active = isActive(href);
+            return (
+              <Link
+                key={href}
+                href={href}
+                className="p-2.5 rounded-full"
+                style={{ background: active ? navy : "transparent", color: active ? orange : inkSoft }}
+              >
+                <Icon size={20} />
+              </Link>
+            );
+          })}
+        </div>
+
+        <Link
+          href="/dashboard"
+          className="p-3 rounded-full -mt-6"
+          style={{ background: navy, color: "#FFFFFF", border: `4px solid ${bg}`, boxShadow: "0 4px 12px rgba(0,0,0,0.2)" }}
+        >
+          <LayoutDashboard size={22} />
+        </Link>
+
+        <div className="flex items-center gap-1">
+          {ISLAND_RIGHT.map((href) => {
+            const { icon: Icon } = findItem(href);
+            const active = isActive(href);
+            return (
+              <Link
+                key={href}
+                href={href}
+                className="p-2.5 rounded-full"
+                style={{ background: active ? navy : "transparent", color: active ? orange : inkSoft }}
+              >
+                <Icon size={20} />
+              </Link>
+            );
+          })}
+        </div>
       </div>
 
       {/* Main content */}
-      <div className="flex-1 overflow-y-auto px-5 sm:px-10 py-8 pb-20 sm:pb-8 max-w-3xl">
+      <div className="flex-1 overflow-y-auto px-5 sm:px-10 pt-16 sm:pt-8 pb-28 sm:pb-8 max-w-3xl">
         {children}
       </div>
     </div>
