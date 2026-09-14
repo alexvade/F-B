@@ -293,18 +293,18 @@ export default function DashboardPage() {
             <div className="flex items-center gap-8">
               <div>
                 <div className="text-xs" style={{ color: inkSoft }}>
-                  GIH
-                </div>
-                <div className="text-2xl font-semibold" style={{ color: navyText }}>
-                  {covers.gih_count ?? "–"}
-                </div>
-              </div>
-              <div>
-                <div className="text-xs" style={{ color: inkSoft }}>
                   Breakfast
                 </div>
                 <div className="text-2xl font-semibold" style={{ color: navyText }}>
                   {covers.breakfast_count ?? "–"}
+                </div>
+              </div>
+              <div>
+                <div className="text-xs" style={{ color: inkSoft }}>
+                  GIH
+                </div>
+                <div className="text-2xl font-semibold" style={{ color: navyText }}>
+                  {covers.gih_count ?? "–"}
                 </div>
               </div>
             </div>
