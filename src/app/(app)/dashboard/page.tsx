@@ -21,7 +21,6 @@ import {
   orange,
   orangeSoft,
   surface,
-  warn,
 } from "@/lib/design-tokens";
 
 type WorkingToday = { name: string; start: string | null; end: string | null };
@@ -285,12 +284,12 @@ export default function DashboardPage() {
         <div
           className="p-4 rounded-2xl"
           style={{
-            background: `linear-gradient(135deg, ${navySoft} 0%, ${surface} 100%)`,
+            background: `linear-gradient(135deg, ${orangeSoft} 0%, ${surface} 100%)`,
             border: `1px solid ${border}`,
           }}
         >
           <div className="flex items-center gap-2 mb-3">
-            <Users size={15} style={{ color: navy }} />
+            <Users size={15} style={{ color: orange }} />
             <span className="text-sm font-medium" style={{ color: navyText }}>
               Working today
             </span>
@@ -367,18 +366,15 @@ export default function DashboardPage() {
       </div>
 
       {/* Events today */}
-      <div
-        className="p-4 rounded-2xl mb-4"
-        style={{ background: `linear-gradient(135deg, ${warn} 0%, ${surface} 100%)`, border: `1px solid ${border}` }}
-      >
+      <div className="p-4 rounded-2xl mb-4" style={{ background: navy }}>
         <div className="flex items-center gap-2 mb-3">
-          <Sparkles size={15} style={{ color: navy }} />
-          <span className="text-sm font-medium" style={{ color: navyText }}>
+          <Sparkles size={15} style={{ color: orange }} />
+          <span className="text-sm font-medium" style={{ color: "#FFFFFF" }}>
             Events today
           </span>
         </div>
         {todaysEventDays.length === 0 ? (
-          <p className="text-sm" style={{ color: inkSoft }}>
+          <p className="text-sm" style={{ color: navySoft }}>
             Nothing scheduled.
           </p>
         ) : (
