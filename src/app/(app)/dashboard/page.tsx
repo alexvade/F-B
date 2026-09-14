@@ -311,8 +311,8 @@ export default function DashboardPage() {
                       style={{
                         width: 24,
                         height: 24,
-                        background: "#f27d16",
-                        color: "#6B854A",
+                        background: "#6B854A",
+                        color: "#f27d16",
                       }}
                     >
                       {initials(p.name)}
