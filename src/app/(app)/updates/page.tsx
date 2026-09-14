@@ -8,6 +8,7 @@ import { uploadAttachment } from "@/lib/storage";
 import { relativeTime, timestamp } from "@/lib/relative-time";
 import { initials } from "@/lib/shift-status";
 import { Section } from "@/components/section";
+import { EmojiText } from "@/components/emoji-text";
 import { bg, border, fill, ink, inkSoft, navy, navyText, orange, orangeSoft } from "@/lib/design-tokens";
 
 type Comment = {
@@ -294,7 +295,7 @@ export default function UpdatesPage() {
             </div>
             {p.text && (
               <p className="text-sm mt-1" style={{ color: ink }}>
-                {p.text}
+                <EmojiText text={p.text} />
               </p>
             )}
             {p.photo_url && (
@@ -333,7 +334,7 @@ export default function UpdatesPage() {
                     </div>
                     {c.text && (
                       <p className="text-xs mt-0.5" style={{ color: inkSoft }}>
-                        {c.text}
+                        <EmojiText text={c.text} />
                       </p>
                     )}
                     {c.photo_url && (

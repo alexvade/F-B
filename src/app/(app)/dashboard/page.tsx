@@ -8,6 +8,7 @@ import { useProfile } from "@/lib/profile-context";
 import { todayISO, checklistDayISO } from "@/lib/dates";
 import { computeShiftStatus, initials } from "@/lib/shift-status";
 import type { EventContent } from "@/lib/event-content";
+import { EmojiText } from "@/components/emoji-text";
 import {
   bg,
   border,
@@ -259,7 +260,7 @@ export default function DashboardPage() {
           <div className="flex flex-col gap-1">
             {todaysBirthdays.map((b) => (
               <div key={b.id} className="text-sm" style={{ color: ink }}>
-                🎂 {b.name}
+                <EmojiText text={`🎂 ${b.name}`} />
               </div>
             ))}
           </div>

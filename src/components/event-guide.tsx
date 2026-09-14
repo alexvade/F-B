@@ -1,5 +1,6 @@
 import { Fraunces, Public_Sans, IBM_Plex_Mono } from "next/font/google";
 import type { EventContent, TimelineDay } from "@/lib/event-content";
+import { EmojiText } from "@/components/emoji-text";
 
 const fraunces = Fraunces({ subsets: ["latin"], weight: ["400", "500", "600"], variable: "--font-fraunces" });
 const publicSans = Public_Sans({ subsets: ["latin"], weight: ["400", "500", "600", "700"], variable: "--font-public-sans" });
@@ -269,7 +270,9 @@ export function EventGuide({ content }: { content: EventContent }) {
           <div className="eg-split">
             {content.providedBy.map((group, i) => (
               <div key={i} className="col">
-                <h3>{group.heading}</h3>
+                <h3>
+                  <EmojiText text={group.heading} />
+                </h3>
                 <ul>
                   {group.items.map((item, j) => (
                     <li key={j}>{item}</li>
