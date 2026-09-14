@@ -211,7 +211,7 @@ export function NavShell({
                 key={href}
                 href={href}
                 className="p-2.5 rounded-full"
-                style={{ background: active ? navy : "transparent", color: active ? orange : inkSoft }}
+                style={{ background: active ? navy : "transparent", color: active ? "#FFFFFF" : inkSoft }}
               >
                 <Icon size={20} />
               </Link>
@@ -236,7 +236,7 @@ export function NavShell({
                 key={href}
                 href={href}
                 className="p-2.5 rounded-full"
-                style={{ background: active ? navy : "transparent", color: active ? orange : inkSoft }}
+                style={{ background: active ? navy : "transparent", color: active ? "#FFFFFF" : inkSoft }}
               >
                 <Icon size={20} />
               </Link>
