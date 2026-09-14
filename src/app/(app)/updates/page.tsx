@@ -202,7 +202,7 @@ export default function UpdatesPage() {
   };
 
   return (
-    <Section title="Updates" subtitle="Shared announcements and shift notes">
+    <Section title="Noticeboard" subtitle="Shared announcements and shift notes">
       <div className="p-3 rounded-2xl mb-6" style={{ background: bg, border: `1px solid ${border}` }}>
         <textarea
           value={newPost}

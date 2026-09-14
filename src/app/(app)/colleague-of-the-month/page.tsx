@@ -65,13 +65,19 @@ export default function ColleagueOfTheMonthPage() {
 
   const addNomination = async () => {
     if (!newNominee.trim() || !newReason.trim()) return;
+    const nominee = newNominee.trim();
+    const reason = newReason.trim();
     const { data } = await supabase
       .from("nominations")
-      .insert({ nominee_name: newNominee.trim(), reason: newReason.trim(), nominated_by: profile.id })
+      .insert({ nominee_name: nominee, reason, nominated_by: profile.id })
       .select()
       .single();
     if (data) {
       await supabase.from("nomination_votes").insert({ nomination_id: data.id, user_id: profile.id });
+      await supabase.from("posts").insert({
+        author_id: profile.id,
+        text: `🏆 Nominated ${nominee} for Colleague of the Month — "${reason}"`,
+      });
     }
     setNewNominee("");
     setNewReason("");

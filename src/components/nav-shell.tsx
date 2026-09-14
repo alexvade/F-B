@@ -27,7 +27,7 @@ import { ThemeContext } from "@/lib/theme-context";
 
 const NAV_ITEMS = [
   { href: "/drinks", label: "Drinks", icon: Wine },
-  { href: "/updates", label: "Updates", icon: MessageCircle },
+  { href: "/updates", label: "Noticeboard", icon: MessageCircle },
   { href: "/rota", label: "Rota", icon: CalendarDays },
   { href: "/checklists", label: "Checklists", icon: CheckSquare },
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
