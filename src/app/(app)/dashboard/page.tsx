@@ -36,6 +36,30 @@ function timelineDayIsToday(dateStr: string, now: Date) {
   if (!match) return false;
   return parseInt(match[1], 10) === now.getDate() && match[2] === MONTHS[now.getMonth()];
 }
+
+// A grab-bag of greetings — some deadpan, some daft — so the dashboard
+// doesn't say the exact same thing every single time you open it.
+const GREETINGS: ((name: string) => string)[] = [
+  (n) => `Good to see you, ${n}`,
+  (n) => `Welcome back, ${n}`,
+  (n) => `Hello, ${n}`,
+  (n) => `Hey ${n}, ready to roll?`,
+  (n) => `Alright, ${n}?`,
+  (n) => `Hiya ${n}`,
+  (n) => `Yo ${n}, let's get into it`,
+  (n) => `Here's today's rundown, ${n}`,
+  (n) => `Onwards, ${n}`,
+  (n) => `${n}! Just in time to save the day (probably)`,
+  (n) => `Brace yourself, ${n} — it's shift o'clock`,
+  (n) => `Plot twist: ${n} showed up`,
+  (n) => `Ah, ${n} has entered the chat`,
+  (n) => `Look who it is — ${n}`,
+  (n) => `${n}, reporting for duty`,
+  (n) => `Team Ops missed you, ${n}`,
+  (n) => `Back at it again, ${n}`,
+  (n) => `${n}! The legend arrives`,
+];
+
 type Todo = {
   id: number;
   text: string;
@@ -48,6 +72,9 @@ type Todo = {
 export default function DashboardPage() {
   const profile = useProfile();
   const supabase = createClient();
+  const [greeting] = useState(
+    () => GREETINGS[Math.floor(Math.random() * GREETINGS.length)](profile.name.split(" ")[0])
+  );
 
   const [now, setNow] = useState(new Date());
   const [covers, setCovers] = useState<{ gih_count: number | null; breakfast_count: number | null } | null>(null);
@@ -190,7 +217,7 @@ export default function DashboardPage() {
         className="text-lg font-semibold mb-1 inline-block pb-1"
         style={{ color: navyText, borderBottom: `3px solid ${orange}` }}
       >
-        Good to see you, {profile.name.split(" ")[0]}
+        {greeting}
       </h1>
       <p className="text-sm mb-6 mt-2" style={{ color: inkSoft }}>
         Here&apos;s what&apos;s happening on shift today
@@ -212,47 +239,47 @@ export default function DashboardPage() {
         <Clock size={32} style={{ color: orange, opacity: 0.8 }} />
       </div>
 
-      {/* Guests today */}
-      <div
-        className="flex items-center justify-between p-4 rounded-2xl mb-4"
-        style={{
-          background: `linear-gradient(135deg, ${orangeSoft} 0%, ${surface} 100%)`,
-          border: `1px solid ${border}`,
-        }}
-      >
-        <div className="flex items-center gap-2">
-          <BedDouble size={15} style={{ color: inkSoft }} />
-          <span className="text-sm font-medium" style={{ color: navyText }}>
-            Guests today
-          </span>
-        </div>
-        {covers ? (
-          <div className="flex items-center gap-6">
-            <div className="text-right">
-              <div className="text-xs" style={{ color: inkSoft }}>
-                GIH
-              </div>
-              <div className="text-lg font-semibold" style={{ color: navyText }}>
-                {covers.gih_count ?? "–"}
-              </div>
-            </div>
-            <div className="text-right">
-              <div className="text-xs" style={{ color: inkSoft }}>
-                Breakfast
-              </div>
-              <div className="text-lg font-semibold" style={{ color: navyText }}>
-                {covers.breakfast_count ?? "–"}
-              </div>
-            </div>
-          </div>
-        ) : (
-          <span className="text-xs" style={{ color: inkSoft }}>
-            No data for today
-          </span>
-        )}
-      </div>
-
       <div className="grid sm:grid-cols-2 gap-4 mb-4">
+        {/* Guests today */}
+        <div
+          className="p-4 rounded-2xl"
+          style={{
+            background: `linear-gradient(135deg, ${orangeSoft} 0%, ${surface} 100%)`,
+            border: `1px solid ${border}`,
+          }}
+        >
+          <div className="flex items-center gap-2 mb-3">
+            <BedDouble size={15} style={{ color: inkSoft }} />
+            <span className="text-sm font-medium" style={{ color: navyText }}>
+              Guests today
+            </span>
+          </div>
+          {covers ? (
+            <div className="flex items-center gap-8">
+              <div>
+                <div className="text-xs" style={{ color: inkSoft }}>
+                  GIH
+                </div>
+                <div className="text-2xl font-semibold" style={{ color: navyText }}>
+                  {covers.gih_count ?? "–"}
+                </div>
+              </div>
+              <div>
+                <div className="text-xs" style={{ color: inkSoft }}>
+                  Breakfast
+                </div>
+                <div className="text-2xl font-semibold" style={{ color: navyText }}>
+                  {covers.breakfast_count ?? "–"}
+                </div>
+              </div>
+            </div>
+          ) : (
+            <p className="text-sm" style={{ color: inkSoft }}>
+              No data for today
+            </p>
+          )}
+        </div>
+
         {/* Working today */}
         <div className="p-4 rounded-2xl" style={{ background: surface, border: `1px solid ${border}` }}>
           <div className="flex items-center gap-2 mb-3">
@@ -330,29 +357,29 @@ export default function DashboardPage() {
             </div>
           )}
         </div>
+      </div>
 
-        {/* Events today */}
-        <div className="p-4 rounded-2xl" style={{ background: surface, border: `1px solid ${border}` }}>
-          <div className="flex items-center gap-2 mb-3">
-            <Sparkles size={15} style={{ color: inkSoft }} />
-            <span className="text-sm font-medium" style={{ color: navyText }}>
-              Events today
-            </span>
-          </div>
-          {todaysEventDays.length === 0 ? (
-            <p className="text-sm" style={{ color: inkSoft }}>
-              Nothing scheduled.
-            </p>
-          ) : (
-            <div className="flex flex-col gap-4">
-              {todaysEventDays.map(({ id, title, day }) => (
-                <Link key={id} href={`/events/${id}`} className="block">
-                  <EventDayCard eventTitle={title} day={day} />
-                </Link>
-              ))}
-            </div>
-          )}
+      {/* Events today */}
+      <div className="p-4 rounded-2xl mb-4" style={{ background: surface, border: `1px solid ${border}` }}>
+        <div className="flex items-center gap-2 mb-3">
+          <Sparkles size={15} style={{ color: inkSoft }} />
+          <span className="text-sm font-medium" style={{ color: navyText }}>
+            Events today
+          </span>
         </div>
+        {todaysEventDays.length === 0 ? (
+          <p className="text-sm" style={{ color: inkSoft }}>
+            Nothing scheduled.
+          </p>
+        ) : (
+          <div className="flex flex-col gap-4">
+            {todaysEventDays.map(({ id, title, day }) => (
+              <Link key={id} href={`/events/${id}`} className="block">
+                <EventDayCard eventTitle={title} day={day} />
+              </Link>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* To do today */}
