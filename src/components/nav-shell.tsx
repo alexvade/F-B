@@ -88,8 +88,8 @@ export function NavShell({
 
   return (
     <div
-      className="flex w-full h-screen"
-      style={{ background: bg, color: bgText, filter: dark ? "invert(1)" : undefined }}
+      className={`flex w-full h-screen${dark ? " dark-mode" : ""}`}
+      style={{ background: bg, color: bgText }}
     >
       {/* Sidebar (desktop) */}
       <div

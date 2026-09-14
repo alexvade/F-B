@@ -24,3 +24,16 @@ body {
   color: var(--foreground);
   font-family: var(--font-sans);
 }
+
+/* Dark mode = a full colour invert of the app shell (see NavShell).
+   Photos and the cocktail-glass illustrations carry real colour
+   information (an uploaded photo, a drink's actual liquid colour) —
+   invert them a second time so they land back at their true colours
+   instead of rendering as a negative. */
+.dark-mode {
+  filter: invert(1);
+}
+.dark-mode img,
+.dark-mode .cocktail-glass-svg {
+  filter: invert(1);
+}
