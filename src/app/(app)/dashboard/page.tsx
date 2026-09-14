@@ -381,11 +381,11 @@ export default function DashboardPage() {
             {todaysEventDays.map(({ id, title, day }) => (
               <Link key={id} href={`/events/${id}`} className="block">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium" style={{ color: navyText }}>
+                  <span className="text-sm font-medium" style={{ color: "#6b854A" }}>
                     {title}
                   </span>
                   {day.tag && (
-                    <span className="text-xs" style={{ color: inkSoft }}>
+                    <span className="text-xs" style={{ color: "#6b854A" }}>
                       {day.tag}
                     </span>
                   )}
@@ -393,11 +393,11 @@ export default function DashboardPage() {
                 <div className="flex flex-col gap-2">
                   {day.events.map((e, j) => (
                     <div key={j} className="flex gap-3">
-                      <span className="text-xs shrink-0 w-12" style={{ color: inkSoft }}>
+                      <span className="text-xs shrink-0 w-12" style={{ color: "#f27d16" }}>
                         {e.time}
                       </span>
                       <div>
-                        <div className="text-sm" style={{ color: ink }}>
+                        <div className="text-sm" style={{ color: "#6B854A" }}>
                           {e.what}
                         </div>
                         {e.where && (
