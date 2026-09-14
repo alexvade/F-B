@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
-import { Clock, Sparkles, Users, BedDouble, CheckSquare } from "lucide-react";
+import { Clock, Sparkles, Users, BedDouble, CheckSquare, Cake } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useProfile } from "@/lib/profile-context";
 import { todayISO, checklistDayISO } from "@/lib/dates";
@@ -23,6 +23,7 @@ import {
 
 type WorkingToday = { name: string; start: string | null; end: string | null };
 type EventRow = { id: number; title: string; content: EventContent | null };
+type BirthdayRow = { id: number; name: string; day: number; month: number };
 
 const MONTHS = [
   "January", "February", "March", "April", "May", "June",
@@ -78,6 +79,7 @@ export default function DashboardPage() {
   const [covers, setCovers] = useState<{ gih_count: number | null; breakfast_count: number | null } | null>(null);
   const [working, setWorking] = useState<WorkingToday[]>([]);
   const [events, setEvents] = useState<EventRow[]>([]);
+  const [birthdays, setBirthdays] = useState<BirthdayRow[]>([]);
   const [todos, setTodos] = useState<Todo[]>([]);
   const [newTask, setNewTask] = useState("");
 
@@ -90,7 +92,7 @@ export default function DashboardPage() {
   const checklistDay = checklistDayISO();
 
   const loadData = useCallback(async () => {
-    const [coversRes, shiftsRes, eventsRes, todayTodosRes, outstandingRes] = await Promise.all([
+    const [coversRes, shiftsRes, eventsRes, birthdaysRes, todayTodosRes, outstandingRes] = await Promise.all([
       supabase.from("daily_covers").select("*").eq("date", today).maybeSingle(),
       supabase
         .from("rota_shifts")
@@ -98,6 +100,7 @@ export default function DashboardPage() {
         .eq("date", today)
         .eq("status", "work"),
       supabase.from("events").select("id, title, content").not("content", "is", null),
+      supabase.from("birthdays").select("id, name, day, month"),
       supabase
         .from("todos")
         .select("*")
@@ -113,6 +116,7 @@ export default function DashboardPage() {
 
     setCovers(coversRes.data ?? null);
     setEvents(eventsRes.data ?? []);
+    setBirthdays(birthdaysRes.data ?? []);
 
     const staffIds = (shiftsRes.data ?? []).map((s) => s.staff_id).filter(Boolean) as string[];
     const allTodoIds = [
@@ -165,6 +169,7 @@ export default function DashboardPage() {
       .on("postgres_changes", { event: "*", schema: "public", table: "rota_shifts" }, loadData)
       .on("postgres_changes", { event: "*", schema: "public", table: "daily_covers" }, loadData)
       .on("postgres_changes", { event: "*", schema: "public", table: "events" }, loadData)
+      .on("postgres_changes", { event: "*", schema: "public", table: "birthdays" }, loadData)
       .subscribe();
     return () => {
       supabase.removeChannel(channel);
@@ -177,6 +182,7 @@ export default function DashboardPage() {
     const day = (e.content?.timeline ?? []).find((d) => timelineDayIsToday(d.date, now));
     return day ? [{ id: e.id, title: e.title, day }] : [];
   });
+  const todaysBirthdays = birthdays.filter((b) => b.day === now.getDate() && b.month === now.getMonth() + 1);
 
   const addTask = async () => {
     if (!newTask.trim()) return;
@@ -415,6 +421,29 @@ export default function DashboardPage() {
                   ))}
                 </div>
               </Link>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Birthdays today */}
+      <div className="p-4 rounded-2xl mb-4" style={{ background: bg, border: `1px solid ${border}` }}>
+        <div className="flex items-center gap-2 mb-3">
+          <Cake size={15} style={{ color: orange }} />
+          <span className="text-sm font-medium" style={{ color: navyText }}>
+            Birthdays today
+          </span>
+        </div>
+        {todaysBirthdays.length === 0 ? (
+          <p className="text-sm" style={{ color: inkSoft }}>
+            No birthdays today.
+          </p>
+        ) : (
+          <div className="flex flex-col gap-1">
+            {todaysBirthdays.map((b) => (
+              <div key={b.id} className="text-sm" style={{ color: ink }}>
+                🎂 {b.name}
+              </div>
             ))}
           </div>
         )}

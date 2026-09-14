@@ -320,6 +320,10 @@ export interface Database {
           updated_at?: string | null;
         }
       >;
+      birthdays: Table<
+        { id: number; name: string; day: number; month: number; created_at: string },
+        { id?: number; name: string; day: number; month: number; created_at?: string }
+      >;
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;

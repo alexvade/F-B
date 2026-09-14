@@ -16,12 +16,14 @@ import {
   Users,
   ClipboardList,
   Sparkles,
+  Cake,
   Menu as MenuIcon,
   Moon,
   Sun,
   X,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { useProfile } from "@/lib/profile-context";
 import { bg, bgText, bgTextSoft, border, ink, inkSoft, navy, orange, panel, surface } from "@/lib/design-tokens";
 import { ThemeContext } from "@/lib/theme-context";
 
@@ -36,6 +38,7 @@ const NAV_ITEMS = [
   { href: "/function-sheets", label: "Function Sheets", icon: FileStack },
   { href: "/events", label: "Events", icon: Sparkles },
   { href: "/stock-orders", label: "Stock Orders", icon: ClipboardList, adminOnly: true },
+  { href: "/birthdays", label: "Birthdays", icon: Cake, adminOnly: true },
 ];
 
 // Bottom island (mobile only): Dashboard in the middle, flanked by the
@@ -54,6 +57,7 @@ export function NavShell({
 }) {
   const pathname = usePathname();
   const router = useRouter();
+  const profile = useProfile();
   const [menuOpen, setMenuOpen] = useState(false);
   const [dark, setDark] = useState(false);
 
@@ -63,6 +67,35 @@ export function NavShell({
     } catch {
       // ignore — private browsing / storage blocked
     }
+  }, []);
+
+  // Once per app load: if it's someone's birthday today, post it to the
+  // Noticeboard — unless a post for them already went out today.
+  useEffect(() => {
+    const supabase = createClient();
+    const checkBirthdays = async () => {
+      const now = new Date();
+      const day = now.getDate();
+      const month = now.getMonth() + 1;
+      const { data: todays } = await supabase.from("birthdays").select("*").eq("day", day).eq("month", month);
+      if (!todays || todays.length === 0) return;
+
+      const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
+      for (const b of todays) {
+        const marker = `🎂 Happy birthday, ${b.name}`;
+        const { data: existing } = await supabase
+          .from("posts")
+          .select("id")
+          .ilike("text", `${marker}%`)
+          .gte("created_at", startOfDay)
+          .limit(1);
+        if (existing && existing.length > 0) continue;
+        await supabase.from("posts").insert({ author_id: profile.id, text: `${marker}! 🎉🎈` });
+      }
+    };
+    checkBirthdays();
+    // Deliberately once per mount — profile.id is stable for the session.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const toggleDark = () => {
