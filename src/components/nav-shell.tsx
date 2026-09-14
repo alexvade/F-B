@@ -138,7 +138,7 @@ export function NavShell({
     <ThemeContext.Provider value={{ dark }}>
     <div
       className="flex w-full h-screen"
-      style={{ background: dark ? "#000000" : bg, color: dark ? "#FFFFFF" : bgText }}
+      style={{ background: dark ? "#000000" : bg, color: bgText }}
     >
       {/* Sidebar (desktop) */}
       <div
