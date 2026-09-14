@@ -16,7 +16,6 @@ import {
   ink,
   inkSoft,
   navy,
-  navySoft,
   navyText,
   orange,
   orangeSoft,
@@ -312,8 +311,8 @@ export default function DashboardPage() {
                       style={{
                         width: 24,
                         height: 24,
-                        background: isIn ? navy : isOut ? border : orangeSoft,
-                        color: isIn ? "#FFFFFF" : isOut ? inkSoft : navy,
+                        background: "#f27d16",
+                        color: "#6B854A",
                       }}
                     >
                       {initials(p.name)}
@@ -330,7 +329,7 @@ export default function DashboardPage() {
                     {isIn && (
                       <span
                         className="text-xs px-1.5 py-0.5 rounded-2xl"
-                        style={{ background: navySoft, color: navyText, fontWeight: 600 }}
+                        style={{ background: "#f27d16", color: "#6B854A", fontWeight: 600 }}
                       >
                         In
                       </span>
@@ -338,7 +337,7 @@ export default function DashboardPage() {
                     {isOut && (
                       <span
                         className="text-xs px-1.5 py-0.5 rounded-2xl"
-                        style={{ background: fill, color: inkSoft, fontWeight: 600 }}
+                        style={{ background: "#f27d16", color: "#6B854A", fontWeight: 600 }}
                       >
                         Out
                       </span>
