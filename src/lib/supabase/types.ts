@@ -229,6 +229,7 @@ export interface Database {
           glass_note: string | null;
           tasting_note: string | null;
           sort_order: number;
+          delisted: boolean;
         },
         {
           id?: number;
@@ -240,6 +241,7 @@ export interface Database {
           glass_note?: string | null;
           tasting_note?: string | null;
           sort_order?: number;
+          delisted?: boolean;
         }
       >;
       function_sheets: Table<

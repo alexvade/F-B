@@ -14,6 +14,7 @@ type Wine = {
   region: string | null;
   vintage: string | null;
   tasting_note: string | null;
+  delisted: boolean;
 };
 
 const EMPTY_FORM = {
@@ -23,6 +24,7 @@ const EMPTY_FORM = {
   region: "",
   vintage: "",
   tasting_note: "",
+  delisted: false,
 };
 
 export default function WinesPage() {
@@ -59,6 +61,7 @@ export default function WinesPage() {
             region: w.region ?? "",
             vintage: w.vintage ?? "",
             tasting_note: w.tasting_note ?? "",
+            delisted: w.delisted,
           }
         : { ...EMPTY_FORM }
     );
@@ -74,6 +77,7 @@ export default function WinesPage() {
         region: form.region.trim() || null,
         vintage: form.vintage.trim() || null,
         tasting_note: form.tasting_note.trim() || null,
+        delisted: form.delisted,
       };
       if (form.id) {
         await supabase.from("wines").update(payload).eq("id", form.id);
@@ -142,6 +146,14 @@ export default function WinesPage() {
             className="text-sm px-4 py-3 rounded-2xl outline-none"
             style={{ border: `1px solid ${border}`, background: fill, color: ink }}
           />
+          <label className="flex items-center gap-2 text-sm px-1" style={{ color: ink }}>
+            <input
+              type="checkbox"
+              checked={form.delisted}
+              onChange={(e) => setForm({ ...form, delisted: e.target.checked })}
+            />
+            Delisted by supplier
+          </label>
           <button
             onClick={saveForm}
             disabled={saving}
@@ -182,6 +194,11 @@ export default function WinesPage() {
         >
           {active.name}
         </h2>
+        {active.delisted && (
+          <p className="text-sm font-bold mt-2" style={{ color: "#000000" }}>
+            DELISTED
+          </p>
+        )}
         <p className="text-sm mt-2 mb-4" style={{ color: inkSoft }}>
           {active.region}
           {active.vintage ? ` · ${active.vintage}` : ""}
@@ -261,6 +278,11 @@ export default function WinesPage() {
                     <div className="text-sm font-medium" style={{ color: ink }}>
                       {w.name}
                     </div>
+                    {w.delisted && (
+                      <div className="text-xs font-bold" style={{ color: "#000000" }}>
+                        DELISTED
+                      </div>
+                    )}
                     <div className="text-xs" style={{ color: inkSoft }}>
                       {w.region}
                       {w.vintage ? ` · ${w.vintage}` : ""}
