@@ -90,12 +90,12 @@ export function NavShell({
                 href={href}
                 className="flex items-center gap-2 px-4 py-2.5 rounded-full text-sm text-left"
                 style={{
-                  background: active ? navy : "transparent",
-                  color: active ? "#FFFFFF" : bgTextSoft,
+                  background: active ? "#6B854A" : "transparent",
+                  color: active ? bg : bgTextSoft,
                   fontWeight: active ? 600 : 400,
                 }}
               >
-                <Icon size={16} style={{ color: orange }} />
+                <Icon size={16} style={{ color: active ? bg : bgTextSoft }} />
                 {label}
               </Link>
             );
@@ -162,12 +162,12 @@ export function NavShell({
                     onClick={() => setMenuOpen(false)}
                     className="flex items-center gap-3 px-4 py-3 rounded-2xl text-sm"
                     style={{
-                      background: active ? navy : "transparent",
-                      color: active ? "#FFFFFF" : ink,
+                      background: active ? "#6B854A" : "transparent",
+                      color: active ? bg : ink,
                       fontWeight: active ? 600 : 400,
                     }}
                   >
-                    <Icon size={18} style={{ color: active ? "#FFFFFF" : orange }} />
+                    <Icon size={18} style={{ color: active ? bg : ink }} />
                     {label}
                   </Link>
                 );
