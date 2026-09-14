@@ -7,7 +7,6 @@ import { createClient } from "@/lib/supabase/client";
 import { useProfile } from "@/lib/profile-context";
 import { todayISO, checklistDayISO } from "@/lib/dates";
 import { computeShiftStatus, initials } from "@/lib/shift-status";
-import { EventDayCard } from "@/components/event-guide";
 import type { EventContent } from "@/lib/event-content";
 import {
   bg,
@@ -369,19 +368,47 @@ export default function DashboardPage() {
       <div className="p-4 rounded-2xl mb-4" style={{ background: bg, border: `1px solid ${border}` }}>
         <div className="flex items-center gap-2 mb-3">
           <Sparkles size={15} style={{ color: orange }} />
-          <span className="text-sm font-medium" style={{ color: "#FFFFFF" }}>
+          <span className="text-sm font-medium" style={{ color: navyText }}>
             Events today
           </span>
         </div>
         {todaysEventDays.length === 0 ? (
-          <p className="text-sm" style={{ color: navySoft }}>
+          <p className="text-sm" style={{ color: inkSoft }}>
             Nothing scheduled.
           </p>
         ) : (
           <div className="flex flex-col gap-4">
             {todaysEventDays.map(({ id, title, day }) => (
               <Link key={id} href={`/events/${id}`} className="block">
-                <EventDayCard eventTitle={title} day={day} />
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-medium" style={{ color: navyText }}>
+                    {title}
+                  </span>
+                  {day.tag && (
+                    <span className="text-xs" style={{ color: inkSoft }}>
+                      {day.tag}
+                    </span>
+                  )}
+                </div>
+                <div className="flex flex-col gap-2">
+                  {day.events.map((e, j) => (
+                    <div key={j} className="flex gap-3">
+                      <span className="text-xs shrink-0 w-12" style={{ color: inkSoft }}>
+                        {e.time}
+                      </span>
+                      <div>
+                        <div className="text-sm" style={{ color: ink }}>
+                          {e.what}
+                        </div>
+                        {e.where && (
+                          <div className="text-xs" style={{ color: inkSoft }}>
+                            {e.where}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </Link>
             ))}
           </div>
