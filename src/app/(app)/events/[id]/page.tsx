@@ -1,0 +1,60 @@
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { FileText } from "lucide-react";
+import { createClient } from "@/lib/supabase/server";
+import { EventGuide } from "@/components/event-guide";
+import { border, ink, inkSoft, navyText, orange, surface } from "@/lib/design-tokens";
+
+export default async function EventDetailPage({ params }: PageProps<"/events/[id]">) {
+  const { id } = await params;
+  const supabase = await createClient();
+
+  const { data: event } = await supabase.from("events").select("*").eq("id", Number(id)).single();
+  if (!event) notFound();
+
+  let fileUrl: string | null = null;
+  if (event.function_sheet_id) {
+    const { data: sheet } = await supabase
+      .from("function_sheets")
+      .select("file_url")
+      .eq("id", event.function_sheet_id)
+      .single();
+    fileUrl = sheet?.file_url ?? null;
+  }
+
+  return (
+    <div>
+      <Link href="/events" className="text-xs mb-4 inline-block" style={{ color: navyText }}>
+        ← Back to Events
+      </Link>
+
+      {event.content ? (
+        <EventGuide content={event.content} />
+      ) : (
+        <div>
+          <h1
+            className="text-lg font-semibold mb-1 inline-block pb-1"
+            style={{ color: navyText, borderBottom: `3px solid ${orange}` }}
+          >
+            {event.title}
+          </h1>
+          <p className="text-sm mt-3 mb-4" style={{ color: inkSoft }}>
+            Details haven&apos;t been added for this event yet.
+          </p>
+          {fileUrl && (
+            <a
+              href={fileUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="flex items-center gap-2 w-fit px-3 py-2 rounded-2xl"
+              style={{ background: surface, border: `1px solid ${border}`, color: ink }}
+            >
+              <FileText size={15} style={{ color: orange }} />
+              <span className="text-sm">Open the original PDF</span>
+            </a>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}

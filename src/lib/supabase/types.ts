@@ -9,6 +9,8 @@
 // missing every query on this Database type silently resolves to `never`
 // instead of erroring, which is a nasty one to debug.
 
+import type { EventContent } from "../event-content";
+
 export type Role = "admin" | "staff";
 export type ShiftStatus = "work" | "off" | "holiday";
 
@@ -289,6 +291,28 @@ export interface Database {
           sort_order: number;
           quantity?: number | null;
           updated_by?: string | null;
+          updated_at?: string | null;
+        }
+      >;
+      events: Table<
+        {
+          id: number;
+          title: string;
+          function_sheet_id: number | null;
+          event_date: string | null;
+          content: EventContent | null;
+          created_by: string | null;
+          created_at: string;
+          updated_at: string | null;
+        },
+        {
+          id?: number;
+          title: string;
+          function_sheet_id?: number | null;
+          event_date?: string | null;
+          content?: EventContent | null;
+          created_by?: string | null;
+          created_at?: string;
           updated_at?: string | null;
         }
       >;
