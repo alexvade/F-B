@@ -243,6 +243,29 @@ export default function DashboardPage() {
         <Clock size={32} style={{ color: orange, opacity: 0.8 }} />
       </div>
 
+      {/* Birthdays today */}
+      <div className="p-4 rounded-2xl mb-4" style={{ background: bg, border: `1px solid ${border}` }}>
+        <div className="flex items-center gap-2 mb-3">
+          <Cake size={15} style={{ color: orange }} />
+          <span className="text-sm font-medium" style={{ color: navyText }}>
+            Birthdays today
+          </span>
+        </div>
+        {todaysBirthdays.length === 0 ? (
+          <p className="text-sm" style={{ color: inkSoft }}>
+            No birthdays today.
+          </p>
+        ) : (
+          <div className="flex flex-col gap-1">
+            {todaysBirthdays.map((b) => (
+              <div key={b.id} className="text-sm" style={{ color: ink }}>
+                🎂 {b.name}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
       <div className="grid sm:grid-cols-2 gap-4 mb-4">
         {/* Guests today */}
         <div
@@ -421,29 +444,6 @@ export default function DashboardPage() {
                   ))}
                 </div>
               </Link>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Birthdays today */}
-      <div className="p-4 rounded-2xl mb-4" style={{ background: bg, border: `1px solid ${border}` }}>
-        <div className="flex items-center gap-2 mb-3">
-          <Cake size={15} style={{ color: orange }} />
-          <span className="text-sm font-medium" style={{ color: navyText }}>
-            Birthdays today
-          </span>
-        </div>
-        {todaysBirthdays.length === 0 ? (
-          <p className="text-sm" style={{ color: inkSoft }}>
-            No birthdays today.
-          </p>
-        ) : (
-          <div className="flex flex-col gap-1">
-            {todaysBirthdays.map((b) => (
-              <div key={b.id} className="text-sm" style={{ color: ink }}>
-                🎂 {b.name}
-              </div>
             ))}
           </div>
         )}
