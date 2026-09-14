@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { bg, bgText, bgTextSoft, border, ink, inkSoft, navy, orange, panel, surface } from "@/lib/design-tokens";
+import { ThemeContext } from "@/lib/theme-context";
 
 const NAV_ITEMS = [
   { href: "/drinks", label: "Drinks", icon: Wine },
@@ -87,6 +88,7 @@ export function NavShell({
   };
 
   return (
+    <ThemeContext.Provider value={{ dark }}>
     <div
       className={`flex w-full h-screen${dark ? " dark-mode" : ""}`}
       style={{ background: bg, color: bgText }}
@@ -292,5 +294,6 @@ export function NavShell({
         </div>
       </div>
     </div>
+    </ThemeContext.Provider>
   );
 }

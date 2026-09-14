@@ -1,7 +1,11 @@
-import { navyText } from "@/lib/design-tokens";
+import { useTheme } from "@/lib/theme-context";
 
 export function CocktailGlass({ shape, color }: { shape: string | null; color: string | null }) {
-  const stroke = navyText;
+  const { dark } = useTheme();
+  // The glass SVG is immune to the app-wide dark-mode invert (so the
+  // drink's real colour keeps showing) — so the outline needs its own
+  // explicit colour per mode rather than relying on that invert.
+  const stroke = dark ? "#FFFFFF" : "#000000";
   const fill = color ?? "#E8A33D";
 
   if (shape === "rocks") {
