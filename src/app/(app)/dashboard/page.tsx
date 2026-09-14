@@ -10,6 +10,7 @@ import { computeShiftStatus, initials } from "@/lib/shift-status";
 import { EventDayCard } from "@/components/event-guide";
 import type { EventContent } from "@/lib/event-content";
 import {
+  bg,
   border,
   fill,
   good,
@@ -20,7 +21,6 @@ import {
   navyText,
   orange,
   orangeSoft,
-  surface,
 } from "@/lib/design-tokens";
 
 type WorkingToday = { name: string; start: string | null; end: string | null };
@@ -226,7 +226,7 @@ export default function DashboardPage() {
       {/* Date & time */}
       <div
         className="flex items-center justify-between p-5 rounded-3xl mb-4"
-        style={{ background: `linear-gradient(135deg, ${navySoft} 0%, ${surface} 100%)` }}
+        style={{ background: bg }}
       >
         <div>
           <div className="text-sm" style={{ color: inkSoft }}>
@@ -244,7 +244,7 @@ export default function DashboardPage() {
         <div
           className="p-4 rounded-2xl"
           style={{
-            background: `linear-gradient(135deg, ${orangeSoft} 0%, ${surface} 100%)`,
+            background: bg,
             border: `1px solid ${border}`,
           }}
         >
@@ -284,7 +284,7 @@ export default function DashboardPage() {
         <div
           className="p-4 rounded-2xl"
           style={{
-            background: `linear-gradient(135deg, ${orangeSoft} 0%, ${surface} 100%)`,
+            background: bg,
             border: `1px solid ${border}`,
           }}
         >
@@ -314,7 +314,7 @@ export default function DashboardPage() {
                         width: 24,
                         height: 24,
                         background: isIn ? navy : isOut ? border : orangeSoft,
-                        color: isIn ? surface : isOut ? inkSoft : navy,
+                        color: isIn ? "#FFFFFF" : isOut ? inkSoft : navy,
                       }}
                     >
                       {initials(p.name)}
@@ -366,7 +366,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Events today */}
-      <div className="p-4 rounded-2xl mb-4" style={{ background: navy }}>
+      <div className="p-4 rounded-2xl mb-4" style={{ background: bg, border: `1px solid ${border}` }}>
         <div className="flex items-center gap-2 mb-3">
           <Sparkles size={15} style={{ color: orange }} />
           <span className="text-sm font-medium" style={{ color: "#FFFFFF" }}>
@@ -391,11 +391,11 @@ export default function DashboardPage() {
       {/* To do today */}
       <div
         className="p-4 rounded-2xl"
-        style={{ background: `linear-gradient(135deg, ${navySoft} 0%, ${surface} 100%)`, border: `1px solid ${border}` }}
+        style={{ background: bg, border: `1px solid ${border}` }}
       >
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
-            <CheckSquare size={15} style={{ color: navy }} />
+            <CheckSquare size={15} style={{ color: orange }} />
             <span className="text-sm font-medium" style={{ color: navyText }}>
               To do today
             </span>
@@ -481,7 +481,7 @@ export default function DashboardPage() {
       {outstandingTodos.length > 0 && (
         <div
           className="p-4 rounded-2xl mt-4"
-          style={{ background: `linear-gradient(135deg, ${orangeSoft} 0%, ${surface} 100%)`, border: `1px solid ${orange}` }}
+          style={{ background: bg, border: `1px solid ${orange}` }}
         >
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
