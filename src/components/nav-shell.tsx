@@ -137,12 +137,12 @@ export function NavShell({
   return (
     <ThemeContext.Provider value={{ dark }}>
     <div
-      className={`flex w-full h-screen${dark ? " dark-mode" : ""}`}
-      style={{ background: bg, color: bgText }}
+      className="flex w-full h-screen"
+      style={{ background: dark ? "#000000" : bg, color: dark ? "#FFFFFF" : bgText }}
     >
       {/* Sidebar (desktop) */}
       <div
-        className="hidden sm:flex flex-col w-56 shrink-0 p-4"
+        className={`hidden sm:flex flex-col w-56 shrink-0 p-4${dark ? " dark-mode" : ""}`}
         style={{ borderRight: `1px solid rgba(0,0,0,0.15)` }}
       >
         <div className="mb-6 px-2">
@@ -206,7 +206,7 @@ export function NavShell({
       {/* Menu button (mobile) */}
       <button
         onClick={() => setMenuOpen(true)}
-        className="sm:hidden fixed top-4 left-4 z-20 p-2.5 rounded-full"
+        className={`sm:hidden fixed top-4 left-4 z-20 p-2.5 rounded-full${dark ? " dark-mode" : ""}`}
         style={{ background: bg, border: `1px solid ${border}`, boxShadow: "0 2px 10px rgba(0,0,0,0.10)" }}
         aria-label="Open menu"
       >
@@ -216,7 +216,7 @@ export function NavShell({
       {/* All-tabs menu (mobile) */}
       {menuOpen && (
         <div
-          className="sm:hidden fixed inset-0 z-30 flex flex-col justify-end"
+          className={`sm:hidden fixed inset-0 z-30 flex flex-col justify-end${dark ? " dark-mode" : ""}`}
           style={{ background: "rgba(0,0,0,0.4)", height: "100dvh" }}
           onClick={() => setMenuOpen(false)}
         >
@@ -286,7 +286,7 @@ export function NavShell({
 
       {/* Bottom nav island (mobile) */}
       <div
-        className="sm:hidden fixed bottom-4 left-4 right-4 z-10 flex items-center justify-between px-2 py-2 rounded-full"
+        className={`sm:hidden fixed bottom-4 left-4 right-4 z-10 flex items-center justify-between px-2 py-2 rounded-full${dark ? " dark-mode" : ""}`}
         style={{ background: surface, border: `1px solid ${border}`, boxShadow: "0 8px 24px rgba(0,0,0,0.14)" }}
       >
         <div className="flex items-center gap-1">
@@ -333,7 +333,7 @@ export function NavShell({
       </div>
 
       {/* Main content */}
-      <div className="flex-1 overflow-y-auto p-3 sm:p-4">
+      <div className={`flex-1 overflow-y-auto p-3 sm:p-4${dark ? " dark-mode" : ""}`}>
         <div
           className="rounded-3xl px-5 sm:px-10 pt-16 sm:pt-8 pb-28 sm:pb-8 max-w-3xl"
           style={{ background: panel, minHeight: "calc(100vh - 24px)" }}
