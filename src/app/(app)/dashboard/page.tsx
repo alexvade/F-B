@@ -297,15 +297,17 @@ export default function DashboardPage() {
               No one scheduled today.
             </p>
           ) : (
-            <div className="flex flex-col gap-2">
-              {working.map((p) => {
+            <div className="flex flex-col">
+              {working.map((p, i) => {
                 const status =
                   p.start && p.end ? computeShiftStatus(p.start, p.end, nowMinutes) : null;
                 const isIn = status === "in";
                 const isOut = status === "out";
                 const isDue = status === "due";
                 return (
-                  <div key={p.name} className="flex items-center gap-2">
+                  <div key={p.name}>
+                    {i > 0 && <div style={{ height: 1, background: border, margin: "0 12px" }} />}
+                    <div className="flex items-center gap-2 py-2">
                     <div
                       className="flex items-center justify-center rounded-full text-xs font-medium shrink-0"
                       style={{
@@ -355,6 +357,7 @@ export default function DashboardPage() {
                         {p.start}–{p.end}
                       </span>
                     )}
+                    </div>
                   </div>
                 );
               })}
@@ -389,21 +392,24 @@ export default function DashboardPage() {
                     </span>
                   )}
                 </div>
-                <div className="flex flex-col gap-2">
+                <div className="flex flex-col">
                   {day.events.map((e, j) => (
-                    <div key={j} className="flex gap-3">
-                      <span className="text-xs shrink-0 w-12" style={{ color: "#000000" }}>
-                        {e.time}
-                      </span>
-                      <div>
-                        <div className="text-sm" style={{ color: "#000000" }}>
-                          {e.what}
-                        </div>
-                        {e.where && (
-                          <div className="text-xs" style={{ color: inkSoft }}>
-                            {e.where}
+                    <div key={j}>
+                      {j > 0 && <div style={{ height: 1, background: border, margin: "0 12px" }} />}
+                      <div className="flex gap-3 py-2">
+                        <span className="text-xs shrink-0 w-12" style={{ color: "#000000" }}>
+                          {e.time}
+                        </span>
+                        <div>
+                          <div className="text-sm" style={{ color: "#000000" }}>
+                            {e.what}
                           </div>
-                        )}
+                          {e.where && (
+                            <div className="text-xs" style={{ color: inkSoft }}>
+                              {e.where}
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
                   ))}
