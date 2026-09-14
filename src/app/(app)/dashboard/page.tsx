@@ -337,7 +337,7 @@ export default function DashboardPage() {
                     {isOut && (
                       <span
                         className="text-xs px-1.5 py-0.5 rounded-2xl"
-                        style={{ background: inkSoft, color: bg, fontWeight: 600 }}
+                        style={{ background: bg, color: ink, border: `1px solid ${border}`, fontWeight: 600 }}
                       >
                         Out
                       </span>
