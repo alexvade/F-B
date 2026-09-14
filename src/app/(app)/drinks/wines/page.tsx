@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Search, ChevronRight, Pencil, Plus, Trash2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useProfile } from "@/lib/profile-context";
-import { border, fill, ink, inkSoft, navy, navyText, orange, surface } from "@/lib/design-tokens";
+import { bg, border, fill, ink, inkSoft, navy, navyText, orange } from "@/lib/design-tokens";
 
 type Wine = {
   id: number;
@@ -167,7 +167,7 @@ export default function WinesPage() {
               <button onClick={() => openEdit(active)} style={{ color: navyText }}>
                 <Pencil size={15} />
               </button>
-              <button onClick={() => deleteWine(active.id)} style={{ color: "#C24A3B" }}>
+              <button onClick={() => deleteWine(active.id)} style={{ color: "#000000" }}>
                 <Trash2 size={15} />
               </button>
             </div>
@@ -214,7 +214,7 @@ export default function WinesPage() {
           <button
             onClick={() => openEdit()}
             className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-2xl"
-            style={{ background: "#FDE3CD", color: navy }}
+            style={{ background: "#FFFFFF", color: navy }}
           >
             <Plus size={13} /> Add
           </button>
@@ -255,7 +255,7 @@ export default function WinesPage() {
                   key={w.id}
                   onClick={() => setActive(w)}
                   className="flex items-center justify-between p-3 rounded-3xl text-left"
-                  style={{ background: surface, border: `1px solid ${border}` }}
+                  style={{ background: bg, border: `1px solid ${border}` }}
                 >
                   <div>
                     <div className="text-sm font-medium" style={{ color: ink }}>

@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useProfile } from "@/lib/profile-context";
 import { Section } from "@/components/section";
-import { bg, border, fill, ink, inkSoft, navy, navyText, orange, surface } from "@/lib/design-tokens";
+import { bg, border, fill, ink, inkSoft, navy, navyText, orange } from "@/lib/design-tokens";
 
 type Product = {
   id: number;
@@ -102,9 +102,9 @@ export default function StockOrdersPage() {
               onClick={() => setTab(t)}
               className="text-xs px-3.5 py-1.5 rounded-2xl shrink-0 whitespace-nowrap"
               style={{
-                background: active ? bg : "#6B854A",
-                color: active ? "#f27d16" : bg,
-                border: `1px solid ${active ? bg : "#6B854A"}`,
+                background: active ? "#000000" : "#FFFFFF",
+                color: active ? "#FFFFFF" : "#000000",
+                border: "1px solid #000000",
                 fontWeight: active ? 600 : 400,
               }}
             >
@@ -131,7 +131,7 @@ export default function StockOrdersPage() {
                   <div
                     key={p.id}
                     className="flex items-center gap-3 p-2.5 rounded-2xl"
-                    style={{ background: surface, border: `1px solid ${border}` }}
+                    style={{ background: bg, border: `1px solid ${border}` }}
                   >
                     <div className="flex-1 min-w-0">
                       <div className="text-sm font-medium truncate" style={{ color: ink }}>

@@ -311,7 +311,7 @@ export default function DashboardPage() {
                       style={{
                         width: 24,
                         height: 24,
-                        background: "#6B854A",
+                        background: "#000000",
                         color: bg,
                       }}
                     >
@@ -329,7 +329,7 @@ export default function DashboardPage() {
                     {isIn && (
                       <span
                         className="text-xs px-1.5 py-0.5 rounded-2xl"
-                        style={{ background: "#6B854A", color: bg, fontWeight: 600 }}
+                        style={{ background: "#000000", color: bg, fontWeight: 600 }}
                       >
                         In
                       </span>
@@ -380,11 +380,11 @@ export default function DashboardPage() {
             {todaysEventDays.map(({ id, title, day }) => (
               <Link key={id} href={`/events/${id}`} className="block">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium" style={{ color: "#6b854A" }}>
+                  <span className="text-sm font-medium" style={{ color: "#000000" }}>
                     {title}
                   </span>
                   {day.tag && (
-                    <span className="text-xs" style={{ color: "#6b854A" }}>
+                    <span className="text-xs" style={{ color: "#000000" }}>
                       {day.tag}
                     </span>
                   )}
@@ -392,11 +392,11 @@ export default function DashboardPage() {
                 <div className="flex flex-col gap-2">
                   {day.events.map((e, j) => (
                     <div key={j} className="flex gap-3">
-                      <span className="text-xs shrink-0 w-12" style={{ color: "#f27d16" }}>
+                      <span className="text-xs shrink-0 w-12" style={{ color: "#000000" }}>
                         {e.time}
                       </span>
                       <div>
-                        <div className="text-sm" style={{ color: "#6B854A" }}>
+                        <div className="text-sm" style={{ color: "#000000" }}>
                           {e.what}
                         </div>
                         {e.where && (

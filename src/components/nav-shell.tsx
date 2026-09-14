@@ -71,7 +71,7 @@ export function NavShell({
       {/* Sidebar (desktop) */}
       <div
         className="hidden sm:flex flex-col w-56 shrink-0 p-4"
-        style={{ borderRight: `1px solid rgba(244,247,245,0.1)` }}
+        style={{ borderRight: `1px solid rgba(0,0,0,0.15)` }}
       >
         <div className="mb-6 px-2">
           <div className="text-sm font-semibold" style={{ color: bgText }}>
@@ -90,7 +90,7 @@ export function NavShell({
                 href={href}
                 className="flex items-center gap-2 px-4 py-2.5 rounded-full text-sm text-left"
                 style={{
-                  background: active ? "#6B854A" : "transparent",
+                  background: active ? navy : "transparent",
                   color: active ? bg : bgTextSoft,
                   fontWeight: active ? 600 : 400,
                 }}
@@ -101,7 +101,7 @@ export function NavShell({
             );
           })}
         </nav>
-        <div className="mt-auto pt-4" style={{ borderTop: `1px solid rgba(244,247,245,0.1)` }}>
+        <div className="mt-auto pt-4" style={{ borderTop: `1px solid rgba(0,0,0,0.15)` }}>
           <div className="px-2 py-2 text-sm" style={{ color: bgText }}>
             {name}
           </div>
@@ -162,7 +162,7 @@ export function NavShell({
                     onClick={() => setMenuOpen(false)}
                     className="flex items-center gap-3 px-4 py-3 rounded-2xl text-sm"
                     style={{
-                      background: active ? "#6B854A" : "transparent",
+                      background: active ? navy : "transparent",
                       color: active ? bg : ink,
                       fontWeight: active ? 600 : 400,
                     }}

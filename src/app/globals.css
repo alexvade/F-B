@@ -9,8 +9,8 @@
 }
 
 :root {
-  --background: #f7f8fb;
-  --foreground: #3a3f47;
+  --background: #ffffff;
+  --foreground: #000000;
 }
 
 @theme inline {

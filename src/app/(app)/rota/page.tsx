@@ -17,7 +17,6 @@ import {
   navyText,
   orange,
   orangeSoft,
-  surface,
   warn,
 } from "@/lib/design-tokens";
 
@@ -207,9 +206,9 @@ export default function RotaPage() {
               onClick={() => setWeekStart(ws)}
               className="text-xs px-3 py-1.5 rounded-2xl shrink-0 whitespace-nowrap"
               style={{
-                background: active ? bg : "#6B854A",
-                color: active ? "#f27d16" : bg,
-                border: `1px solid ${active ? bg : "#6B854A"}`,
+                background: active ? "#000000" : "#FFFFFF",
+                color: active ? "#FFFFFF" : "#000000",
+                border: "1px solid #000000",
                 fontWeight: active ? 600 : 400,
               }}
             >
@@ -281,10 +280,10 @@ export default function RotaPage() {
           </thead>
           <tbody>
             {staff.map((person, pi) => (
-              <tr key={person.name} style={{ background: pi % 2 === 0 ? surface : fill }}>
+              <tr key={person.name} style={{ background: pi % 2 === 0 ? border : fill }}>
                 <td
                   className="p-2 sticky left-0"
-                  style={{ background: pi % 2 === 0 ? surface : fill, fontWeight: 500 }}
+                  style={{ background: pi % 2 === 0 ? border : fill, fontWeight: 500 }}
                 >
                   {person.name}
                   {!person.id && (
@@ -371,7 +370,7 @@ export default function RotaPage() {
             <div
               key={d.date}
               className="p-3 rounded-2xl"
-              style={{ background: surface, border: `1px solid ${border}` }}
+              style={{ background: bg, border: `1px solid ${border}` }}
             >
               <div className="flex items-baseline justify-between mb-1.5">
                 <span className="text-sm font-medium">

@@ -7,7 +7,7 @@ import { useProfile } from "@/lib/profile-context";
 import { checklistDayISO } from "@/lib/dates";
 import { initials } from "@/lib/shift-status";
 import { Section } from "@/components/section";
-import { bg, border, fill, ink, inkSoft, navy, navyText, orange, orangeSoft, surface } from "@/lib/design-tokens";
+import { bg, border, fill, ink, inkSoft, navy, navyText, orange, orangeSoft } from "@/lib/design-tokens";
 
 const SECTIONS = ["Bar", "Still Room", "Restaurant", "Vav Bar", "Cellars"];
 
@@ -200,9 +200,9 @@ export default function ChecklistsPage() {
               onClick={() => setSection(s)}
               className="text-xs px-3.5 py-1.5 rounded-2xl shrink-0 whitespace-nowrap"
               style={{
-                background: active ? bg : "#6B854A",
-                color: active ? "#f27d16" : bg,
-                border: `1px solid ${active ? bg : "#6B854A"}`,
+                background: active ? "#000000" : "#FFFFFF",
+                color: active ? "#FFFFFF" : "#000000",
+                border: "1px solid #000000",
                 fontWeight: active ? 600 : 400,
               }}
             >
@@ -243,7 +243,7 @@ export default function ChecklistsPage() {
                         <button onClick={() => openEdit(list)} style={{ color: navyText }}>
                           <Pencil size={13} />
                         </button>
-                        <button onClick={() => deleteChecklist(list.id)} style={{ color: "#C24A3B" }}>
+                        <button onClick={() => deleteChecklist(list.id)} style={{ color: "#000000" }}>
                           <Trash2 size={13} />
                         </button>
                       </>
@@ -256,7 +256,7 @@ export default function ChecklistsPage() {
                       key={item.id}
                       onClick={() => toggleItem(item)}
                       className="flex items-center gap-3 p-2.5 rounded-2xl text-left"
-                      style={{ background: surface, border: `1px solid ${border}` }}
+                      style={{ background: bg, border: `1px solid ${border}` }}
                     >
                       <span
                         className="flex items-center justify-center shrink-0"
@@ -287,7 +287,7 @@ export default function ChecklistsPage() {
                         <span className="flex items-center gap-1.5 shrink-0">
                           <span
                             className="flex items-center justify-center rounded-full text-xs font-medium"
-                            style={{ width: 20, height: 20, background: "#FDE3CD", color: navy }}
+                            style={{ width: 20, height: 20, background: "#FFFFFF", color: navy }}
                           >
                             {initials(item.completedByName)}
                           </span>

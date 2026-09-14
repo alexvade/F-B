@@ -7,7 +7,7 @@ import { useProfile } from "@/lib/profile-context";
 import { initials } from "@/lib/shift-status";
 import { relativeTime, timestamp } from "@/lib/relative-time";
 import { Section } from "@/components/section";
-import { border, fill, ink, inkSoft, navy, navyText, orange, orangeSoft, surface } from "@/lib/design-tokens";
+import { bg, border, fill, ink, inkSoft, navy, navyText, orange, orangeSoft } from "@/lib/design-tokens";
 
 type Nomination = {
   id: number;
@@ -102,7 +102,7 @@ export default function ColleagueOfTheMonthPage() {
 
   return (
     <Section title="Colleague of the month" subtitle="Nominate a teammate, or vote for someone already nominated">
-      <div className="p-3 rounded-2xl mb-6" style={{ background: surface, border: `1px solid ${border}` }}>
+      <div className="p-3 rounded-2xl mb-6" style={{ background: bg, border: `1px solid ${border}` }}>
         <input
           value={newNominee}
           onChange={(e) => setNewNominee(e.target.value)}
@@ -133,7 +133,7 @@ export default function ColleagueOfTheMonthPage() {
         {sorted.map((nom, i) => {
           const hasVoted = nom.votes.includes(profile.id);
           return (
-            <div key={nom.id} className="p-4 rounded-2xl" style={{ background: surface, border: `1px solid ${border}` }}>
+            <div key={nom.id} className="p-4 rounded-2xl" style={{ background: bg, border: `1px solid ${border}` }}>
               <div className="flex items-start justify-between gap-3">
                 <div className="flex items-center gap-2">
                   {i === 0 && nom.votes.length > 0 && <Award size={16} style={{ color: orange }} />}

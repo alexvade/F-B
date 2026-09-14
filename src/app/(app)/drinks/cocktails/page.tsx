@@ -7,7 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 import { useProfile } from "@/lib/profile-context";
 import { CocktailGlass } from "@/components/cocktail-glass";
 import { buildHaystack, cocktailInStock, type StockHaystack } from "@/lib/cocktail-stock-match";
-import { border, fill, ink, inkSoft, navy, navyText, orange, orangeSoft, surface } from "@/lib/design-tokens";
+import { bg, border, fill, ink, inkSoft, navy, navyText, orange, orangeSoft } from "@/lib/design-tokens";
 
 type Cocktail = {
   id: number;
@@ -204,7 +204,7 @@ export default function CocktailsPage() {
               <button onClick={() => openEdit(active)} style={{ color: navyText }}>
                 <Pencil size={15} />
               </button>
-              <button onClick={() => deleteCocktail(active.id)} style={{ color: "#C24A3B" }}>
+              <button onClick={() => deleteCocktail(active.id)} style={{ color: "#000000" }}>
                 <Trash2 size={15} />
               </button>
             </div>
@@ -214,7 +214,7 @@ export default function CocktailsPage() {
         <div className="flex items-center gap-4 mb-5">
           <div
             className="shrink-0 rounded-3xl p-3"
-            style={{ width: 100, height: 130, background: surface, border: `1px solid ${border}` }}
+            style={{ width: 100, height: 130, background: bg, border: `1px solid ${border}` }}
           >
             <CocktailGlass shape={active.glass_shape} color={active.colour} />
           </div>
@@ -262,7 +262,7 @@ export default function CocktailsPage() {
         </div>
 
         {active.garnish && (
-          <div className="p-3 rounded-2xl" style={{ background: surface, border: `1px solid ${border}` }}>
+          <div className="p-3 rounded-2xl" style={{ background: bg, border: `1px solid ${border}` }}>
             <div className="text-xs font-semibold mb-1" style={{ color: orange }}>
               GARNISH
             </div>
@@ -336,7 +336,7 @@ export default function CocktailsPage() {
                     key={c.id}
                     onClick={() => setActive(c)}
                     className="relative flex flex-col items-center text-center rounded-3xl p-2"
-                    style={{ background: surface, border: `1px solid ${border}` }}
+                    style={{ background: bg, border: `1px solid ${border}` }}
                   >
                     <div style={{ width: 56, height: 78 }}>
                       <CocktailGlass shape={c.glass_shape} color={c.colour} />
@@ -348,7 +348,7 @@ export default function CocktailsPage() {
                       <Check
                         size={14}
                         strokeWidth={3}
-                        color="#4CAF6E"
+                        color="#000000"
                         className="absolute"
                         style={{ top: 4, right: 4 }}
                         aria-label="We have ingredients for this"

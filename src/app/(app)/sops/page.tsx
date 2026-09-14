@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { useProfile } from "@/lib/profile-context";
 import { uploadAttachment } from "@/lib/storage";
 import { Section } from "@/components/section";
-import { bg, border, fill, ink, inkSoft, navy, navyText, orange, orangeSoft, surface } from "@/lib/design-tokens";
+import { bg, border, fill, ink, inkSoft, navy, navyText, orange, orangeSoft } from "@/lib/design-tokens";
 
 type Sop = {
   id: number;
@@ -149,7 +149,7 @@ export default function SopsPage() {
               <button onClick={() => openEdit(activeSop)} style={{ color: navyText }}>
                 <Pencil size={15} />
               </button>
-              <button onClick={() => deleteSop(activeSop.id)} style={{ color: "#C24A3B" }}>
+              <button onClick={() => deleteSop(activeSop.id)} style={{ color: "#000000" }}>
                 <Trash2 size={15} />
               </button>
             </div>
@@ -202,9 +202,9 @@ export default function SopsPage() {
               onClick={() => setCategory(cat)}
               className="text-xs px-3.5 py-1.5 rounded-2xl shrink-0 whitespace-nowrap"
               style={{
-                background: active ? bg : "#6B854A",
-                color: active ? "#f27d16" : bg,
-                border: `1px solid ${active ? bg : "#6B854A"}`,
+                background: active ? "#000000" : "#FFFFFF",
+                color: active ? "#FFFFFF" : "#000000",
+                border: "1px solid #000000",
                 fontWeight: active ? 600 : 400,
               }}
             >
@@ -235,9 +235,9 @@ export default function SopsPage() {
               key={sop.id}
               onClick={() => setActiveSop(sop)}
               className="flex items-center justify-between p-3 rounded-2xl text-left"
-              style={{ background: surface, border: `1px solid ${border}` }}
+              style={{ background: bg, border: `1px solid ${border}` }}
             >
-              <span className="text-sm font-medium">{sop.title}</span>
+              <span className="text-sm font-medium" style={{ color: ink }}>{sop.title}</span>
               <ChevronRight size={16} style={{ color: inkSoft }} />
             </button>
           ))}

@@ -95,7 +95,7 @@ export default function LoginPage() {
         />
 
         {error && (
-          <div className="text-xs mb-3" style={{ color: "#C24A3B" }}>
+          <div className="text-xs mb-3" style={{ color: "#000000" }}>
             {error}
           </div>
         )}

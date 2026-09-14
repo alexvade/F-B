@@ -8,7 +8,7 @@ import { uploadAttachment } from "@/lib/storage";
 import { relativeTime, timestamp } from "@/lib/relative-time";
 import { initials } from "@/lib/shift-status";
 import { Section } from "@/components/section";
-import { border, fill, ink, inkSoft, navy, navyText, orange, orangeSoft, surface } from "@/lib/design-tokens";
+import { bg, border, fill, ink, inkSoft, navy, navyText, orange, orangeSoft } from "@/lib/design-tokens";
 
 type Comment = {
   id: number;
@@ -203,7 +203,7 @@ export default function UpdatesPage() {
 
   return (
     <Section title="Updates" subtitle="Shared announcements and shift notes">
-      <div className="p-3 rounded-2xl mb-6" style={{ background: surface, border: `1px solid ${border}` }}>
+      <div className="p-3 rounded-2xl mb-6" style={{ background: bg, border: `1px solid ${border}` }}>
         <textarea
           value={newPost}
           onChange={(e) => setNewPost(e.target.value)}
@@ -228,7 +228,7 @@ export default function UpdatesPage() {
           />
         )}
         {postError && (
-          <p className="text-xs mt-2" style={{ color: "#C24A3B" }}>
+          <p className="text-xs mt-2" style={{ color: "#000000" }}>
             {postError}
           </p>
         )}

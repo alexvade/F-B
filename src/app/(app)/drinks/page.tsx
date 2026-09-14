@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Martini, Wine } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
-import { border, inkSoft, navy, navySoft, navyText, orange, orangeSoft, surface } from "@/lib/design-tokens";
+import { bg, border, ink, inkSoft, navyText, orange } from "@/lib/design-tokens";
 
 export default async function DrinksPage() {
   const supabase = await createClient();
@@ -25,7 +25,7 @@ export default async function DrinksPage() {
         <Link
           href="/drinks/cocktails"
           className="flex flex-col items-center justify-center gap-3 rounded-3xl p-8"
-          style={{ background: `linear-gradient(135deg, ${orangeSoft} 0%, ${surface} 100%)`, border: `1px solid ${border}` }}
+          style={{ background: bg, border: `1px solid ${border}` }}
         >
           <Martini size={36} style={{ color: orange }} />
           <span className="text-sm font-semibold" style={{ color: navyText }}>
@@ -38,9 +38,9 @@ export default async function DrinksPage() {
         <Link
           href="/drinks/wines"
           className="flex flex-col items-center justify-center gap-3 rounded-3xl p-8"
-          style={{ background: `linear-gradient(135deg, ${navySoft} 0%, ${surface} 100%)`, border: `1px solid ${border}` }}
+          style={{ background: bg, border: `1px solid ${border}` }}
         >
-          <Wine size={36} style={{ color: navy }} />
+          <Wine size={36} style={{ color: ink }} />
           <span className="text-sm font-semibold" style={{ color: navyText }}>
             Wines
           </span>

@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { useProfile } from "@/lib/profile-context";
 import { uploadAttachment } from "@/lib/storage";
 import { Section } from "@/components/section";
-import { border, ink, inkSoft, navy, orangeSoft, orange, surface } from "@/lib/design-tokens";
+import { bg, border, ink, inkSoft, navy, orangeSoft, orange } from "@/lib/design-tokens";
 
 type Sheet = { id: number; title: string; file_url: string; file_name: string | null };
 
@@ -74,7 +74,7 @@ export default function FunctionSheetsPage() {
           <div
             key={sheet.id}
             className="flex items-center justify-between p-3 rounded-3xl"
-            style={{ background: surface, border: `1px solid ${border}` }}
+            style={{ background: bg, border: `1px solid ${border}` }}
           >
             <a href={sheet.file_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 flex-1">
               <FileStack size={18} style={{ color: orange }} />
@@ -89,7 +89,7 @@ export default function FunctionSheetsPage() {
             </a>
             <div className="flex items-center gap-2 shrink-0">
               {isAdmin && (
-                <button onClick={() => deleteSheet(sheet.id)} style={{ color: "#C24A3B" }}>
+                <button onClick={() => deleteSheet(sheet.id)} style={{ color: "#000000" }}>
                   <Trash2 size={15} />
                 </button>
               )}
