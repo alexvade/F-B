@@ -7,7 +7,7 @@ import { useProfile } from "@/lib/profile-context";
 import { checklistDayISO } from "@/lib/dates";
 import { initials } from "@/lib/shift-status";
 import { Section } from "@/components/section";
-import { border, fill, ink, inkSoft, navy, navyText, orange, orangeSoft, surface } from "@/lib/design-tokens";
+import { bg, border, fill, ink, inkSoft, navy, navyText, orange, orangeSoft, surface } from "@/lib/design-tokens";
 
 const SECTIONS = ["Bar", "Still Room", "Restaurant", "Vav Bar", "Cellars"];
 
@@ -200,9 +200,9 @@ export default function ChecklistsPage() {
               onClick={() => setSection(s)}
               className="text-xs px-3.5 py-1.5 rounded-2xl shrink-0 whitespace-nowrap"
               style={{
-                background: active ? navy : surface,
-                color: active ? "#FFFFFF" : ink,
-                border: `1px solid ${active ? navy : border}`,
+                background: active ? bg : "#6B854A",
+                color: active ? "#f27d16" : bg,
+                border: `1px solid ${active ? bg : "#6B854A"}`,
                 fontWeight: active ? 600 : 400,
               }}
             >

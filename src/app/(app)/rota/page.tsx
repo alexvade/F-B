@@ -7,6 +7,7 @@ import { useProfile } from "@/lib/profile-context";
 import { todayISO, weekStartOf, addDaysISO, weekDates } from "@/lib/dates";
 import type { ShiftStatus } from "@/lib/supabase/types";
 import {
+  bg,
   border,
   fill,
   ink,
@@ -206,9 +207,9 @@ export default function RotaPage() {
               onClick={() => setWeekStart(ws)}
               className="text-xs px-3 py-1.5 rounded-2xl shrink-0 whitespace-nowrap"
               style={{
-                background: active ? navy : surface,
-                color: active ? "#FFFFFF" : ink,
-                border: `1px solid ${active ? navy : border}`,
+                background: active ? bg : "#6B854A",
+                color: active ? "#f27d16" : bg,
+                border: `1px solid ${active ? bg : "#6B854A"}`,
                 fontWeight: active ? 600 : 400,
               }}
             >

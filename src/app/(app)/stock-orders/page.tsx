@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useProfile } from "@/lib/profile-context";
 import { Section } from "@/components/section";
-import { border, fill, ink, inkSoft, navy, navyText, orange, surface } from "@/lib/design-tokens";
+import { bg, border, fill, ink, inkSoft, navy, navyText, orange, surface } from "@/lib/design-tokens";
 
 type Product = {
   id: number;
@@ -102,9 +102,9 @@ export default function StockOrdersPage() {
               onClick={() => setTab(t)}
               className="text-xs px-3.5 py-1.5 rounded-2xl shrink-0 whitespace-nowrap"
               style={{
-                background: active ? navy : surface,
-                color: active ? "#FFFFFF" : ink,
-                border: `1px solid ${active ? navy : border}`,
+                background: active ? bg : "#6B854A",
+                color: active ? "#f27d16" : bg,
+                border: `1px solid ${active ? bg : "#6B854A"}`,
                 fontWeight: active ? 600 : 400,
               }}
             >
