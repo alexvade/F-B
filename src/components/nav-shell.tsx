@@ -128,10 +128,10 @@ export function NavShell({
       <button
         onClick={() => setMenuOpen(true)}
         className="sm:hidden fixed top-4 left-4 z-20 p-2.5 rounded-full"
-        style={{ background: surface, border: `1px solid ${border}`, boxShadow: "0 2px 10px rgba(0,0,0,0.10)" }}
+        style={{ background: bg, border: `1px solid ${border}`, boxShadow: "0 2px 10px rgba(0,0,0,0.10)" }}
         aria-label="Open menu"
       >
-        <MenuIcon size={20} style={{ color: ink }} />
+        <MenuIcon size={20} style={{ color: orange }} />
       </button>
 
       {/* All-tabs menu (mobile) */}
