@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { ChevronRight, FileStack, Plus } from "lucide-react";
+import { ChevronRight, FileStack, Plus, Trash2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useProfile } from "@/lib/profile-context";
 import { uploadAttachment } from "@/lib/storage";
@@ -49,6 +49,12 @@ export default function EventsPage() {
       supabase.removeChannel(channel);
     };
   }, [loadEvents, supabase]);
+
+  const deleteEvent = async (id: number) => {
+    if (!confirm("Remove this event guide? The original function sheet PDF stays in Function Sheets.")) return;
+    await supabase.from("events").delete().eq("id", id);
+    loadEvents();
+  };
 
   const handleFileSelect = (f: File | null) => {
     setFile(f);
@@ -171,13 +177,12 @@ export default function EventsPage() {
       ) : (
         <div className="flex flex-col gap-1">
           {events.map((e) => (
-            <Link
+            <div
               key={e.id}
-              href={`/events/${e.id}`}
               className="flex items-center justify-between p-3 rounded-3xl"
               style={{ background: bg, border: `1px solid ${border}` }}
             >
-              <div className="flex items-center gap-3">
+              <Link href={`/events/${e.id}`} className="flex items-center gap-3 flex-1 min-w-0">
                 <FileStack size={18} style={{ color: orange }} />
                 <div>
                   <div className="text-sm font-medium" style={{ color: ink }}>
@@ -194,9 +199,18 @@ export default function EventsPage() {
                     {!e.content && " · Awaiting details"}
                   </div>
                 </div>
+              </Link>
+              <div className="flex items-center gap-3 shrink-0 ml-3">
+                {isAdmin && (
+                  <button onClick={() => deleteEvent(e.id)} aria-label="Remove event">
+                    <Trash2 size={14} style={{ color: inkSoft }} />
+                  </button>
+                )}
+                <Link href={`/events/${e.id}`}>
+                  <ChevronRight size={16} style={{ color: inkSoft }} />
+                </Link>
               </div>
-              <ChevronRight size={16} style={{ color: inkSoft }} />
-            </Link>
+            </div>
           ))}
         </div>
       )}
