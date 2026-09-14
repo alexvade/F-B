@@ -21,6 +21,7 @@ import {
   orange,
   orangeSoft,
   surface,
+  warn,
 } from "@/lib/design-tokens";
 
 type WorkingToday = { name: string; start: string | null; end: string | null };
@@ -244,12 +245,12 @@ export default function DashboardPage() {
         <div
           className="p-4 rounded-2xl"
           style={{
-            background: `linear-gradient(135deg, ${navySoft} 0%, ${surface} 100%)`,
+            background: `linear-gradient(135deg, ${orangeSoft} 0%, ${surface} 100%)`,
             border: `1px solid ${border}`,
           }}
         >
           <div className="flex items-center gap-2 mb-3">
-            <BedDouble size={15} style={{ color: inkSoft }} />
+            <BedDouble size={15} style={{ color: orange }} />
             <span className="text-sm font-medium" style={{ color: navyText }}>
               Guests today
             </span>
@@ -289,7 +290,7 @@ export default function DashboardPage() {
           }}
         >
           <div className="flex items-center gap-2 mb-3">
-            <Users size={15} style={{ color: inkSoft }} />
+            <Users size={15} style={{ color: navy }} />
             <span className="text-sm font-medium" style={{ color: navyText }}>
               Working today
             </span>
@@ -368,10 +369,10 @@ export default function DashboardPage() {
       {/* Events today */}
       <div
         className="p-4 rounded-2xl mb-4"
-        style={{ background: `linear-gradient(135deg, ${navySoft} 0%, ${surface} 100%)`, border: `1px solid ${border}` }}
+        style={{ background: `linear-gradient(135deg, ${warn} 0%, ${surface} 100%)`, border: `1px solid ${border}` }}
       >
         <div className="flex items-center gap-2 mb-3">
-          <Sparkles size={15} style={{ color: inkSoft }} />
+          <Sparkles size={15} style={{ color: navy }} />
           <span className="text-sm font-medium" style={{ color: navyText }}>
             Events today
           </span>
@@ -398,7 +399,7 @@ export default function DashboardPage() {
       >
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
-            <CheckSquare size={15} style={{ color: inkSoft }} />
+            <CheckSquare size={15} style={{ color: navy }} />
             <span className="text-sm font-medium" style={{ color: navyText }}>
               To do today
             </span>
@@ -484,7 +485,7 @@ export default function DashboardPage() {
       {outstandingTodos.length > 0 && (
         <div
           className="p-4 rounded-2xl mt-4"
-          style={{ background: `linear-gradient(135deg, ${navySoft} 0%, ${surface} 100%)`, border: `1px solid ${orange}` }}
+          style={{ background: `linear-gradient(135deg, ${orangeSoft} 0%, ${surface} 100%)`, border: `1px solid ${orange}` }}
         >
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
