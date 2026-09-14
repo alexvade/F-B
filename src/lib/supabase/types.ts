@@ -278,6 +278,7 @@ export interface Database {
           quantity: number | null;
           updated_by: string | null;
           updated_at: string | null;
+          delisted: boolean;
         },
         {
           id?: number;
@@ -294,6 +295,7 @@ export interface Database {
           quantity?: number | null;
           updated_by?: string | null;
           updated_at?: string | null;
+          delisted?: boolean;
         }
       >;
       events: Table<

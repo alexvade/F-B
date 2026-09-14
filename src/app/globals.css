@@ -34,6 +34,7 @@ body {
   filter: invert(1);
 }
 .dark-mode img,
-.dark-mode .cocktail-glass-svg {
+.dark-mode .cocktail-glass-svg,
+.dark-mode .dark-mode-invert {
   filter: invert(1);
 }

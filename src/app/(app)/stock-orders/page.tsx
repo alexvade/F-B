@@ -17,6 +17,7 @@ type Product = {
   supplier: string | null;
   sort_order: number;
   quantity: number | null;
+  delisted: boolean;
 };
 
 export default function StockOrdersPage() {
@@ -170,6 +171,11 @@ export default function StockOrdersPage() {
                       <div className="text-sm font-medium truncate" style={{ color: ink }}>
                         {p.product}
                       </div>
+                      {p.delisted && (
+                        <div className="text-xs font-bold truncate dark-mode-invert" style={{ color: "#E4002B" }}>
+                          DELISTED
+                        </div>
+                      )}
                       <div className="text-xs truncate" style={{ color: inkSoft }}>
                         {[p.code, p.supplier].filter(Boolean).join(" · ")}
                       </div>
