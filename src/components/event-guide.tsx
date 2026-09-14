@@ -1,5 +1,5 @@
 import { Fraunces, Public_Sans, IBM_Plex_Mono } from "next/font/google";
-import type { EventContent } from "@/lib/event-content";
+import type { EventContent, TimelineDay } from "@/lib/event-content";
 
 const fraunces = Fraunces({ subsets: ["latin"], weight: ["400", "500", "600"], variable: "--font-fraunces" });
 const publicSans = Public_Sans({ subsets: ["latin"], weight: ["400", "500", "600", "700"], variable: "--font-public-sans" });
@@ -87,6 +87,41 @@ const STYLES = `
   .eg-contact-detail { text-align: left; }
 }
 `;
+
+// A single timeline day, styled exactly like a day card inside the full
+// guide — used on the Dashboard to surface "what's on today" without
+// having to open the guide itself.
+export function EventDayCard({ eventTitle, day }: { eventTitle: string; day: TimelineDay }) {
+  return (
+    <div
+      className={`event-guide-wrap ${fraunces.variable} ${publicSans.variable} ${plexMono.variable}`}
+      style={{ padding: 0, background: "transparent", borderRadius: 0 }}
+    >
+      <style dangerouslySetInnerHTML={{ __html: STYLES }} />
+      <div className="eg-day core" style={{ marginBottom: 0 }}>
+        <div className="eg-eyebrow" style={{ marginBottom: 6 }}>
+          {eventTitle}
+        </div>
+        <div className="eg-day-head">
+          <span className="date">{day.date}</span>
+          {day.tag && <span className="tag">{day.tag}</span>}
+        </div>
+        <div>
+          {day.events.map((e, j) => (
+            <div key={j} className="eg-event">
+              <div className="time">{e.time}</div>
+              <div>
+                <div className="what">{e.what}</div>
+                {e.where && <div className="where">{e.where}</div>}
+                {e.note && <div className="note">{e.note}</div>}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export function EventGuide({ content }: { content: EventContent }) {
   return (

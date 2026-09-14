@@ -8,6 +8,13 @@
  * back via a script (see docs/events-extraction.md), not by any in-app
  * extraction pipeline.
  */
+export type TimelineDay = {
+  date: string;
+  tag?: string;
+  core?: boolean;
+  events: { time: string; what: string; where?: string; note?: string }[];
+};
+
 export type EventContent = {
   eyebrow?: string;
   venueLine?: string;
@@ -16,12 +23,7 @@ export type EventContent = {
     heading: string;
     people: { name: string; role: string; detail?: string }[];
   }[];
-  timeline?: {
-    date: string;
-    tag?: string;
-    core?: boolean;
-    events: { time: string; what: string; where?: string; note?: string }[];
-  }[];
+  timeline?: TimelineDay[];
   menu?: { title: string; when?: string; items: string[]; flags?: string[] }[];
   drinks?: { title: string; when?: string; items: string[]; flags?: string[] }[];
   providedBy?: { heading: string; items: string[] }[];

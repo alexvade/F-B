@@ -1,11 +1,14 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import Link from "next/link";
 import { Clock, Sparkles, Users, BedDouble, CheckSquare } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useProfile } from "@/lib/profile-context";
 import { todayISO, checklistDayISO } from "@/lib/dates";
 import { computeShiftStatus, initials } from "@/lib/shift-status";
+import { EventDayCard } from "@/components/event-guide";
+import type { EventContent } from "@/lib/event-content";
 import {
   bg,
   border,
@@ -21,7 +24,18 @@ import {
 } from "@/lib/design-tokens";
 
 type WorkingToday = { name: string; start: string | null; end: string | null };
-type DashboardEvent = { id: number; room: string | null; title: string };
+type EventRow = { id: number; title: string; content: EventContent | null };
+
+const MONTHS = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December",
+];
+
+function timelineDayIsToday(dateStr: string, now: Date) {
+  const match = dateStr.match(/(\d{1,2})\s+([A-Za-z]+)/);
+  if (!match) return false;
+  return parseInt(match[1], 10) === now.getDate() && match[2] === MONTHS[now.getMonth()];
+}
 type Todo = {
   id: number;
   text: string;
@@ -38,7 +52,7 @@ export default function DashboardPage() {
   const [now, setNow] = useState(new Date());
   const [covers, setCovers] = useState<{ gih_count: number | null; breakfast_count: number | null } | null>(null);
   const [working, setWorking] = useState<WorkingToday[]>([]);
-  const [events, setEvents] = useState<DashboardEvent[]>([]);
+  const [events, setEvents] = useState<EventRow[]>([]);
   const [todos, setTodos] = useState<Todo[]>([]);
   const [newTask, setNewTask] = useState("");
 
@@ -58,7 +72,7 @@ export default function DashboardPage() {
         .select("staff_id, staff_name, start_time, end_time, status")
         .eq("date", today)
         .eq("status", "work"),
-      supabase.from("daily_events").select("*").eq("date", today).order("id"),
+      supabase.from("events").select("id, title, content").not("content", "is", null),
       supabase
         .from("todos")
         .select("*")
@@ -125,7 +139,7 @@ export default function DashboardPage() {
       .on("postgres_changes", { event: "*", schema: "public", table: "todos" }, loadData)
       .on("postgres_changes", { event: "*", schema: "public", table: "rota_shifts" }, loadData)
       .on("postgres_changes", { event: "*", schema: "public", table: "daily_covers" }, loadData)
-      .on("postgres_changes", { event: "*", schema: "public", table: "daily_events" }, loadData)
+      .on("postgres_changes", { event: "*", schema: "public", table: "events" }, loadData)
       .subscribe();
     return () => {
       supabase.removeChannel(channel);
@@ -134,6 +148,10 @@ export default function DashboardPage() {
 
   const todayTodos = todos.filter((t) => t.checklist_day === checklistDay);
   const outstandingTodos = todos.filter((t) => t.checklist_day !== checklistDay && !t.done);
+  const todaysEventDays = events.flatMap((e) => {
+    const day = (e.content?.timeline ?? []).find((d) => timelineDayIsToday(d.date, now));
+    return day ? [{ id: e.id, title: e.title, day }] : [];
+  });
 
   const addTask = async () => {
     if (!newTask.trim()) return;
@@ -321,19 +339,16 @@ export default function DashboardPage() {
               Events today
             </span>
           </div>
-          {events.length === 0 ? (
+          {todaysEventDays.length === 0 ? (
             <p className="text-sm" style={{ color: inkSoft }}>
               Nothing scheduled.
             </p>
           ) : (
-            <div className="flex flex-col gap-2.5">
-              {events.map((e) => (
-                <div key={e.id} className="flex gap-3">
-                  <span className="text-xs shrink-0 w-14" style={{ color: inkSoft }}>
-                    {e.room}
-                  </span>
-                  <span className="text-sm">{e.title}</span>
-                </div>
+            <div className="flex flex-col gap-4">
+              {todaysEventDays.map(({ id, title, day }) => (
+                <Link key={id} href={`/events/${id}`} className="block">
+                  <EventDayCard eventTitle={title} day={day} />
+                </Link>
               ))}
             </div>
           )}
