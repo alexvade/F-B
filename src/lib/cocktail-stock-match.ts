@@ -40,6 +40,9 @@ const RULES: { pattern: RegExp; test: Test }[] = [
   { pattern: /\bvermouth\b/, test: prod("martini") },
   { pattern: /\bcampari\b/, test: prod("campari") },
   { pattern: /\baperol\b/, test: prod("aperol") },
+  // Blue curaçao is its own product (used for the colour) — Cointreau/Grand
+  // Marnier don't substitute for it the way they do for plain triple sec.
+  { pattern: /\bblue cura[cç]ao\b/, test: prod("blue curacao") },
   { pattern: /\b(cointreau|triple sec|cura[cç]ao|orange liqueur)\b/, test: anyOf(prod("cointreau"), prod("marnier")) },
   { pattern: /\bgran[d]?\s*marnier\b/, test: prod("marnier") },
   { pattern: /\b(baileys|irish cream)\b/, test: prod("baileys") },
@@ -78,7 +81,9 @@ const RULES: { pattern: RegExp; test: Test }[] = [
   { pattern: /\blemonade\b/, test: prod("lemonade") },
   { pattern: /\b(sugar syrup|simple syrup|gomme)\b/, test: prod("gomme") },
   { pattern: /\bhoney\b/, test: always },
-  { pattern: /\b(cr[eè]me de cassis|cassis)\b/, test: prod("cassis") },
+  // The "Cassis" stock item is a flavoured syrup (Syrups category, alongside
+  // Grenadine/Orgeat), not the actual blackcurrant liqueur these recipes want.
+  { pattern: /\b(cr[eè]me de cassis|cassis)\b/, test: never },
   { pattern: /\bgrenadine\b/, test: prod("grenadine") },
   { pattern: /\borgeat\b/, test: prod("orgeat") },
   { pattern: /raspberry.*syrup/, test: prod("framboise") },
