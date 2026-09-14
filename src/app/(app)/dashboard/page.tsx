@@ -312,7 +312,7 @@ export default function DashboardPage() {
                         width: 24,
                         height: 24,
                         background: "#6B854A",
-                        color: "#f27d16",
+                        color: bg,
                       }}
                     >
                       {initials(p.name)}
