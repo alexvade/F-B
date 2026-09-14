@@ -281,7 +281,13 @@ export default function DashboardPage() {
         </div>
 
         {/* Working today */}
-        <div className="p-4 rounded-2xl" style={{ background: surface, border: `1px solid ${border}` }}>
+        <div
+          className="p-4 rounded-2xl"
+          style={{
+            background: `linear-gradient(135deg, ${orangeSoft} 0%, ${surface} 100%)`,
+            border: `1px solid ${border}`,
+          }}
+        >
           <div className="flex items-center gap-2 mb-3">
             <Users size={15} style={{ color: inkSoft }} />
             <span className="text-sm font-medium" style={{ color: navyText }}>

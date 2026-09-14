@@ -22,7 +22,7 @@ const STYLES = `
   --eg-gold-soft: #F1E5D0;
   --eg-border: rgba(30,36,28,0.13);
   --eg-shadow: 0 1px 2px rgba(30,36,28,0.06), 0 6px 18px -8px rgba(30,36,28,0.12);
-  background: var(--eg-bg);
+  background: linear-gradient(135deg, ${navySoft} 0%, ${appSurface} 100%);
   color: var(--eg-ink);
   font-family: var(--font-public-sans), system-ui, sans-serif;
   line-height: 1.5;
