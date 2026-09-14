@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { RotateCcw } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useProfile } from "@/lib/profile-context";
 import { Section } from "@/components/section";
@@ -26,6 +27,7 @@ export default function StockOrdersPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [drafts, setDrafts] = useState<Record<number, string>>({});
   const [savingIds, setSavingIds] = useState<Set<number>>(new Set());
+  const [resetting, setResetting] = useState(false);
 
   const loadData = useCallback(async () => {
     const { data } = await supabase
@@ -78,6 +80,25 @@ export default function StockOrdersPage() {
     }
   };
 
+  const resetAllQuantities = async () => {
+    if (!confirm("Reset every quantity across all tabs back to 0? This can't be undone.")) return;
+    setResetting(true);
+    try {
+      setDrafts(Object.fromEntries(products.map((p) => [p.id, "0"])));
+      await Promise.all(
+        products.map((p) =>
+          fetch("/api/stock/update-quantity", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ id: p.id, quantity: 0 }),
+          })
+        )
+      );
+    } finally {
+      setResetting(false);
+    }
+  };
+
   const tabProducts = products.filter((p) => p.tab_label === tab);
   const categories = Array.from(new Set(tabProducts.map((p) => p.category)));
 
@@ -93,6 +114,16 @@ export default function StockOrdersPage() {
 
   return (
     <Section title="Stock Orders" subtitle="Add a quantity for anything that needs ordering">
+      <div className="flex justify-end mb-4">
+        <button
+          onClick={resetAllQuantities}
+          disabled={resetting}
+          className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-2xl disabled:opacity-60"
+          style={{ background: "#FFFFFF", color: "#000000", border: "1px solid #000000" }}
+        >
+          <RotateCcw size={13} /> {resetting ? "Resetting…" : "Reset all to 0"}
+        </button>
+      </div>
       <div className="flex gap-1.5 overflow-x-auto mb-6 pb-1" style={{ scrollbarWidth: "thin" }}>
         {tabs.map((t) => {
           const active = t === tab;
