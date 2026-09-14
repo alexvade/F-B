@@ -294,12 +294,14 @@ export default function RotaPage() {
                 </td>
                 {days.map((d) => {
                   const shift = shifts[person.name]?.[d.date];
+                  const isToday = d.date === today;
                   return (
                     <td
                       key={d.date}
                       className="text-center p-2"
                       style={{
-                        background: d.date === today ? orangeSoft : fill,
+                        background: isToday ? "#000000" : fill,
+                        color: isToday ? "#FFFFFF" : undefined,
                         borderBottom: `1px solid ${border}`,
                       }}
                     >
@@ -349,11 +351,11 @@ export default function RotaPage() {
                           {shift.start_time}–{shift.end_time}
                         </span>
                       ) : shift?.status === "holiday" ? (
-                        <span style={{ color: warn }}>HOL</span>
+                        <span style={{ color: isToday ? "#FFFFFF" : warn }}>HOL</span>
                       ) : shift?.status === "off" ? (
-                        <span style={{ color: inkSoft }}>OFF</span>
+                        <span style={{ color: isToday ? "#FFFFFF" : inkSoft }}>OFF</span>
                       ) : (
-                        <span style={{ color: inkSoft }}>–</span>
+                        <span style={{ color: isToday ? "#FFFFFF" : inkSoft }}>–</span>
                       )}
                     </td>
                   );
