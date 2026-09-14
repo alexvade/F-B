@@ -298,7 +298,7 @@ export default function UpdatesPage() {
               <span className="flex items-center gap-2">
                 <span
                   className="flex items-center justify-center rounded-full text-xs font-medium shrink-0"
-                  style={{ width: 24, height: 24, background: orangeSoft, color: navyText }}
+                  style={{ width: 24, height: 24, background: navyText, color: orangeSoft }}
                 >
                   {initials(p.authorName)}
                 </span>
@@ -348,7 +348,7 @@ export default function UpdatesPage() {
                     <div className="flex items-center gap-1.5">
                       <span
                         className="flex items-center justify-center rounded-full text-xs font-medium shrink-0"
-                        style={{ width: 18, height: 18, background: orangeSoft, color: navyText, fontSize: 9 }}
+                        style={{ width: 18, height: 18, background: navyText, color: orangeSoft, fontSize: 9 }}
                       >
                         {initials(c.authorName)}
                       </span>
