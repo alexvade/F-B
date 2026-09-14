@@ -279,11 +279,11 @@ export default function RotaPage() {
             </tr>
           </thead>
           <tbody>
-            {staff.map((person, pi) => (
-              <tr key={person.name} style={{ background: pi % 2 === 0 ? border : fill }}>
+            {staff.map((person) => (
+              <tr key={person.name}>
                 <td
                   className="p-2 sticky left-0"
-                  style={{ background: pi % 2 === 0 ? border : fill, fontWeight: 500 }}
+                  style={{ background: fill, fontWeight: 500, borderBottom: `1px solid ${border}` }}
                 >
                   {person.name}
                   {!person.id && (
@@ -298,7 +298,10 @@ export default function RotaPage() {
                     <td
                       key={d.date}
                       className="text-center p-2"
-                      style={{ background: d.date === today ? orangeSoft : "transparent" }}
+                      style={{
+                        background: d.date === today ? orangeSoft : fill,
+                        borderBottom: `1px solid ${border}`,
+                      }}
                     >
                       {editing ? (
                         <div className="flex flex-col gap-1 items-center">
