@@ -129,6 +129,7 @@ export interface Database {
           file_url: string | null;
           file_name: string | null;
           created_at: string;
+          poll_options: string[] | null;
         },
         {
           id?: number;
@@ -137,6 +138,23 @@ export interface Database {
           photo_url?: string | null;
           file_url?: string | null;
           file_name?: string | null;
+          created_at?: string;
+          poll_options?: string[] | null;
+        }
+      >;
+      poll_votes: Table<
+        {
+          id: number;
+          post_id: number;
+          voter_id: string;
+          option_index: number;
+          created_at: string;
+        },
+        {
+          id?: number;
+          post_id: number;
+          voter_id: string;
+          option_index: number;
           created_at?: string;
         }
       >;

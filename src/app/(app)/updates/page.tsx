@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Camera, Paperclip, FileText, Trash2, X } from "lucide-react";
+import { Camera, Paperclip, FileText, Trash2, X, ChartColumn, Plus } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useProfile } from "@/lib/profile-context";
 import { uploadAttachment } from "@/lib/storage";
@@ -34,6 +34,7 @@ type Comment = {
   file_url: string | null;
   file_name: string | null;
 };
+type PollVote = { optionIndex: number; voterId: string };
 type Post = {
   id: number;
   authorId: string | null;
@@ -44,6 +45,8 @@ type Post = {
   file_name: string | null;
   created_at: string;
   comments: Comment[];
+  pollOptions: string[] | null;
+  pollVotes: PollVote[];
 };
 
 function AttachmentPreview({
@@ -99,6 +102,8 @@ export default function UpdatesPage() {
   const [newPost, setNewPost] = useState("");
   const [newPhoto, setNewPhoto] = useState<File | null>(null);
   const [newFile, setNewFile] = useState<File | null>(null);
+  const [showPoll, setShowPoll] = useState(false);
+  const [pollOptions, setPollOptions] = useState<string[]>(["", ""]);
   const [posting, setPosting] = useState(false);
   const [postError, setPostError] = useState<string | null>(null);
   const [commentDrafts, setCommentDrafts] = useState<Record<number, string>>({});
@@ -116,6 +121,7 @@ export default function UpdatesPage() {
       .from("comments")
       .select("*")
       .order("created_at");
+    const { data: voteRows } = await supabase.from("poll_votes").select("*");
 
     const ids = Array.from(
       new Set([
@@ -138,6 +144,10 @@ export default function UpdatesPage() {
         file_url: p.file_url,
         file_name: p.file_name,
         created_at: p.created_at,
+        pollOptions: p.poll_options,
+        pollVotes: (voteRows ?? [])
+          .filter((v) => v.post_id === p.id)
+          .map((v) => ({ optionIndex: v.option_index, voterId: v.voter_id })),
         comments: (commentRows ?? [])
           .filter((c) => c.post_id === p.id)
           .map((c) => ({
@@ -158,6 +168,7 @@ export default function UpdatesPage() {
       .channel("updates-changes")
       .on("postgres_changes", { event: "*", schema: "public", table: "posts" }, loadPosts)
       .on("postgres_changes", { event: "*", schema: "public", table: "comments" }, loadPosts)
+      .on("postgres_changes", { event: "*", schema: "public", table: "poll_votes" }, loadPosts)
       .subscribe();
     return () => {
       supabase.removeChannel(channel);
@@ -165,7 +176,13 @@ export default function UpdatesPage() {
   }, [loadPosts, supabase]);
 
   const addPost = async () => {
-    if (!newPost.trim() && !newPhoto && !newFile) return;
+    const validOptions = pollOptions.map((o) => o.trim()).filter(Boolean);
+    if (showPoll && validOptions.length < 2) {
+      setPostError("Add at least two poll options.");
+      return;
+    }
+    const hasPoll = showPoll && validOptions.length >= 2;
+    if (!newPost.trim() && !newPhoto && !newFile && !hasPoll) return;
     setPosting(true);
     setPostError(null);
     try {
@@ -177,11 +194,14 @@ export default function UpdatesPage() {
         photo_url: photoUrl,
         file_url: fileUrl,
         file_name: newFile?.name ?? null,
+        poll_options: hasPoll ? validOptions : null,
       });
       if (error) throw error;
       setNewPost("");
       setNewPhoto(null);
       setNewFile(null);
+      setShowPoll(false);
+      setPollOptions(["", ""]);
       if (photoInputRef.current) photoInputRef.current.value = "";
       if (fileInputRef.current) fileInputRef.current.value = "";
       loadPosts();
@@ -190,6 +210,20 @@ export default function UpdatesPage() {
     } finally {
       setPosting(false);
     }
+  };
+
+  const updatePollOption = (index: number, value: string) => {
+    setPollOptions((prev) => prev.map((o, i) => (i === index ? value : o)));
+  };
+  const addPollOption = () => setPollOptions((prev) => (prev.length < 6 ? [...prev, ""] : prev));
+  const removePollOption = (index: number) =>
+    setPollOptions((prev) => (prev.length > 2 ? prev.filter((_, i) => i !== index) : prev));
+
+  const castVote = async (postId: number, optionIndex: number) => {
+    await supabase
+      .from("poll_votes")
+      .upsert({ post_id: postId, voter_id: profile.id, option_index: optionIndex }, { onConflict: "post_id,voter_id" });
+    loadPosts();
   };
 
   const deletePost = async (post: Post) => {
@@ -250,8 +284,37 @@ export default function UpdatesPage() {
             onRemove={() => setNewFile(null)}
           />
         )}
+        {showPoll && (
+          <div className="flex flex-col gap-2 mt-2">
+            {pollOptions.map((opt, i) => (
+              <div key={i} className="flex items-center gap-2">
+                <input
+                  value={opt}
+                  onChange={(e) => updatePollOption(i, e.target.value)}
+                  placeholder={`Option ${i + 1}`}
+                  className="flex-1 text-sm px-4 py-2 rounded-full outline-none"
+                  style={{ color: ink, background: fill, border: `1px solid ${border}` }}
+                />
+                {pollOptions.length > 2 && (
+                  <button onClick={() => removePollOption(i)} aria-label="Remove option" style={{ color: navyText }}>
+                    <X size={14} />
+                  </button>
+                )}
+              </div>
+            ))}
+            {pollOptions.length < 6 && (
+              <button
+                onClick={addPollOption}
+                className="flex items-center gap-1 text-xs w-fit"
+                style={{ color: navyText }}
+              >
+                <Plus size={13} /> Add option
+              </button>
+            )}
+          </div>
+        )}
         {postError && (
-          <p className="text-xs mt-2" style={{ color: "#000000" }}>
+          <p className="text-xs mt-2" style={{ color: ink }}>
             {postError}
           </p>
         )}
@@ -279,6 +342,14 @@ export default function UpdatesPage() {
                 className="hidden"
               />
             </label>
+            <button
+              onClick={() => setShowPoll((prev) => !prev)}
+              className="flex items-center gap-1.5 text-xs"
+              style={{ color: showPoll ? navy : navyText, fontWeight: showPoll ? 700 : 400 }}
+            >
+              <ChartColumn size={15} />
+              Add poll
+            </button>
           </div>
           <button
             onClick={addPost}
@@ -340,6 +411,39 @@ export default function UpdatesPage() {
                   </span>
                 </a>
               ))}
+
+            {p.pollOptions && p.pollOptions.length > 0 && (
+              <div className="flex flex-col gap-1.5 mt-3">
+                {p.pollOptions.map((opt, i) => {
+                  const count = p.pollVotes.filter((v) => v.optionIndex === i).length;
+                  const total = p.pollVotes.length;
+                  const pct = total > 0 ? Math.round((count / total) * 100) : 0;
+                  const mine = p.pollVotes.some((v) => v.voterId === profile.id && v.optionIndex === i);
+                  return (
+                    <button
+                      key={i}
+                      onClick={() => castVote(p.id, i)}
+                      className="flex items-center justify-between w-full px-3.5 py-2 rounded-full text-left text-xs"
+                      style={{
+                        border: `1px solid ${border}`,
+                        background: mine ? navy : fill,
+                        color: mine ? "#FFFFFF" : ink,
+                      }}
+                    >
+                      <span className="flex items-center gap-1.5">
+                        <EmojiText text={opt} />
+                      </span>
+                      <span className="shrink-0 ml-3">
+                        {count} · {pct}%
+                      </span>
+                    </button>
+                  );
+                })}
+                <span className="text-xs" style={{ color: inkSoft }}>
+                  {p.pollVotes.length} vote{p.pollVotes.length === 1 ? "" : "s"}
+                </span>
+              </div>
+            )}
 
             {p.comments.length > 0 && (
               <div className="flex flex-col gap-2 mt-3 pl-3" style={{ borderLeft: `2px solid ${border}` }}>
