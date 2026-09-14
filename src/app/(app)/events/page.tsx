@@ -7,7 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 import { useProfile } from "@/lib/profile-context";
 import { uploadAttachment } from "@/lib/storage";
 import { Section } from "@/components/section";
-import { border, ink, inkSoft, navy, navyText, orange, orangeSoft, surface, bg } from "@/lib/design-tokens";
+import { border, ink, inkSoft, navy, navySoft, navyText, orange, orangeSoft, surface, bg } from "@/lib/design-tokens";
 
 type EventRow = {
   id: number;
@@ -175,7 +175,7 @@ export default function EventsPage() {
               key={e.id}
               href={`/events/${e.id}`}
               className="flex items-center justify-between p-3 rounded-3xl"
-              style={{ background: surface, border: `1px solid ${border}` }}
+              style={{ background: `linear-gradient(135deg, ${navySoft} 0%, ${surface} 100%)`, border: `1px solid ${border}` }}
             >
               <div className="flex items-center gap-3">
                 <FileStack size={18} style={{ color: orange }} />

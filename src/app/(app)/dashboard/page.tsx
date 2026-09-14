@@ -360,7 +360,10 @@ export default function DashboardPage() {
       </div>
 
       {/* Events today */}
-      <div className="p-4 rounded-2xl mb-4" style={{ background: surface, border: `1px solid ${border}` }}>
+      <div
+        className="p-4 rounded-2xl mb-4"
+        style={{ background: `linear-gradient(135deg, ${navySoft} 0%, ${surface} 100%)`, border: `1px solid ${border}` }}
+      >
         <div className="flex items-center gap-2 mb-3">
           <Sparkles size={15} style={{ color: inkSoft }} />
           <span className="text-sm font-medium" style={{ color: navyText }}>
