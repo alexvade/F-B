@@ -329,7 +329,7 @@ export default function DashboardPage() {
                     {isIn && (
                       <span
                         className="text-xs px-1.5 py-0.5 rounded-2xl"
-                        style={{ background: "#f27d16", color: "#6B854A", fontWeight: 600 }}
+                        style={{ background: "#6B854A", color: bg, fontWeight: 600 }}
                       >
                         In
                       </span>
@@ -337,7 +337,7 @@ export default function DashboardPage() {
                     {isOut && (
                       <span
                         className="text-xs px-1.5 py-0.5 rounded-2xl"
-                        style={{ background: "#f27d16", color: "#6B854A", fontWeight: 600 }}
+                        style={{ background: inkSoft, color: bg, fontWeight: 600 }}
                       >
                         Out
                       </span>
