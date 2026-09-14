@@ -244,7 +244,7 @@ export default function DashboardPage() {
         <div
           className="p-4 rounded-2xl"
           style={{
-            background: `linear-gradient(135deg, ${orangeSoft} 0%, ${surface} 100%)`,
+            background: `linear-gradient(135deg, ${navySoft} 0%, ${surface} 100%)`,
             border: `1px solid ${border}`,
           }}
         >
@@ -284,7 +284,7 @@ export default function DashboardPage() {
         <div
           className="p-4 rounded-2xl"
           style={{
-            background: `linear-gradient(135deg, ${orangeSoft} 0%, ${surface} 100%)`,
+            background: `linear-gradient(135deg, ${navySoft} 0%, ${surface} 100%)`,
             border: `1px solid ${border}`,
           }}
         >
@@ -392,7 +392,10 @@ export default function DashboardPage() {
       </div>
 
       {/* To do today */}
-      <div className="p-4 rounded-2xl" style={{ background: surface, border: `1px solid ${border}` }}>
+      <div
+        className="p-4 rounded-2xl"
+        style={{ background: `linear-gradient(135deg, ${navySoft} 0%, ${surface} 100%)`, border: `1px solid ${border}` }}
+      >
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <CheckSquare size={15} style={{ color: inkSoft }} />
@@ -481,7 +484,7 @@ export default function DashboardPage() {
       {outstandingTodos.length > 0 && (
         <div
           className="p-4 rounded-2xl mt-4"
-          style={{ background: surface, border: `1px solid ${orange}` }}
+          style={{ background: `linear-gradient(135deg, ${navySoft} 0%, ${surface} 100%)`, border: `1px solid ${orange}` }}
         >
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">

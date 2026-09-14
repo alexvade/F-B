@@ -65,7 +65,7 @@ const STYLES = `
 .eg-event .note { color: var(--eg-muted); font-size: 0.83rem; margin-top: 4px; line-height: 1.5; }
 .eg-event .note strong { color: var(--eg-ink); font-weight: 600; }
 .eg-menu-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap: 16px; }
-.eg-menu-card { background: var(--eg-surface); border: 1px solid var(--eg-border); border-radius: 12px; padding: 14px 16px; }
+.eg-menu-card { background: linear-gradient(180deg, ${appSurface} 0%, ${navySoft} 100%); border: 1px solid var(--eg-border); border-radius: 14px; padding: 14px 16px; box-shadow: var(--eg-shadow); }
 .eg-menu-card h3 { font-size: 0.94rem; margin-bottom: 2px; font-family: var(--font-fraunces), serif; font-weight: 600; }
 .eg-menu-card .when { font-size: 0.74rem; color: var(--eg-muted); font-family: var(--font-plex-mono), monospace; }
 .eg-menu-card ol { margin: 10px 0 0; padding-left: 16px; font-size: 0.86rem; display: flex; flex-direction: column; gap: 4px; }
