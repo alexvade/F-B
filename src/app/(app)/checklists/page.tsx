@@ -7,7 +7,7 @@ import { useProfile } from "@/lib/profile-context";
 import { checklistDayISO } from "@/lib/dates";
 import { initials } from "@/lib/shift-status";
 import { Section } from "@/components/section";
-import { bg, border, ink, inkSoft, navy, navyText, orange, orangeSoft, surface } from "@/lib/design-tokens";
+import { border, fill, ink, inkSoft, navy, navyText, orange, orangeSoft, surface } from "@/lib/design-tokens";
 
 const SECTIONS = ["Bar", "Still Room", "Restaurant", "Vav Bar", "Cellars"];
 
@@ -166,7 +166,7 @@ export default function ChecklistsPage() {
             value={form.title}
             onChange={(e) => setForm({ ...form, title: e.target.value })}
             className="text-sm px-4 py-2 rounded-full outline-none"
-            style={{ border: `1px solid ${border}`, background: bg, color: ink }}
+            style={{ border: `1px solid ${border}`, background: fill, color: ink }}
           />
           <textarea
             placeholder="Items, one per line"
@@ -174,7 +174,7 @@ export default function ChecklistsPage() {
             onChange={(e) => setForm({ ...form, items: e.target.value })}
             rows={10}
             className="text-sm px-4 py-3 rounded-2xl outline-none"
-            style={{ border: `1px solid ${border}`, background: bg, color: ink }}
+            style={{ border: `1px solid ${border}`, background: fill, color: ink }}
           />
           <button
             onClick={saveForm}

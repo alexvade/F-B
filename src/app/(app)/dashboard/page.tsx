@@ -10,8 +10,8 @@ import { computeShiftStatus, initials } from "@/lib/shift-status";
 import { EventDayCard } from "@/components/event-guide";
 import type { EventContent } from "@/lib/event-content";
 import {
-  bg,
   border,
+  fill,
   good,
   ink,
   inkSoft,
@@ -339,7 +339,7 @@ export default function DashboardPage() {
                     {isOut && (
                       <span
                         className="text-xs px-1.5 py-0.5 rounded-2xl"
-                        style={{ background: bg, color: inkSoft, fontWeight: 600 }}
+                        style={{ background: fill, color: inkSoft, fontWeight: 600 }}
                       >
                         Out
                       </span>
@@ -465,7 +465,7 @@ export default function DashboardPage() {
             onKeyDown={(e) => e.key === "Enter" && addTask()}
             placeholder="Add something to do…"
             className="flex-1 text-sm px-4 py-2 rounded-full outline-none"
-            style={{ border: `1px solid ${border}`, color: ink, background: bg }}
+            style={{ border: `1px solid ${border}`, color: ink, background: fill }}
           />
           <button
             onClick={addTask}

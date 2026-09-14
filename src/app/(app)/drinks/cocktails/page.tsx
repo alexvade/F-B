@@ -7,7 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 import { useProfile } from "@/lib/profile-context";
 import { CocktailGlass } from "@/components/cocktail-glass";
 import { buildHaystack, cocktailInStock, type StockHaystack } from "@/lib/cocktail-stock-match";
-import { bg, border, ink, inkSoft, navy, navyText, orange, orangeSoft, surface } from "@/lib/design-tokens";
+import { border, fill, ink, inkSoft, navy, navyText, orange, orangeSoft, surface } from "@/lib/design-tokens";
 
 type Cocktail = {
   id: number;
@@ -125,14 +125,14 @@ export default function CocktailsPage() {
             value={form.name}
             onChange={(e) => setForm({ ...form, name: e.target.value })}
             className="text-sm px-4 py-2 rounded-full outline-none"
-            style={{ border: `1px solid ${border}`, background: bg, color: ink }}
+            style={{ border: `1px solid ${border}`, background: fill, color: ink }}
           />
           <div className="flex gap-2">
             <select
               value={form.category}
               onChange={(e) => setForm({ ...form, category: e.target.value })}
               className="text-sm px-3 py-2 rounded-full outline-none flex-1"
-              style={{ border: `1px solid ${border}`, background: bg, color: ink }}
+              style={{ border: `1px solid ${border}`, background: fill, color: ink }}
             >
               <option value="Cocktail">Cocktail</option>
               <option value="Mocktail">Mocktail</option>
@@ -141,7 +141,7 @@ export default function CocktailsPage() {
               value={form.glass_shape}
               onChange={(e) => setForm({ ...form, glass_shape: e.target.value })}
               className="text-sm px-3 py-2 rounded-full outline-none flex-1"
-              style={{ border: `1px solid ${border}`, background: bg, color: ink }}
+              style={{ border: `1px solid ${border}`, background: fill, color: ink }}
             >
               {SHAPES.map((s) => (
                 <option key={s} value={s}>
@@ -162,7 +162,7 @@ export default function CocktailsPage() {
             onChange={(e) => setForm({ ...form, ingredients: e.target.value })}
             rows={5}
             className="text-sm px-4 py-3 rounded-2xl outline-none"
-            style={{ border: `1px solid ${border}`, background: bg, color: ink }}
+            style={{ border: `1px solid ${border}`, background: fill, color: ink }}
           />
           <textarea
             placeholder="Method steps, one per line"
@@ -170,14 +170,14 @@ export default function CocktailsPage() {
             onChange={(e) => setForm({ ...form, method: e.target.value })}
             rows={5}
             className="text-sm px-4 py-3 rounded-2xl outline-none"
-            style={{ border: `1px solid ${border}`, background: bg, color: ink }}
+            style={{ border: `1px solid ${border}`, background: fill, color: ink }}
           />
           <input
             placeholder="Garnish"
             value={form.garnish}
             onChange={(e) => setForm({ ...form, garnish: e.target.value })}
             className="text-sm px-4 py-2 rounded-full outline-none"
-            style={{ border: `1px solid ${border}`, background: bg, color: ink }}
+            style={{ border: `1px solid ${border}`, background: fill, color: ink }}
           />
           <button
             onClick={saveForm}
@@ -310,7 +310,7 @@ export default function CocktailsPage() {
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search cocktails…"
           className="w-full text-sm pl-10 pr-4 py-2.5 rounded-full outline-none"
-          style={{ border: `1px solid ${border}`, color: ink, background: bg }}
+          style={{ border: `1px solid ${border}`, color: ink, background: fill }}
         />
       </div>
 

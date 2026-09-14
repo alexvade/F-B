@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useProfile } from "@/lib/profile-context";
 import { Section } from "@/components/section";
-import { bg, border, ink, inkSoft, navy, navyText, orange, surface } from "@/lib/design-tokens";
+import { border, fill, ink, inkSoft, navy, navyText, orange, surface } from "@/lib/design-tokens";
 
 type Product = {
   id: number;
@@ -154,7 +154,7 @@ export default function StockOrdersPage() {
                       style={{
                         border: `1px solid ${savingIds.has(p.id) ? navy : border}`,
                         color: navyText,
-                        background: bg,
+                        background: fill,
                       }}
                     />
                   </div>

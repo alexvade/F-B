@@ -7,7 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 import { useProfile } from "@/lib/profile-context";
 import { uploadAttachment } from "@/lib/storage";
 import { Section } from "@/components/section";
-import { border, ink, inkSoft, navy, navySoft, navyText, orange, orangeSoft, surface, bg } from "@/lib/design-tokens";
+import { border, fill, ink, inkSoft, navy, navySoft, navyText, orange, orangeSoft, surface } from "@/lib/design-tokens";
 
 type EventRow = {
   id: number;
@@ -91,7 +91,7 @@ export default function EventsPage() {
     }
   };
 
-  const inputStyle = { border: `1px solid ${border}`, background: bg, color: ink } as const;
+  const inputStyle = { border: `1px solid ${border}`, background: fill, color: ink } as const;
 
   if (adding) {
     return (

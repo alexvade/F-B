@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { useProfile } from "@/lib/profile-context";
 import { uploadAttachment } from "@/lib/storage";
 import { Section } from "@/components/section";
-import { border, ink, inkSoft, navy, navyText, orange, orangeSoft, surface, bg } from "@/lib/design-tokens";
+import { border, fill, ink, inkSoft, navy, navyText, orange, orangeSoft, surface } from "@/lib/design-tokens";
 
 type Sop = {
   id: number;
@@ -98,14 +98,14 @@ export default function SopsPage() {
             value={form.category}
             onChange={(e) => setForm({ ...form, category: e.target.value })}
             className="text-sm px-4 py-2 rounded-full outline-none"
-            style={{ border: `1px solid ${border}`, background: bg, color: ink }}
+            style={{ border: `1px solid ${border}`, background: fill, color: ink }}
           />
           <input
             placeholder="Title"
             value={form.title}
             onChange={(e) => setForm({ ...form, title: e.target.value })}
             className="text-sm px-4 py-2 rounded-full outline-none"
-            style={{ border: `1px solid ${border}`, background: bg, color: ink }}
+            style={{ border: `1px solid ${border}`, background: fill, color: ink }}
           />
           <textarea
             placeholder="Steps, one per line"
@@ -113,7 +113,7 @@ export default function SopsPage() {
             onChange={(e) => setForm({ ...form, steps: e.target.value })}
             rows={8}
             className="text-sm px-4 py-3 rounded-2xl outline-none"
-            style={{ border: `1px solid ${border}`, background: bg, color: ink }}
+            style={{ border: `1px solid ${border}`, background: fill, color: ink }}
           />
           <label className="text-xs" style={{ color: inkSoft }}>
             Photo (optional)

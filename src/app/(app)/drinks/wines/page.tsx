@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Search, ChevronRight, Pencil, Plus, Trash2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useProfile } from "@/lib/profile-context";
-import { bg, border, ink, inkSoft, navy, navyText, orange, surface } from "@/lib/design-tokens";
+import { border, fill, ink, inkSoft, navy, navyText, orange, surface } from "@/lib/design-tokens";
 
 type Wine = {
   id: number;
@@ -109,14 +109,14 @@ export default function WinesPage() {
             value={form.section}
             onChange={(e) => setForm({ ...form, section: e.target.value })}
             className="text-sm px-4 py-2 rounded-full outline-none"
-            style={{ border: `1px solid ${border}`, background: bg, color: ink }}
+            style={{ border: `1px solid ${border}`, background: fill, color: ink }}
           />
           <input
             placeholder="Name"
             value={form.name}
             onChange={(e) => setForm({ ...form, name: e.target.value })}
             className="text-sm px-4 py-2 rounded-full outline-none"
-            style={{ border: `1px solid ${border}`, background: bg, color: ink }}
+            style={{ border: `1px solid ${border}`, background: fill, color: ink }}
           />
           <div className="flex gap-2">
             <input
@@ -124,14 +124,14 @@ export default function WinesPage() {
               value={form.region}
               onChange={(e) => setForm({ ...form, region: e.target.value })}
               className="text-sm px-4 py-2 rounded-full outline-none flex-1"
-              style={{ border: `1px solid ${border}`, background: bg, color: ink }}
+              style={{ border: `1px solid ${border}`, background: fill, color: ink }}
             />
             <input
               placeholder="Vintage"
               value={form.vintage}
               onChange={(e) => setForm({ ...form, vintage: e.target.value })}
               className="text-sm px-4 py-2 rounded-full outline-none w-28"
-              style={{ border: `1px solid ${border}`, background: bg, color: ink }}
+              style={{ border: `1px solid ${border}`, background: fill, color: ink }}
             />
           </div>
           <textarea
@@ -140,7 +140,7 @@ export default function WinesPage() {
             onChange={(e) => setForm({ ...form, tasting_note: e.target.value })}
             rows={4}
             className="text-sm px-4 py-3 rounded-2xl outline-none"
-            style={{ border: `1px solid ${border}`, background: bg, color: ink }}
+            style={{ border: `1px solid ${border}`, background: fill, color: ink }}
           />
           <button
             onClick={saveForm}
@@ -231,7 +231,7 @@ export default function WinesPage() {
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search wines…"
           className="w-full text-sm pl-10 pr-4 py-2.5 rounded-full outline-none"
-          style={{ border: `1px solid ${border}`, color: ink, background: bg }}
+          style={{ border: `1px solid ${border}`, color: ink, background: fill }}
         />
       </div>
 

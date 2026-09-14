@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { bg, border, ink, inkSoft, navy, surface } from "@/lib/design-tokens";
+import { bg, border, fill, ink, inkSoft, navy, surface } from "@/lib/design-tokens";
 
 export default function SetPasswordPage() {
   const router = useRouter();
@@ -61,7 +61,7 @@ export default function SetPasswordPage() {
           onChange={(e) => setPassword(e.target.value)}
           placeholder="••••••••"
           className="w-full text-sm px-4 py-2.5 rounded-full mb-4 outline-none"
-          style={{ border: `1px solid ${border}`, color: ink, background: bg }}
+          style={{ border: `1px solid ${border}`, color: ink, background: fill }}
         />
 
         <label className="text-xs font-medium block mb-1" style={{ color: inkSoft }}>
@@ -74,7 +74,7 @@ export default function SetPasswordPage() {
           onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
           placeholder="••••••••"
           className="w-full text-sm px-4 py-2.5 rounded-full mb-4 outline-none"
-          style={{ border: `1px solid ${border}`, color: ink, background: bg }}
+          style={{ border: `1px solid ${border}`, color: ink, background: fill }}
         />
 
         {error && (

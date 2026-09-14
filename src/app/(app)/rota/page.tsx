@@ -7,8 +7,8 @@ import { useProfile } from "@/lib/profile-context";
 import { todayISO, weekStartOf, addDaysISO, weekDates } from "@/lib/dates";
 import type { ShiftStatus } from "@/lib/supabase/types";
 import {
-  bg,
   border,
+  fill,
   ink,
   inkSoft,
   navy,
@@ -168,7 +168,7 @@ export default function RotaPage() {
   const inputStyle = {
     border: `1px solid ${border}`,
     color: ink,
-    background: bg,
+    background: fill,
   } as const;
 
   return (
@@ -280,10 +280,10 @@ export default function RotaPage() {
           </thead>
           <tbody>
             {staff.map((person, pi) => (
-              <tr key={person.name} style={{ background: pi % 2 === 0 ? surface : bg }}>
+              <tr key={person.name} style={{ background: pi % 2 === 0 ? surface : fill }}>
                 <td
                   className="p-2 sticky left-0"
-                  style={{ background: pi % 2 === 0 ? surface : bg, fontWeight: 500 }}
+                  style={{ background: pi % 2 === 0 ? surface : fill, fontWeight: 500 }}
                 >
                   {person.name}
                   {!person.id && (

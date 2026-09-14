@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useProfile } from "@/lib/profile-context";
 import { Section } from "@/components/section";
-import { bg, border, ink, inkSoft, navy, orangeSoft } from "@/lib/design-tokens";
+import { border, fill, ink, inkSoft, navy, orangeSoft } from "@/lib/design-tokens";
 import type { Role } from "@/lib/supabase/types";
 
 type StaffRow = { id: string; name: string; email: string | null; role: Role; contract_hours: number | null };
@@ -66,7 +66,7 @@ export default function StaffAdminPage() {
     loadStaff();
   };
 
-  const inputStyle = { border: `1px solid ${border}`, background: bg, color: ink } as const;
+  const inputStyle = { border: `1px solid ${border}`, background: fill, color: ink } as const;
 
   if (profile.role !== "admin") {
     return (

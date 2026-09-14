@@ -7,7 +7,7 @@ import { useProfile } from "@/lib/profile-context";
 import { initials } from "@/lib/shift-status";
 import { relativeTime, timestamp } from "@/lib/relative-time";
 import { Section } from "@/components/section";
-import { bg, border, ink, inkSoft, navy, navyText, orange, orangeSoft, surface } from "@/lib/design-tokens";
+import { border, fill, ink, inkSoft, navy, navyText, orange, orangeSoft, surface } from "@/lib/design-tokens";
 
 type Nomination = {
   id: number;
@@ -108,7 +108,7 @@ export default function ColleagueOfTheMonthPage() {
           onChange={(e) => setNewNominee(e.target.value)}
           placeholder="Who are you nominating?"
           className="w-full text-sm px-4 py-2.5 rounded-full mb-2 outline-none"
-          style={{ border: `1px solid ${border}`, color: ink, background: bg }}
+          style={{ border: `1px solid ${border}`, color: ink, background: fill }}
         />
         <textarea
           value={newReason}
@@ -116,7 +116,7 @@ export default function ColleagueOfTheMonthPage() {
           placeholder="Why do they deserve it?"
           className="w-full text-sm resize-none outline-none px-4 py-2.5 rounded-full"
           rows={2}
-          style={{ color: ink, background: bg, border: `1px solid ${border}` }}
+          style={{ color: ink, background: fill, border: `1px solid ${border}` }}
         />
         <div className="flex justify-end mt-2">
           <button

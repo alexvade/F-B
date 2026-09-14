@@ -20,7 +20,7 @@ import {
   X,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
-import { bg, border, ink, inkSoft, navy, orange, surface } from "@/lib/design-tokens";
+import { bg, bgText, bgTextSoft, border, ink, inkSoft, navy, orange, panel, surface } from "@/lib/design-tokens";
 
 const NAV_ITEMS = [
   { href: "/drinks", label: "Drinks", icon: Wine },
@@ -65,17 +65,19 @@ export function NavShell({
 
   return (
     <div
-      className="flex w-full h-full min-h-screen"
-      style={{ background: bg, color: ink }}
+      className="flex w-full h-screen"
+      style={{ background: bg, color: bgText }}
     >
       {/* Sidebar (desktop) */}
       <div
         className="hidden sm:flex flex-col w-56 shrink-0 p-4"
-        style={{ borderRight: `1px solid ${border}` }}
+        style={{ borderRight: `1px solid rgba(244,247,245,0.1)` }}
       >
         <div className="mb-6 px-2">
-          <div className="text-sm font-semibold">Team Ops</div>
-          <div className="text-xs" style={{ color: inkSoft }}>
+          <div className="text-sm font-semibold" style={{ color: bgText }}>
+            Team Ops
+          </div>
+          <div className="text-xs" style={{ color: bgTextSoft }}>
             Operations hub
           </div>
         </div>
@@ -89,7 +91,7 @@ export function NavShell({
                 className="flex items-center gap-2 px-4 py-2.5 rounded-full text-sm text-left"
                 style={{
                   background: active ? navy : "transparent",
-                  color: active ? "#FFFFFF" : ink,
+                  color: active ? "#FFFFFF" : bgTextSoft,
                   fontWeight: active ? 600 : 400,
                 }}
               >
@@ -99,13 +101,15 @@ export function NavShell({
             );
           })}
         </nav>
-        <div className="mt-auto pt-4" style={{ borderTop: `1px solid ${border}` }}>
-          <div className="px-2 py-2 text-sm">{name}</div>
+        <div className="mt-auto pt-4" style={{ borderTop: `1px solid rgba(244,247,245,0.1)` }}>
+          <div className="px-2 py-2 text-sm" style={{ color: bgText }}>
+            {name}
+          </div>
           {isAdmin && (
             <Link
               href="/admin/staff"
               className="flex items-center gap-2 px-2 py-1.5 text-xs"
-              style={{ color: isActive("/admin/staff") ? navy : inkSoft }}
+              style={{ color: isActive("/admin/staff") ? orange : bgTextSoft }}
             >
               <Users size={14} /> Manage staff
             </Link>
@@ -113,7 +117,7 @@ export function NavShell({
           <button
             onClick={handleSignOut}
             className="flex items-center gap-2 px-2 py-1.5 text-xs"
-            style={{ color: inkSoft }}
+            style={{ color: bgTextSoft }}
           >
             <LogOut size={14} /> Sign out
           </button>
@@ -218,7 +222,7 @@ export function NavShell({
         <Link
           href="/dashboard"
           className="p-3 rounded-full -mt-6"
-          style={{ background: navy, color: "#FFFFFF", border: `4px solid ${bg}`, boxShadow: "0 4px 12px rgba(0,0,0,0.2)" }}
+          style={{ background: navy, color: "#FFFFFF", border: `4px solid ${surface}`, boxShadow: "0 4px 12px rgba(0,0,0,0.2)" }}
         >
           <LayoutDashboard size={22} />
         </Link>
@@ -242,8 +246,13 @@ export function NavShell({
       </div>
 
       {/* Main content */}
-      <div className="flex-1 overflow-y-auto px-5 sm:px-10 pt-16 sm:pt-8 pb-28 sm:pb-8 max-w-3xl">
-        {children}
+      <div className="flex-1 overflow-y-auto p-3 sm:p-4">
+        <div
+          className="rounded-3xl px-5 sm:px-10 pt-16 sm:pt-8 pb-28 sm:pb-8 max-w-3xl"
+          style={{ background: panel, minHeight: "calc(100vh - 24px)" }}
+        >
+          {children}
+        </div>
       </div>
     </div>
   );

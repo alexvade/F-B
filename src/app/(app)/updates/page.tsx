@@ -8,7 +8,7 @@ import { uploadAttachment } from "@/lib/storage";
 import { relativeTime, timestamp } from "@/lib/relative-time";
 import { initials } from "@/lib/shift-status";
 import { Section } from "@/components/section";
-import { bg, border, ink, inkSoft, navy, navyText, orange, orangeSoft, surface } from "@/lib/design-tokens";
+import { border, fill, ink, inkSoft, navy, navyText, orange, orangeSoft, surface } from "@/lib/design-tokens";
 
 type Comment = {
   id: number;
@@ -210,7 +210,7 @@ export default function UpdatesPage() {
           placeholder="Share an update with the team…"
           className="w-full text-sm resize-none outline-none px-4 py-3 rounded-full text-left"
           rows={1}
-          style={{ color: ink, background: bg, border: `1px solid ${border}` }}
+          style={{ color: ink, background: fill, border: `1px solid ${border}` }}
         />
         {newPhoto && (
           <AttachmentPreview
@@ -384,7 +384,7 @@ export default function UpdatesPage() {
                   onKeyDown={(e) => e.key === "Enter" && addComment(p.id)}
                   placeholder="Reply with more info…"
                   className="flex-1 text-xs px-3.5 py-2 rounded-full outline-none"
-                  style={{ border: `1px solid ${border}`, color: ink, background: bg }}
+                  style={{ border: `1px solid ${border}`, color: ink, background: fill }}
                 />
                 <label
                   className="flex items-center justify-center shrink-0 cursor-pointer"
