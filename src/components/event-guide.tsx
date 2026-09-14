@@ -1,5 +1,6 @@
 import { Fraunces, Public_Sans, IBM_Plex_Mono } from "next/font/google";
 import type { EventContent, TimelineDay } from "@/lib/event-content";
+import { navySoft, surface as appSurface } from "@/lib/design-tokens";
 
 const fraunces = Fraunces({ subsets: ["latin"], weight: ["400", "500", "600"], variable: "--font-fraunces" });
 const publicSans = Public_Sans({ subsets: ["latin"], weight: ["400", "500", "600", "700"], variable: "--font-public-sans" });
@@ -54,7 +55,7 @@ const STYLES = `
 .eg-day-head { display: flex; align-items: baseline; gap: 12px; margin-bottom: 12px; padding-bottom: 9px; border-bottom: 2px solid var(--eg-accent-soft); }
 .eg-day-head .date { font-family: var(--font-fraunces), serif; font-size: 1.05rem; font-weight: 600; }
 .eg-day-head .tag { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--eg-gold); background: var(--eg-gold-soft); padding: 3px 8px; border-radius: 20px; font-weight: 600; }
-.eg-day.core { background: var(--eg-surface); border: 1px solid var(--eg-border); border-radius: 14px; padding: 18px clamp(14px,4vw,24px); box-shadow: var(--eg-shadow); }
+.eg-day.core { background: linear-gradient(180deg, ${appSurface} 0%, ${navySoft} 100%); border: 1px solid var(--eg-border); border-radius: 14px; padding: 18px clamp(14px,4vw,24px); box-shadow: var(--eg-shadow); }
 .eg-day.core .eg-day-head { border-bottom-color: var(--eg-accent); }
 .eg-event { display: grid; grid-template-columns: 68px 1fr; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--eg-border); }
 .eg-event:last-child { border-bottom: none; }
