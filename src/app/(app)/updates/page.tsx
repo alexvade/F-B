@@ -231,7 +231,7 @@ export default function UpdatesPage() {
           value={newPost}
           onChange={(e) => setNewPost(e.target.value)}
           placeholder={placeholder}
-          className="w-full text-sm resize-none outline-none px-4 py-3 rounded-full text-left dark-mode-invert"
+          className="w-full text-sm resize-none outline-none px-4 py-3 rounded-full text-left"
           rows={1}
           style={{ color: ink, background: fill, border: `1px solid ${border}` }}
         />
@@ -406,7 +406,7 @@ export default function UpdatesPage() {
                   onChange={(e) => setCommentDrafts((prev) => ({ ...prev, [p.id]: e.target.value }))}
                   onKeyDown={(e) => e.key === "Enter" && addComment(p.id)}
                   placeholder="Reply with more info…"
-                  className="flex-1 text-xs px-3.5 py-2 rounded-full outline-none dark-mode-invert"
+                  className="flex-1 text-xs px-3.5 py-2 rounded-full outline-none"
                   style={{ border: `1px solid ${border}`, color: ink, background: fill }}
                 />
                 <label
