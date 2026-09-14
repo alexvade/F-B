@@ -114,16 +114,6 @@ export default function StockOrdersPage() {
 
   return (
     <Section title="Stock Orders" subtitle="Add a quantity for anything that needs ordering">
-      <div className="flex justify-end mb-4">
-        <button
-          onClick={resetAllQuantities}
-          disabled={resetting}
-          className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-2xl disabled:opacity-60"
-          style={{ background: "#FFFFFF", color: "#000000", border: "1px solid #000000" }}
-        >
-          <RotateCcw size={13} /> {resetting ? "Resetting…" : "Reset all to 0"}
-        </button>
-      </div>
       <div className="flex gap-1.5 overflow-x-auto mb-6 pb-1" style={{ scrollbarWidth: "thin" }}>
         {tabs.map((t) => {
           const active = t === tab;
@@ -150,10 +140,22 @@ export default function StockOrdersPage() {
           {tabs.length === 0 ? "No stock sheet synced yet." : "Nothing in this tab yet."}
         </p>
       ) : (
-        categories.map((cat) => (
+        categories.map((cat, i) => (
           <div key={cat} className="mb-6">
-            <div className="text-xs font-semibold mb-2" style={{ color: orange }}>
-              {cat.toUpperCase()}
+            <div className="flex items-center justify-between mb-2">
+              <div className="text-xs font-semibold" style={{ color: orange }}>
+                {cat.toUpperCase()}
+              </div>
+              {i === 0 && (
+                <button
+                  onClick={resetAllQuantities}
+                  disabled={resetting}
+                  className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-2xl disabled:opacity-60"
+                  style={{ background: "#FFFFFF", color: "#000000", border: "1px solid #000000" }}
+                >
+                  <RotateCcw size={13} /> {resetting ? "Resetting…" : "Reset all to 0"}
+                </button>
+              )}
             </div>
             <div className="flex flex-col gap-1">
               {tabProducts
