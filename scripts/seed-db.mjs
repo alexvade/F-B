@@ -51,9 +51,9 @@ async function ensureBucket() {
     console.log(`bucket "${BUCKET}" already exists`);
     return;
   }
-  const { error } = await supabase.storage.createBucket(BUCKET, { public: true });
+  const { error } = await supabase.storage.createBucket(BUCKET, { public: false });
   if (error) throw error;
-  console.log(`created public bucket "${BUCKET}"`);
+  console.log(`created private bucket "${BUCKET}"`);
 }
 
 const CONTENT_TYPE_BY_EXT = {
@@ -71,7 +71,9 @@ async function uploadAsset(localPath, storagePath) {
     contentType: CONTENT_TYPE_BY_EXT[ext] ?? "application/octet-stream",
   });
   if (error) throw error;
-  return supabase.storage.from(BUCKET).getPublicUrl(storagePath).data.publicUrl;
+  // The bucket is private — app code resolves this path to a signed URL
+  // at display time (see src/lib/storage.ts), rather than storing a URL.
+  return storagePath;
 }
 
 async function seedChecklists() {

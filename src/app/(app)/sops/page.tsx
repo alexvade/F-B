@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { ChevronRight, Pencil, Plus, Trash2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useProfile } from "@/lib/profile-context";
-import { uploadAttachment } from "@/lib/storage";
+import { uploadAttachment, getAttachmentUrl, deleteAttachment } from "@/lib/storage";
 import { Section } from "@/components/section";
 import { bg, border, fill, ink, inkSoft, navy, navyText, orange, orangeSoft } from "@/lib/design-tokens";
 
@@ -26,6 +26,7 @@ export default function SopsPage() {
   const [sops, setSops] = useState<Sop[]>([]);
   const [category, setCategory] = useState<string | null>(null);
   const [activeSop, setActiveSop] = useState<Sop | null>(null);
+  const [activeSopPhotoUrl, setActiveSopPhotoUrl] = useState<string | null>(null);
   const [form, setForm] = useState<typeof EMPTY_FORM | null>(null);
   const [saving, setSaving] = useState(false);
 
@@ -38,6 +39,19 @@ export default function SopsPage() {
   useEffect(() => {
     loadSops();
   }, [loadSops]);
+
+  useEffect(() => {
+    let cancelled = false;
+    setActiveSopPhotoUrl(null);
+    if (activeSop?.photo_url) {
+      getAttachmentUrl(activeSop.photo_url).then((url) => {
+        if (!cancelled) setActiveSopPhotoUrl(url);
+      });
+    }
+    return () => {
+      cancelled = true;
+    };
+  }, [activeSop]);
 
   const categories = Array.from(new Set(sops.map((s) => s.category)));
 
@@ -77,8 +91,9 @@ export default function SopsPage() {
     }
   };
 
-  const deleteSop = async (id: number) => {
+  const deleteSop = async (id: number, photoUrl: string | null) => {
     await supabase.from("sops").delete().eq("id", id);
+    await deleteAttachment(photoUrl);
     setActiveSop(null);
     loadSops();
   };
@@ -149,7 +164,7 @@ export default function SopsPage() {
               <button onClick={() => openEdit(activeSop)} style={{ color: navyText }}>
                 <Pencil size={15} />
               </button>
-              <button onClick={() => deleteSop(activeSop.id)} style={{ color: "#000000" }}>
+              <button onClick={() => deleteSop(activeSop.id, activeSop.photo_url)} style={{ color: "#000000" }}>
                 <Trash2 size={15} />
               </button>
             </div>
@@ -164,9 +179,9 @@ export default function SopsPage() {
         >
           {activeSop.title}
         </h2>
-        {activeSop.photo_url && (
+        {activeSopPhotoUrl && (
           <img
-            src={activeSop.photo_url}
+            src={activeSopPhotoUrl}
             alt={activeSop.title}
             className="rounded-2xl mb-4"
             style={{ maxWidth: "100%", maxHeight: 260, border: `1px solid ${border}` }}

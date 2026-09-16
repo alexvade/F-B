@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { Trash2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useProfile } from "@/lib/profile-context";
 import { Section } from "@/components/section";
@@ -22,7 +23,7 @@ export default function StaffAdminPage() {
   const [message, setMessage] = useState<string | null>(null);
 
   const loadStaff = useCallback(async () => {
-    const { data } = await supabase.from("profiles").select("*").order("name");
+    const { data } = await supabase.from("profiles_directory").select("*").order("name");
     setStaff(data ?? []);
   }, [supabase]);
 
@@ -63,6 +64,22 @@ export default function StaffAdminPage() {
 
   const changeRole = async (id: string, newRole: Role) => {
     await supabase.from("profiles").update({ role: newRole }).eq("id", id);
+    loadStaff();
+  };
+
+  const deleteStaff = async (member: StaffRow) => {
+    if (!confirm(`Delete ${member.name}'s account? This can't be undone — they'll lose access immediately.`)) return;
+    setMessage(null);
+    const res = await fetch("/api/admin/delete-staff", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: member.id }),
+    });
+    const body = await res.json();
+    if (!res.ok) {
+      setMessage(body.error || "Couldn't delete that account.");
+      return;
+    }
     loadStaff();
   };
 
@@ -144,15 +161,22 @@ export default function StaffAdminPage() {
                 {s.email} {s.contract_hours ? `· ${s.contract_hours}h contract` : ""}
               </div>
             </div>
-            <select
-              value={s.role}
-              onChange={(e) => changeRole(s.id, e.target.value as Role)}
-              className="text-xs px-2 py-1 rounded-full outline-none"
-              style={inputStyle}
-            >
-              <option value="staff">Staff</option>
-              <option value="admin">Admin</option>
-            </select>
+            <div className="flex items-center gap-2 shrink-0">
+              <select
+                value={s.role}
+                onChange={(e) => changeRole(s.id, e.target.value as Role)}
+                className="text-xs px-2 py-1 rounded-full outline-none"
+                style={inputStyle}
+              >
+                <option value="staff">Staff</option>
+                <option value="admin">Admin</option>
+              </select>
+              {s.id !== profile.id && (
+                <button onClick={() => deleteStaff(s)} aria-label={`Delete ${s.name}`} style={{ color: "#000000" }}>
+                  <Trash2 size={15} />
+                </button>
+              )}
+            </div>
           </div>
         ))}
       </div>

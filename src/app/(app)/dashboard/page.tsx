@@ -670,9 +670,11 @@ export default function DashboardPage() {
                     </span>
                   </span>
                 </button>
-                <button onClick={() => deleteTask(task)} className="shrink-0 p-1" aria-label="Delete task">
-                  <Trash2 size={14} style={{ color: inkSoft }} />
-                </button>
+                {profile.role === "admin" && (
+                  <button onClick={() => deleteTask(task)} className="shrink-0 p-1" aria-label="Delete task">
+                    <Trash2 size={14} style={{ color: inkSoft }} />
+                  </button>
+                )}
               </div>
             ))}
           </div>
@@ -744,9 +746,11 @@ export default function DashboardPage() {
                     </span>
                   </span>
                 </button>
-                <button onClick={() => deleteTask(task)} className="shrink-0 p-1" aria-label="Delete task">
-                  <Trash2 size={14} style={{ color: inkSoft }} />
-                </button>
+                {profile.role === "admin" && (
+                  <button onClick={() => deleteTask(task)} className="shrink-0 p-1" aria-label="Delete task">
+                    <Trash2 size={14} style={{ color: inkSoft }} />
+                  </button>
+                )}
               </div>
             ))}
           </div>

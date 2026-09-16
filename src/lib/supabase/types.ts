@@ -44,6 +44,30 @@ export interface Database {
           created_at?: string;
         }
       >;
+      // Read-only view — returns `email` only for a viewer's own row or for
+      // admins (see 0019_profiles_email_privacy.sql), null for everyone
+      // else's. Use this instead of `profiles` wherever email is needed;
+      // `profiles` itself no longer grants column-level access to it.
+      profiles_directory: Table<
+        {
+          id: string;
+          name: string;
+          email: string | null;
+          role: Role;
+          avatar_url: string | null;
+          contract_hours: number | null;
+          created_at: string;
+        },
+        {
+          id: string;
+          name: string;
+          email?: string | null;
+          role?: Role;
+          avatar_url?: string | null;
+          contract_hours?: number | null;
+          created_at?: string;
+        }
+      >;
       rota_shifts: Table<
         {
           id: number;

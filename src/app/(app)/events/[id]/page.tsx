@@ -19,7 +19,13 @@ export default async function EventDetailPage({ params }: PageProps<"/events/[id
       .select("file_url")
       .eq("id", event.function_sheet_id)
       .single();
-    fileUrl = sheet?.file_url ?? null;
+    if (sheet?.file_url) {
+      const marker = "/attachments/";
+      const i = sheet.file_url.indexOf(marker);
+      const path = i === -1 ? sheet.file_url : sheet.file_url.slice(i + marker.length);
+      const { data: signed } = await supabase.storage.from("attachments").createSignedUrl(path, 60 * 60);
+      fileUrl = signed?.signedUrl ?? null;
+    }
   }
 
   return (

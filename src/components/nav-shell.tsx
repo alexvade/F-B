@@ -112,6 +112,27 @@ export function NavShell({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // If an admin deletes this account, its refresh token is invalidated
+  // immediately — but a tab already sitting open here doesn't touch the
+  // login-gate middleware again until its next navigation, so its access
+  // token would otherwise keep working client-side until it naturally
+  // expires (up to ~1hr). Supabase's client auto-refreshes shortly before
+  // expiry and, finding the refresh token gone, fires SIGNED_OUT — catch
+  // that here for an immediate, hard redirect instead of waiting for it.
+  useEffect(() => {
+    const supabase = createClient();
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "SIGNED_OUT") {
+        router.push("/login");
+        router.refresh();
+      }
+    });
+    return () => subscription.unsubscribe();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const toggleDark = () => {
     setDark((prev) => {
       const next = !prev;

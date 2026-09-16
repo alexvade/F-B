@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Camera, Paperclip, FileText, Trash2, X, ChartColumn, Plus } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useProfile } from "@/lib/profile-context";
-import { uploadAttachment } from "@/lib/storage";
+import { uploadAttachment, getAttachmentUrl, deleteAttachment } from "@/lib/storage";
 import { relativeTime, timestamp } from "@/lib/relative-time";
 import { initials } from "@/lib/shift-status";
 import { Section } from "@/components/section";
@@ -33,6 +33,8 @@ type Comment = {
   photo_url: string | null;
   file_url: string | null;
   file_name: string | null;
+  photoDisplayUrl: string | null;
+  fileDisplayUrl: string | null;
 };
 type PollVote = { optionIndex: number; voterId: string };
 type Post = {
@@ -43,6 +45,8 @@ type Post = {
   photo_url: string | null;
   file_url: string | null;
   file_name: string | null;
+  photoDisplayUrl: string | null;
+  fileDisplayUrl: string | null;
   created_at: string;
   comments: Comment[];
   pollOptions: string[] | null;
@@ -134,6 +138,16 @@ export default function UpdatesPage() {
       : { data: [] };
     const nameById = new Map((profiles ?? []).map((p) => [p.id, p.name]));
 
+    const storedPaths = Array.from(
+      new Set([
+        ...(postRows ?? []).flatMap((p) => [p.photo_url, p.file_url].filter(Boolean)),
+        ...(commentRows ?? []).flatMap((c) => [c.photo_url, c.file_url].filter(Boolean)),
+      ])
+    ) as string[];
+    const signedByPath = new Map(
+      await Promise.all(storedPaths.map(async (p) => [p, await getAttachmentUrl(p)] as const))
+    );
+
     setPosts(
       (postRows ?? []).map((p) => ({
         id: p.id,
@@ -143,6 +157,8 @@ export default function UpdatesPage() {
         photo_url: p.photo_url,
         file_url: p.file_url,
         file_name: p.file_name,
+        photoDisplayUrl: p.photo_url ? signedByPath.get(p.photo_url) ?? null : null,
+        fileDisplayUrl: p.file_url ? signedByPath.get(p.file_url) ?? null : null,
         created_at: p.created_at,
         pollOptions: p.poll_options,
         pollVotes: (voteRows ?? [])
@@ -157,6 +173,8 @@ export default function UpdatesPage() {
             photo_url: c.photo_url,
             file_url: c.file_url,
             file_name: c.file_name,
+            photoDisplayUrl: c.photo_url ? signedByPath.get(c.photo_url) ?? null : null,
+            fileDisplayUrl: c.file_url ? signedByPath.get(c.file_url) ?? null : null,
           })),
       }))
     );
@@ -229,6 +247,11 @@ export default function UpdatesPage() {
   const deletePost = async (post: Post) => {
     if (!confirm("Delete this post?")) return;
     await supabase.from("posts").delete().eq("id", post.id);
+    await Promise.all([
+      deleteAttachment(post.photo_url),
+      deleteAttachment(post.file_url),
+      ...post.comments.flatMap((c) => [deleteAttachment(c.photo_url), deleteAttachment(c.file_url)]),
+    ]);
     loadPosts();
   };
 
@@ -391,15 +414,15 @@ export default function UpdatesPage() {
                 <EmojiText text={p.text} />
               </p>
             )}
-            {p.photo_url && (
-              <img src={p.photo_url} alt="Attached" className="rounded-2xl mt-2" style={{ maxHeight: 220, maxWidth: "100%" }} />
+            {p.photoDisplayUrl && (
+              <img src={p.photoDisplayUrl} alt="Attached" className="rounded-2xl mt-2" style={{ maxHeight: 220, maxWidth: "100%" }} />
             )}
-            {p.file_url &&
+            {p.fileDisplayUrl &&
               (p.file_name?.match(/\.(png|jpe?g|gif|webp)$/i) ? (
-                <img src={p.file_url} alt="Attached" className="rounded-2xl mt-2" style={{ maxHeight: 220, maxWidth: "100%" }} />
+                <img src={p.fileDisplayUrl} alt="Attached" className="rounded-2xl mt-2" style={{ maxHeight: 220, maxWidth: "100%" }} />
               ) : (
                 <a
-                  href={p.file_url}
+                  href={p.fileDisplayUrl}
                   target="_blank"
                   rel="noreferrer"
                   className="flex items-center gap-2 mt-2 px-2.5 py-1.5 rounded-2xl"
@@ -463,15 +486,15 @@ export default function UpdatesPage() {
                         <EmojiText text={c.text} />
                       </p>
                     )}
-                    {c.photo_url && (
-                      <img src={c.photo_url} alt="Attached" className="rounded-2xl mt-1" style={{ maxHeight: 140, maxWidth: "100%" }} />
+                    {c.photoDisplayUrl && (
+                      <img src={c.photoDisplayUrl} alt="Attached" className="rounded-2xl mt-1" style={{ maxHeight: 140, maxWidth: "100%" }} />
                     )}
-                    {c.file_url &&
+                    {c.fileDisplayUrl &&
                       (c.file_name?.match(/\.(png|jpe?g|gif|webp)$/i) ? (
-                        <img src={c.file_url} alt="Attached" className="rounded-2xl mt-1" style={{ maxHeight: 140, maxWidth: "100%" }} />
+                        <img src={c.fileDisplayUrl} alt="Attached" className="rounded-2xl mt-1" style={{ maxHeight: 140, maxWidth: "100%" }} />
                       ) : (
                         <a
-                          href={c.file_url}
+                          href={c.fileDisplayUrl}
                           target="_blank"
                           rel="noreferrer"
                           className="flex items-center gap-1.5 mt-1 px-2 py-1 rounded-2xl"

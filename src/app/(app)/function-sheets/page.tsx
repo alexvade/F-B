@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { ChevronRight, FileStack, Trash2, Upload } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useProfile } from "@/lib/profile-context";
-import { uploadAttachment } from "@/lib/storage";
+import { uploadAttachment, getAttachmentUrl, deleteAttachment } from "@/lib/storage";
 import { Section } from "@/components/section";
 import { bg, border, ink, inkSoft, navy, orangeSoft, orange } from "@/lib/design-tokens";
 
@@ -43,9 +43,15 @@ export default function FunctionSheetsPage() {
     }
   };
 
-  const deleteSheet = async (id: number) => {
+  const deleteSheet = async (id: number, fileUrl: string) => {
     await supabase.from("function_sheets").delete().eq("id", id);
+    await deleteAttachment(fileUrl);
     loadData();
+  };
+
+  const openSheet = async (fileUrl: string) => {
+    const url = await getAttachmentUrl(fileUrl);
+    if (url) window.open(url, "_blank", "noopener,noreferrer");
   };
 
   return (
@@ -76,7 +82,7 @@ export default function FunctionSheetsPage() {
             className="flex items-center justify-between p-3 rounded-3xl"
             style={{ background: bg, border: `1px solid ${border}` }}
           >
-            <a href={sheet.file_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 flex-1">
+            <button onClick={() => openSheet(sheet.file_url)} className="flex items-center gap-3 flex-1 text-left">
               <FileStack size={18} style={{ color: orange }} />
               <div>
                 <div className="text-sm font-medium" style={{ color: ink }}>
@@ -86,10 +92,10 @@ export default function FunctionSheetsPage() {
                   {sheet.file_name}
                 </div>
               </div>
-            </a>
+            </button>
             <div className="flex items-center gap-2 shrink-0">
               {isAdmin && (
-                <button onClick={() => deleteSheet(sheet.id)} style={{ color: "#000000" }}>
+                <button onClick={() => deleteSheet(sheet.id, sheet.file_url)} style={{ color: "#000000" }}>
                   <Trash2 size={15} />
                 </button>
               )}
