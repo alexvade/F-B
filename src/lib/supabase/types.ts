@@ -204,6 +204,58 @@ export interface Database {
           changed_at?: string;
         }
       >;
+      training_uploads: Table<
+        {
+          id: number;
+          uploaded_by: string | null;
+          uploaded_at: string;
+          row_count: number;
+        },
+        {
+          id?: number;
+          uploaded_by?: string | null;
+          uploaded_at?: string;
+          row_count: number;
+        }
+      >;
+      training_records: Table<
+        {
+          id: number;
+          learner_name: string;
+          identifier: string | null;
+          email: string | null;
+          employment_start_date: string | null;
+          compliance_item_name: string;
+          compliance_item_type: string | null;
+          status: string;
+          due_date: string | null;
+          allocation_date: string | null;
+          allocated_by: string | null;
+          collection_name: string | null;
+          department: string | null;
+          completed_date: string | null;
+          job_title: string | null;
+          uploaded_at: string;
+        },
+        {
+          id?: number;
+          learner_name: string;
+          identifier?: string | null;
+          email?: string | null;
+          employment_start_date?: string | null;
+          compliance_item_name: string;
+          compliance_item_type?: string | null;
+          status: string;
+          due_date?: string | null;
+          allocation_date?: string | null;
+          allocated_by?: string | null;
+          collection_name?: string | null;
+          department?: string | null;
+          completed_date?: string | null;
+          job_title?: string | null;
+          uploaded_at?: string;
+        }
+      >;
       comments: Table<
         {
           id: number;

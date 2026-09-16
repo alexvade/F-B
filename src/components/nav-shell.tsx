@@ -21,6 +21,7 @@ import {
   Moon,
   Sun,
   X,
+  GraduationCap,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useProfile } from "@/lib/profile-context";
@@ -39,6 +40,7 @@ const NAV_ITEMS = [
   { href: "/events", label: "Events", icon: Sparkles },
   { href: "/stock-orders", label: "Stock Orders", icon: ClipboardList, adminOnly: true },
   { href: "/birthdays", label: "Birthdays", icon: Cake, adminOnly: true },
+  { href: "/training", label: "Training", icon: GraduationCap, adminOnly: true },
 ];
 
 // Bottom island (mobile only): Dashboard in the middle, flanked by the
