@@ -180,7 +180,7 @@ export function EventGuide({ content }: { content: EventContent }) {
             <h2 className="eg-h">The timeline</h2>
           </div>
           {content.timeline.map((day, i) => (
-            <div key={i} className={`eg-day ${day.core ? "core" : ""}`}>
+            <div key={i} className="eg-day core">
               <div className="eg-day-head">
                 <span className="date">{day.date}</span>
                 {day.tag && <span className="tag">{day.tag}</span>}
