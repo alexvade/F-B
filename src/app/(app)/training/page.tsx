@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Upload, ChevronRight } from "lucide-react";
+import { Upload, ChevronRight, Share2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useProfile } from "@/lib/profile-context";
 import { parseTrainingSheet } from "@/lib/training-sheet";
@@ -43,6 +43,22 @@ function formatDate(iso: string | null): string {
   return new Date(iso + "T00:00:00").toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" });
 }
 
+// A grab-bag of reminder phrasings — picked randomly each time so a
+// nudge posted every week doesn't read as the exact same copy-paste
+// message (see Dashboard's GREETINGS / Noticeboard's COMPOSER_PLACEHOLDERS).
+const REMINDER_TEMPLATES: ((name: string, count: number, module: string) => string)[] = [
+  (n, c, m) => `${n} — you have ${c} overdue ${m}. Please log in to Mapal to complete ${c === 1 ? "it" : "these"}.`,
+  (n, c, m) => `Reminder for ${n}: ${c} ${m} ${c === 1 ? "is" : "are"} overdue. Please log in to Mapal when you get a chance.`,
+  (n, c, m) => `${n}, you're behind on ${c} ${m} in Mapal — please log in and complete ${c === 1 ? "it" : "them"} as soon as you can.`,
+  (n, c, m) => `Friendly nudge for ${n}: ${c} overdue ${m} waiting in Mapal. Please log in to complete ${c === 1 ? "it" : "these"}.`,
+  (n, c, m) => `${n} has ${c} overdue ${m}. Please log in to Mapal to get ${c === 1 ? "it" : "these"} sorted.`,
+];
+
+function randomReminderText(name: string, count: number): string {
+  const template = REMINDER_TEMPLATES[Math.floor(Math.random() * REMINDER_TEMPLATES.length)];
+  return template(name, count, count === 1 ? "module" : "modules");
+}
+
 export default function TrainingPage() {
   const profile = useProfile();
   const isAdmin = profile.role === "admin";
@@ -56,6 +72,7 @@ export default function TrainingPage() {
   const [statusFilter, setStatusFilter] = useState<"overdue" | "all">("overdue");
   const [viewMode, setViewMode] = useState<"person" | "item">("person");
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
+  const [shareStatus, setShareStatus] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const loadData = useCallback(async () => {
@@ -78,6 +95,10 @@ export default function TrainingPage() {
   useEffect(() => {
     if (isAdmin) loadData();
   }, [isAdmin, loadData]);
+
+  useEffect(() => {
+    setShareStatus(null);
+  }, [selectedKey]);
 
   const handleFile = async (file: File) => {
     setUploadError(null);
@@ -113,6 +134,13 @@ export default function TrainingPage() {
       setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
     }
+  };
+
+  const shareReminder = async (learnerName: string, overdueCount: number) => {
+    const firstName = learnerName.split(" ")[0];
+    const text = randomReminderText(firstName, overdueCount);
+    await supabase.from("posts").insert({ author_id: profile.id, text });
+    setShareStatus("Posted to the Noticeboard.");
   };
 
   const filtered = useMemo(
@@ -175,14 +203,31 @@ export default function TrainingPage() {
   const selectedItem = viewMode === "item" ? itemGroups.find((g) => g.key === selectedKey) : undefined;
 
   if (selectedPerson) {
+    const overdueCount = selectedPerson.records.filter(isOverdue).length;
     return (
       <div>
         <button onClick={() => setSelectedKey(null)} className="text-xs mb-4" style={{ color: navyText }}>
           ← Back to Training
         </button>
-        <h2 className="text-lg font-semibold mb-1" style={{ color: navyText }}>
-          {selectedPerson.learner_name}
-        </h2>
+        <div className="flex items-start justify-between gap-3 mb-1">
+          <h2 className="text-lg font-semibold" style={{ color: navyText }}>
+            {selectedPerson.learner_name}
+          </h2>
+          {overdueCount > 0 && (
+            <button
+              onClick={() => shareReminder(selectedPerson.learner_name, overdueCount)}
+              className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-2xl shrink-0"
+              style={{ background: orangeSoft, color: navy }}
+            >
+              <Share2 size={13} /> Share reminder
+            </button>
+          )}
+        </div>
+        {shareStatus && (
+          <p className="text-xs mb-2" style={{ color: inkSoft }}>
+            {shareStatus}
+          </p>
+        )}
         <p className="text-xs mb-4" style={{ color: inkSoft }}>
           {[selectedPerson.job_title, selectedPerson.department, selectedPerson.email].filter(Boolean).join(" · ")}
         </p>
