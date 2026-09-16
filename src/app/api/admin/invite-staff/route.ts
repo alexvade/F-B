@@ -40,5 +40,29 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: error.message }, { status: 400 });
   }
 
-  return NextResponse.json({ id: data.user?.id });
+  // The rota is often populated (via the Google Sheet sync) with a
+  // staff_name before that person has an account — those rows sit with
+  // staff_id null until something links them up. If the name just invited
+  // matches one of them, link it now instead of leaving a second, empty
+  // "new person" row alongside their real rota history. Matched
+  // case-insensitively/trimmed (sheet data isn't always typed consistently)
+  // and staff_name is normalised to the exact name just entered, so the
+  // Rota screen's own name-based grouping merges them into one row.
+  let rotaShiftsLinked = 0;
+  if (data.user) {
+    const { data: matches } = await admin
+      .from("rota_shifts")
+      .select("id")
+      .ilike("staff_name", name.trim())
+      .is("staff_id", null);
+    if (matches && matches.length > 0) {
+      const { error: linkError } = await admin
+        .from("rota_shifts")
+        .update({ staff_id: data.user.id, staff_name: name.trim() })
+        .in("id", matches.map((m) => m.id));
+      if (!linkError) rotaShiftsLinked = matches.length;
+    }
+  }
+
+  return NextResponse.json({ id: data.user?.id, rotaShiftsLinked });
 }

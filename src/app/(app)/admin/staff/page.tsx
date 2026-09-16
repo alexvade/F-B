@@ -51,7 +51,11 @@ export default function StaffAdminPage() {
         setMessage(body.error || "Something went wrong.");
         return;
       }
-      setMessage(`Invited ${name.trim()} — they'll get an email to set their password.`);
+      const linked = body.rotaShiftsLinked as number | undefined;
+      setMessage(
+        `Invited ${name.trim()} — they'll get an email to set their password.` +
+          (linked ? ` Linked to ${linked} existing rota shift${linked === 1 ? "" : "s"} under that name.` : "")
+      );
       setName("");
       setEmail("");
       setContractHours("");
