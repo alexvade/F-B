@@ -158,6 +158,28 @@ export interface Database {
           created_at?: string;
         }
       >;
+      event_time_overrides: Table<
+        {
+          id: number;
+          event_id: number;
+          day_date: string;
+          item_what: string;
+          previous_time: string;
+          new_time: string;
+          changed_by: string | null;
+          changed_at: string;
+        },
+        {
+          id?: number;
+          event_id: number;
+          day_date: string;
+          item_what: string;
+          previous_time: string;
+          new_time: string;
+          changed_by?: string | null;
+          changed_at?: string;
+        }
+      >;
       comments: Table<
         {
           id: number;
