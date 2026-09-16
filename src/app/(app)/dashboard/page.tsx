@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
-import { Clock, Sparkles, Users, BedDouble, CheckSquare, Cake, Trash2, History, Pencil, Check, X } from "lucide-react";
+import { Clock, Sparkles, Users, BedDouble, CheckSquare, Cake, Trash2, History, Pencil, Check } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useProfile } from "@/lib/profile-context";
 import { todayISO, checklistDayISO } from "@/lib/dates";
@@ -26,12 +26,14 @@ import {
 type WorkingToday = { name: string; start: string | null; end: string | null };
 type EventRow = { id: number; title: string; content: EventContent | null };
 type BirthdayRow = { id: number; name: string; day: number; month: number };
-type TimeOverride = {
+type LineField = "time" | "what" | "where";
+type LineOverride = {
   eventId: number;
   dayDate: string;
-  itemWhat: string;
-  previousTime: string;
-  newTime: string;
+  itemIndex: number;
+  field: LineField;
+  previousValue: string;
+  newValue: string;
   changedByName: string;
   changedAt: string;
 };
@@ -98,12 +100,17 @@ export default function DashboardPage() {
   const [events, setEvents] = useState<EventRow[]>([]);
   const [birthdays, setBirthdays] = useState<BirthdayRow[]>([]);
   const [todos, setTodos] = useState<Todo[]>([]);
-  const [timeOverrides, setTimeOverrides] = useState<TimeOverride[]>([]);
+  const [lineOverrides, setLineOverrides] = useState<LineOverride[]>([]);
   const [showEventHistory, setShowEventHistory] = useState(false);
-  const [editingTime, setEditingTime] = useState<{ eventId: number; dayDate: string; itemWhat: string; currentTime: string } | null>(
-    null
-  );
-  const [editTimeValue, setEditTimeValue] = useState("");
+  const [editingItem, setEditingItem] = useState<{
+    eventId: number;
+    dayDate: string;
+    itemIndex: number;
+    currentTime: string;
+    currentWhat: string;
+    currentWhere: string;
+  } | null>(null);
+  const [editDraft, setEditDraft] = useState({ time: "", what: "", where: "" });
   const [newTask, setNewTask] = useState("");
 
   useEffect(() => {
@@ -136,7 +143,7 @@ export default function DashboardPage() {
           .lt("checklist_day", checklistDay)
           .eq("done", false)
           .order("created_at"),
-        supabase.from("event_time_overrides").select("*").order("changed_at"),
+        supabase.from("event_line_overrides").select("*").order("changed_at"),
       ]);
 
     setCovers(coversRes.data ?? null);
@@ -155,13 +162,14 @@ export default function DashboardPage() {
       : { data: [] };
     const nameById = new Map((profiles ?? []).map((p) => [p.id, p.name]));
 
-    setTimeOverrides(
+    setLineOverrides(
       (overridesRes.data ?? []).map((o) => ({
         eventId: o.event_id,
         dayDate: o.day_date,
-        itemWhat: o.item_what,
-        previousTime: o.previous_time,
-        newTime: o.new_time,
+        itemIndex: o.item_index,
+        field: o.field as LineField,
+        previousValue: o.previous_value,
+        newValue: o.new_value,
         changedByName: nameById.get(o.changed_by ?? "") ?? "Someone",
         changedAt: o.changed_at,
       }))
@@ -208,7 +216,7 @@ export default function DashboardPage() {
       .on("postgres_changes", { event: "*", schema: "public", table: "daily_covers" }, loadData)
       .on("postgres_changes", { event: "*", schema: "public", table: "events" }, loadData)
       .on("postgres_changes", { event: "*", schema: "public", table: "birthdays" }, loadData)
-      .on("postgres_changes", { event: "*", schema: "public", table: "event_time_overrides" }, loadData)
+      .on("postgres_changes", { event: "*", schema: "public", table: "event_line_overrides" }, loadData)
       .subscribe();
     return () => {
       supabase.removeChannel(channel);
@@ -223,40 +231,66 @@ export default function DashboardPage() {
   });
   const todaysBirthdays = birthdays.filter((b) => b.day === now.getDate() && b.month === now.getMonth() + 1);
 
-  const overridesFor = (eventId: number, dayDate: string, itemWhat: string) =>
-    timeOverrides.filter((o) => o.eventId === eventId && o.dayDate === dayDate && o.itemWhat === itemWhat);
+  const overridesFor = (eventId: number, dayDate: string, itemIndex: number, field: LineField) =>
+    lineOverrides.filter(
+      (o) => o.eventId === eventId && o.dayDate === dayDate && o.itemIndex === itemIndex && o.field === field
+    );
 
-  const currentTimeFor = (eventId: number, dayDate: string, itemWhat: string, staticTime: string) => {
-    const matches = overridesFor(eventId, dayDate, itemWhat);
-    return matches.length > 0 ? matches[matches.length - 1].newTime : staticTime;
+  const currentValueFor = (eventId: number, dayDate: string, itemIndex: number, field: LineField, staticValue: string) => {
+    const matches = overridesFor(eventId, dayDate, itemIndex, field);
+    return matches.length > 0 ? matches[matches.length - 1].newValue : staticValue;
   };
 
-  const originalTimeFor = (eventId: number, dayDate: string, itemWhat: string, staticTime: string) => {
-    const matches = overridesFor(eventId, dayDate, itemWhat);
-    return matches.length > 0 ? matches[0].previousTime : staticTime;
+  const originalValueFor = (eventId: number, dayDate: string, itemIndex: number, field: LineField, staticValue: string) => {
+    const matches = overridesFor(eventId, dayDate, itemIndex, field);
+    return matches.length > 0 ? matches[0].previousValue : staticValue;
   };
+
+  const FIELD_LABEL: Record<LineField, string> = { time: "Time", what: "Title", where: "Location" };
 
   const todaysHistory = todaysEventDays
-    .flatMap(({ id, day }) => timeOverrides.filter((o) => o.eventId === id && o.dayDate === day.date))
+    .flatMap(({ id, day }) => lineOverrides.filter((o) => o.eventId === id && o.dayDate === day.date))
     .sort((a, b) => b.changedAt.localeCompare(a.changedAt));
 
-  const saveTimeEdit = async () => {
-    if (!editingTime) return;
-    const value = editTimeValue.trim();
-    if (!value || value === editingTime.currentTime) {
-      setEditingTime(null);
+  const itemLabelFor = (eventId: number, dayDate: string, itemIndex: number) => {
+    const day = todaysEventDays.find((d) => d.id === eventId && d.day.date === dayDate)?.day;
+    const staticWhat = day?.events[itemIndex]?.what ?? "Item";
+    return currentValueFor(eventId, dayDate, itemIndex, "what", staticWhat);
+  };
+
+  const startEditingItem = (eventId: number, dayDate: string, itemIndex: number, time: string, what: string, where: string) => {
+    setEditingItem({ eventId, dayDate, itemIndex, currentTime: time, currentWhat: what, currentWhere: where });
+    setEditDraft({ time, what, where });
+  };
+
+  const saveLineEdit = async () => {
+    if (!editingItem) return;
+    const { eventId, dayDate, itemIndex, currentTime, currentWhat, currentWhere } = editingItem;
+    const time = editDraft.time.trim();
+    const what = editDraft.what.trim();
+    const where = editDraft.where.trim();
+
+    const changes: { field: LineField; previous: string; next: string }[] = [];
+    if (time && time !== currentTime) changes.push({ field: "time", previous: currentTime, next: time });
+    if (what && what !== currentWhat) changes.push({ field: "what", previous: currentWhat, next: what });
+    if (where !== currentWhere) changes.push({ field: "where", previous: currentWhere, next: where });
+
+    if (changes.length === 0) {
+      setEditingItem(null);
       return;
     }
-    await supabase.from("event_time_overrides").insert({
-      event_id: editingTime.eventId,
-      day_date: editingTime.dayDate,
-      item_what: editingTime.itemWhat,
-      previous_time: editingTime.currentTime,
-      new_time: value,
-      changed_by: profile.id,
-    });
-    setEditingTime(null);
-    setEditTimeValue("");
+    await supabase.from("event_line_overrides").insert(
+      changes.map((c) => ({
+        event_id: eventId,
+        day_date: dayDate,
+        item_index: itemIndex,
+        field: c.field,
+        previous_value: c.previous,
+        new_value: c.next,
+        changed_by: profile.id,
+      }))
+    );
+    setEditingItem(null);
     loadData();
   };
 
@@ -496,12 +530,14 @@ export default function DashboardPage() {
           <div className="flex flex-col gap-2 p-3 rounded-2xl mb-3" style={{ background: fill, border: `1px solid ${border}` }}>
             {todaysHistory.length === 0 ? (
               <p className="text-xs" style={{ color: inkSoft }}>
-                No time changes yet today.
+                No changes yet today.
               </p>
             ) : (
               todaysHistory.map((h, i) => (
                 <div key={i} className="text-xs" style={{ color: ink }}>
-                  <span style={{ fontWeight: 500 }}>{h.itemWhat}</span>: {h.previousTime} → {h.newTime}
+                  <span style={{ fontWeight: 500 }}>{itemLabelFor(h.eventId, h.dayDate, h.itemIndex)}</span>
+                  {" "}
+                  ({FIELD_LABEL[h.field]}): {h.previousValue || "—"} → {h.newValue || "—"}
                   <span style={{ color: inkSoft }}>
                     {" "}
                     · {h.changedByName} · {timestamp(h.changedAt)}
@@ -531,66 +567,111 @@ export default function DashboardPage() {
                 </Link>
                 <div className="flex flex-col">
                   {day.events.map((e, j) => {
-                    const current = currentTimeFor(id, day.date, e.what, e.time);
-                    const original = originalTimeFor(id, day.date, e.what, e.time);
-                    const hasHistory = overridesFor(id, day.date, e.what).length > 0;
+                    const currentTime = currentValueFor(id, day.date, j, "time", e.time);
+                    const originalTime = originalValueFor(id, day.date, j, "time", e.time);
+                    const timeChanged = overridesFor(id, day.date, j, "time").length > 0 && originalTime !== currentTime;
+
+                    const currentWhat = currentValueFor(id, day.date, j, "what", e.what);
+                    const originalWhat = originalValueFor(id, day.date, j, "what", e.what);
+                    const whatChanged = overridesFor(id, day.date, j, "what").length > 0 && originalWhat !== currentWhat;
+
+                    const currentWhere = currentValueFor(id, day.date, j, "where", e.where ?? "");
+                    const originalWhere = originalValueFor(id, day.date, j, "where", e.where ?? "");
+                    const whereChanged = overridesFor(id, day.date, j, "where").length > 0 && originalWhere !== currentWhere;
+
                     const isEditingThis =
-                      editingTime?.eventId === id && editingTime.dayDate === day.date && editingTime.itemWhat === e.what;
+                      editingItem?.eventId === id && editingItem.dayDate === day.date && editingItem.itemIndex === j;
+
                     return (
                       <div key={j}>
                         {j > 0 && <div style={{ height: 1, background: border, margin: "0 12px" }} />}
-                        <div className="flex gap-3 py-2">
-                          <div className={isEditingThis ? "shrink-0" : "shrink-0 w-16"}>
-                            {isEditingThis ? (
-                              <div className="flex items-center gap-1">
-                                <input
-                                  type="time"
-                                  value={editTimeValue}
-                                  onChange={(ev) => setEditTimeValue(ev.target.value)}
-                                  className="text-xs rounded px-1 py-0.5 w-[68px]"
-                                  style={{ border: `1px solid ${border}`, color: ink, background: fill }}
-                                  autoFocus
-                                />
-                                <button onClick={saveTimeEdit} aria-label="Save time" style={{ color: navyText }}>
-                                  <Check size={13} />
-                                </button>
-                                <button onClick={() => setEditingTime(null)} aria-label="Cancel edit" style={{ color: inkSoft }}>
-                                  <X size={13} />
-                                </button>
-                              </div>
-                            ) : (
-                              <button
-                                onClick={() => {
-                                  setEditingTime({ eventId: id, dayDate: day.date, itemWhat: e.what, currentTime: current });
-                                  setEditTimeValue(current);
-                                }}
-                                className="flex items-center gap-1 text-left"
-                              >
-                                {hasHistory && original !== current ? (
-                                  <span className="flex flex-col text-xs">
-                                    <span style={{ textDecoration: "line-through", color: inkSoft }}>{original}</span>
-                                    <span style={{ color: "#000000", fontWeight: 600 }}>{current}</span>
-                                  </span>
-                                ) : (
-                                  <span className="text-xs" style={{ color: "#000000" }}>
-                                    {current}
-                                  </span>
-                                )}
-                                <Pencil size={10} style={{ color: inkSoft }} />
-                              </button>
-                            )}
-                          </div>
-                          <div>
-                            <div className="text-sm" style={{ color: "#000000" }}>
-                              {e.what}
+                        {isEditingThis ? (
+                          <div className="flex flex-col gap-2 py-2">
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="time"
+                                value={editDraft.time}
+                                onChange={(ev) => setEditDraft((prev) => ({ ...prev, time: ev.target.value }))}
+                                className="text-xs rounded px-2 py-1.5 shrink-0"
+                                style={{ border: `1px solid ${border}`, color: ink, background: fill, width: 90 }}
+                                autoFocus
+                              />
+                              <input
+                                value={editDraft.what}
+                                onChange={(ev) => setEditDraft((prev) => ({ ...prev, what: ev.target.value }))}
+                                placeholder="Set up / access"
+                                className="text-sm rounded px-2 py-1.5 flex-1 min-w-0"
+                                style={{ border: `1px solid ${border}`, color: ink, background: fill }}
+                              />
                             </div>
-                            {e.where && (
-                              <div className="text-xs" style={{ color: inkSoft }}>
-                                {e.where}
-                              </div>
-                            )}
+                            <input
+                              value={editDraft.where}
+                              onChange={(ev) => setEditDraft((prev) => ({ ...prev, where: ev.target.value }))}
+                              placeholder="Vavasour Lobby, Vavasour Suite"
+                              className="text-xs rounded px-2 py-1.5"
+                              style={{ border: `1px solid ${border}`, color: ink, background: fill }}
+                            />
+                            <div className="flex items-center justify-end gap-3">
+                              <button onClick={() => setEditingItem(null)} className="text-xs" style={{ color: inkSoft }}>
+                                Cancel
+                              </button>
+                              <button
+                                onClick={saveLineEdit}
+                                className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-2xl"
+                                style={{ background: navy, color: "#FFFFFF" }}
+                              >
+                                <Check size={13} /> Confirm
+                              </button>
+                            </div>
                           </div>
-                        </div>
+                        ) : (
+                          <div className="flex gap-3 py-2">
+                            <div className="shrink-0 w-16">
+                              {timeChanged ? (
+                                <span className="flex flex-col text-xs">
+                                  <span style={{ textDecoration: "line-through", color: inkSoft }}>{originalTime}</span>
+                                  <span style={{ color: "#000000", fontWeight: 600 }}>{currentTime}</span>
+                                </span>
+                              ) : (
+                                <span className="text-xs" style={{ color: "#000000" }}>
+                                  {currentTime}
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              {whatChanged ? (
+                                <div className="text-sm">
+                                  <div style={{ textDecoration: "line-through", color: inkSoft }}>{originalWhat}</div>
+                                  <div style={{ color: "#000000", fontWeight: 600 }}>{currentWhat}</div>
+                                </div>
+                              ) : (
+                                <div className="text-sm" style={{ color: "#000000" }}>
+                                  {currentWhat}
+                                </div>
+                              )}
+                              {(currentWhere || whereChanged) &&
+                                (whereChanged ? (
+                                  <div className="text-xs">
+                                    {originalWhere && (
+                                      <div style={{ textDecoration: "line-through", color: inkSoft }}>{originalWhere}</div>
+                                    )}
+                                    {currentWhere && <div style={{ color: inkSoft, fontWeight: 600 }}>{currentWhere}</div>}
+                                  </div>
+                                ) : (
+                                  <div className="text-xs" style={{ color: inkSoft }}>
+                                    {currentWhere}
+                                  </div>
+                                ))}
+                            </div>
+                            <button
+                              onClick={() => startEditingItem(id, day.date, j, currentTime, currentWhat, currentWhere)}
+                              className="shrink-0 self-start p-1"
+                              aria-label="Edit"
+                            >
+                              <Pencil size={12} style={{ color: inkSoft }} />
+                            </button>
+                          </div>
+                        )}
                       </div>
                     );
                   })}

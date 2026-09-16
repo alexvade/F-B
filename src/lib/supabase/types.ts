@@ -182,14 +182,15 @@ export interface Database {
           created_at?: string;
         }
       >;
-      event_time_overrides: Table<
+      event_line_overrides: Table<
         {
           id: number;
           event_id: number;
           day_date: string;
-          item_what: string;
-          previous_time: string;
-          new_time: string;
+          item_index: number;
+          field: string;
+          previous_value: string;
+          new_value: string;
           changed_by: string | null;
           changed_at: string;
         },
@@ -197,9 +198,10 @@ export interface Database {
           id?: number;
           event_id: number;
           day_date: string;
-          item_what: string;
-          previous_time: string;
-          new_time: string;
+          item_index: number;
+          field: string;
+          previous_value: string;
+          new_value: string;
           changed_by?: string | null;
           changed_at?: string;
         }
