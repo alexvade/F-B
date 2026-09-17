@@ -154,6 +154,7 @@ export interface Database {
           file_name: string | null;
           created_at: string;
           poll_options: string[] | null;
+          pinned: boolean;
         },
         {
           id?: number;
@@ -164,6 +165,7 @@ export interface Database {
           file_name?: string | null;
           created_at?: string;
           poll_options?: string[] | null;
+          pinned?: boolean;
         }
       >;
       poll_votes: Table<

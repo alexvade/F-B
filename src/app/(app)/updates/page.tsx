@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Camera, Paperclip, FileText, Trash2, X, ChartColumn, Plus } from "lucide-react";
+import { Camera, Paperclip, FileText, Trash2, X, ChartColumn, Plus, Pin, PinOff } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useProfile } from "@/lib/profile-context";
 import { uploadAttachment, getAttachmentUrl, deleteAttachment } from "@/lib/storage";
@@ -51,6 +51,7 @@ type Post = {
   comments: Comment[];
   pollOptions: string[] | null;
   pollVotes: PollVote[];
+  pinned: boolean;
 };
 
 function AttachmentPreview({
@@ -160,6 +161,7 @@ export default function UpdatesPage() {
         photoDisplayUrl: p.photo_url ? signedByPath.get(p.photo_url) ?? null : null,
         fileDisplayUrl: p.file_url ? signedByPath.get(p.file_url) ?? null : null,
         created_at: p.created_at,
+        pinned: p.pinned,
         pollOptions: p.poll_options,
         pollVotes: (voteRows ?? [])
           .filter((v) => v.post_id === p.id)
@@ -241,6 +243,11 @@ export default function UpdatesPage() {
     await supabase
       .from("poll_votes")
       .upsert({ post_id: postId, voter_id: profile.id, option_index: optionIndex }, { onConflict: "post_id,voter_id" });
+    loadPosts();
+  };
+
+  const togglePin = async (post: Post) => {
+    await supabase.from("posts").update({ pinned: !post.pinned }).eq("id", post.id);
     loadPosts();
   };
 
@@ -386,8 +393,13 @@ export default function UpdatesPage() {
       </div>
 
       <div className="flex flex-col gap-4">
-        {posts.map((p) => (
+        {[...posts].sort((a, b) => Number(b.pinned) - Number(a.pinned)).map((p) => (
           <div key={p.id} className="pb-4" style={{ borderBottom: `1px solid ${border}` }}>
+            {p.pinned && (
+              <span className="flex items-center gap-1 text-xs font-medium mb-1.5" style={{ color: orange }}>
+                <Pin size={12} fill={orange} /> Pinned
+              </span>
+            )}
             <div className="flex items-baseline justify-between">
               <span className="flex items-center gap-2">
                 <span
@@ -402,6 +414,15 @@ export default function UpdatesPage() {
                 <span className="text-xs whitespace-nowrap" style={{ color: inkSoft }}>
                   {relativeTime(p.created_at)} · {timestamp(p.created_at)}
                 </span>
+                {profile.role === "admin" && (
+                  <button
+                    onClick={() => togglePin(p)}
+                    style={{ color: p.pinned ? orange : inkSoft }}
+                    title={p.pinned ? "Unpin post" : "Pin post to top"}
+                  >
+                    {p.pinned ? <PinOff size={13} /> : <Pin size={13} />}
+                  </button>
+                )}
                 {(p.authorId === profile.id || profile.role === "admin") && (
                   <button onClick={() => deletePost(p)} style={{ color: inkSoft }} title="Delete post">
                     <Trash2 size={13} />
