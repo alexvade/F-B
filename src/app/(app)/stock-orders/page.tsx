@@ -1,11 +1,13 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { RotateCcw } from "lucide-react";
+import { RotateCcw, Plus, Trash2, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useProfile } from "@/lib/profile-context";
 import { Section } from "@/components/section";
-import { bg, border, fill, ink, inkSoft, navy, navyText, orange } from "@/lib/design-tokens";
+import { bg, border, fill, ink, inkSoft, navy, navyText, orange, orangeSoft } from "@/lib/design-tokens";
+
+const NEW_TAB_VALUE = "__new_tab__";
 
 type Product = {
   id: number;
@@ -29,6 +31,19 @@ export default function StockOrdersPage() {
   const [drafts, setDrafts] = useState<Record<number, string>>({});
   const [savingIds, setSavingIds] = useState<Set<number>>(new Set());
   const [resetting, setResetting] = useState(false);
+  const [deletingIds, setDeletingIds] = useState<Set<number>>(new Set());
+  const [adding, setAdding] = useState(false);
+  const [addSaving, setAddSaving] = useState(false);
+  const [addError, setAddError] = useState<string | null>(null);
+  const [newItem, setNewItem] = useState({
+    tabLabel: "",
+    newTabName: "",
+    category: "",
+    product: "",
+    code: "",
+    supplier: "",
+    cellarCode: "",
+  });
 
   const loadData = useCallback(async () => {
     const { data } = await supabase
@@ -100,8 +115,63 @@ export default function StockOrdersPage() {
     }
   };
 
+  const deleteProduct = async (product: Product) => {
+    if (!confirm(`Remove "${product.product}" from stock orders?`)) return;
+    setDeletingIds((prev) => new Set(prev).add(product.id));
+    try {
+      await supabase.from("stock_products").delete().eq("id", product.id);
+    } finally {
+      setDeletingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(product.id);
+        return next;
+      });
+    }
+  };
+
+  const openAddItem = () => {
+    setNewItem({ tabLabel: tab ?? "", newTabName: "", category: "", product: "", code: "", supplier: "", cellarCode: "" });
+    setAddError(null);
+    setAdding(true);
+  };
+
+  const addItem = async () => {
+    const tabLabel = newItem.tabLabel === NEW_TAB_VALUE ? newItem.newTabName.trim() : newItem.tabLabel;
+    if (!tabLabel || !newItem.category.trim() || !newItem.product.trim()) {
+      setAddError("Tab, category and product are required.");
+      return;
+    }
+    setAddSaving(true);
+    setAddError(null);
+    try {
+      const res = await fetch("/api/stock/add-item", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          tabLabel,
+          category: newItem.category,
+          product: newItem.product,
+          code: newItem.code,
+          supplier: newItem.supplier,
+          cellarCode: newItem.cellarCode,
+        }),
+      });
+      const body = await res.json();
+      if (!res.ok) throw new Error(body.error || "Couldn't add that item.");
+      setTab(tabLabel);
+      setAdding(false);
+    } catch (err) {
+      setAddError((err as Error).message);
+    } finally {
+      setAddSaving(false);
+    }
+  };
+
   const tabProducts = products.filter((p) => p.tab_label === tab);
   const categories = Array.from(new Set(tabProducts.map((p) => p.category)));
+  const existingCategories = Array.from(
+    new Set(products.filter((p) => p.tab_label === newItem.tabLabel).map((p) => p.category))
+  );
 
   if (profile.role !== "admin") {
     return (
@@ -115,26 +185,132 @@ export default function StockOrdersPage() {
 
   return (
     <Section title="Stock Orders" subtitle="Add a quantity for anything that needs ordering">
-      <div className="flex gap-1.5 overflow-x-auto mb-6 pb-1" style={{ scrollbarWidth: "thin" }}>
-        {tabs.map((t) => {
-          const active = t === tab;
-          return (
-            <button
-              key={t}
-              onClick={() => setTab(t)}
-              className="text-xs px-3.5 py-1.5 rounded-2xl shrink-0 whitespace-nowrap"
-              style={{
-                background: active ? "#000000" : "#FFFFFF",
-                color: active ? "#FFFFFF" : "#000000",
-                border: "1px solid #000000",
-                fontWeight: active ? 600 : 400,
-              }}
-            >
-              {t}
-            </button>
-          );
-        })}
+      <div className="flex items-center justify-between gap-3 mb-6">
+        <div className="flex gap-1.5 overflow-x-auto pb-1" style={{ scrollbarWidth: "thin" }}>
+          {tabs.map((t) => {
+            const active = t === tab;
+            return (
+              <button
+                key={t}
+                onClick={() => setTab(t)}
+                className="text-xs px-3.5 py-1.5 rounded-2xl shrink-0 whitespace-nowrap"
+                style={{
+                  background: active ? "#000000" : "#FFFFFF",
+                  color: active ? "#FFFFFF" : "#000000",
+                  border: "1px solid #000000",
+                  fontWeight: active ? 600 : 400,
+                }}
+              >
+                {t}
+              </button>
+            );
+          })}
+        </div>
+        <button
+          onClick={openAddItem}
+          className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-2xl shrink-0"
+          style={{ background: orangeSoft, color: navy }}
+        >
+          <Plus size={13} /> Add item
+        </button>
       </div>
+
+      {adding && (
+        <div className="flex flex-col gap-2 p-3 rounded-2xl mb-6" style={{ background: bg, border: `1px solid ${border}` }}>
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-semibold" style={{ color: navyText }}>
+              New stock item
+            </span>
+            <button onClick={() => setAdding(false)} aria-label="Cancel">
+              <X size={15} style={{ color: inkSoft }} />
+            </button>
+          </div>
+          <label className="text-xs" style={{ color: inkSoft }}>
+            Tab
+            <select
+              value={newItem.tabLabel}
+              onChange={(e) => setNewItem((prev) => ({ ...prev, tabLabel: e.target.value }))}
+              className="block mt-1 w-full text-sm px-4 py-2 rounded-full outline-none"
+              style={{ border: `1px solid ${border}`, background: fill, color: ink }}
+            >
+              <option value="" disabled>
+                Choose a tab…
+              </option>
+              {tabs.map((t) => (
+                <option key={t} value={t}>
+                  {t}
+                </option>
+              ))}
+              <option value={NEW_TAB_VALUE}>+ New tab…</option>
+            </select>
+          </label>
+          {newItem.tabLabel === NEW_TAB_VALUE && (
+            <input
+              value={newItem.newTabName}
+              onChange={(e) => setNewItem((prev) => ({ ...prev, newTabName: e.target.value }))}
+              placeholder="New tab name, e.g. Breakfast"
+              className="text-sm px-4 py-2 rounded-full outline-none"
+              style={{ border: `1px solid ${border}`, background: fill, color: ink }}
+            />
+          )}
+          <input
+            value={newItem.category}
+            onChange={(e) => setNewItem((prev) => ({ ...prev, category: e.target.value }))}
+            placeholder="Category, e.g. Dairy"
+            list="stock-add-categories"
+            className="text-sm px-4 py-2 rounded-full outline-none"
+            style={{ border: `1px solid ${border}`, background: fill, color: ink }}
+          />
+          <datalist id="stock-add-categories">
+            {existingCategories.map((c) => (
+              <option key={c} value={c} />
+            ))}
+          </datalist>
+          <input
+            value={newItem.product}
+            onChange={(e) => setNewItem((prev) => ({ ...prev, product: e.target.value }))}
+            placeholder="Product name"
+            className="text-sm px-4 py-2 rounded-full outline-none"
+            style={{ border: `1px solid ${border}`, background: fill, color: ink }}
+          />
+          <div className="flex gap-2">
+            <input
+              value={newItem.code}
+              onChange={(e) => setNewItem((prev) => ({ ...prev, code: e.target.value }))}
+              placeholder="Code (optional)"
+              className="flex-1 text-sm px-4 py-2 rounded-full outline-none"
+              style={{ border: `1px solid ${border}`, background: fill, color: ink }}
+            />
+            <input
+              value={newItem.supplier}
+              onChange={(e) => setNewItem((prev) => ({ ...prev, supplier: e.target.value }))}
+              placeholder="Supplier (optional)"
+              className="flex-1 text-sm px-4 py-2 rounded-full outline-none"
+              style={{ border: `1px solid ${border}`, background: fill, color: ink }}
+            />
+          </div>
+          <input
+            value={newItem.cellarCode}
+            onChange={(e) => setNewItem((prev) => ({ ...prev, cellarCode: e.target.value }))}
+            placeholder="Cellar code (optional)"
+            className="text-sm px-4 py-2 rounded-full outline-none"
+            style={{ border: `1px solid ${border}`, background: fill, color: ink }}
+          />
+          {addError && (
+            <p className="text-xs" style={{ color: "#000000" }}>
+              {addError}
+            </p>
+          )}
+          <button
+            onClick={addItem}
+            disabled={addSaving}
+            className="text-sm font-medium py-2.5 rounded-full disabled:opacity-60"
+            style={{ background: navy, color: "#FFFFFF" }}
+          >
+            {addSaving ? "Adding…" : "Add item"}
+          </button>
+        </div>
+      )}
 
       {tabProducts.length === 0 ? (
         <p className="text-sm" style={{ color: inkSoft }}>
@@ -196,6 +372,14 @@ export default function StockOrdersPage() {
                         background: fill,
                       }}
                     />
+                    <button
+                      onClick={() => deleteProduct(p)}
+                      disabled={deletingIds.has(p.id)}
+                      aria-label="Remove item"
+                      className="shrink-0 disabled:opacity-40"
+                    >
+                      <Trash2 size={14} style={{ color: inkSoft }} />
+                    </button>
                   </div>
                 ))}
             </div>
