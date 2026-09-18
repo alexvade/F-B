@@ -10,7 +10,7 @@ import {
   BookOpen,
   LogOut,
   Award,
-  Wine,
+  UtensilsCrossed,
   MessageCircle,
   FileStack,
   Users,
@@ -29,7 +29,7 @@ import { bg, bgText, bgTextSoft, border, ink, inkSoft, navy, orange, panel, surf
 import { ThemeContext } from "@/lib/theme-context";
 
 const NAV_ITEMS = [
-  { href: "/drinks", label: "Drinks", icon: Wine },
+  { href: "/menus", label: "Menus", icon: UtensilsCrossed },
   { href: "/updates", label: "Noticeboard", icon: MessageCircle },
   { href: "/rota", label: "Rota", icon: CalendarDays },
   { href: "/checklists", label: "Checklists", icon: CheckSquare },
@@ -45,7 +45,7 @@ const NAV_ITEMS = [
 
 // Bottom island (mobile only): Dashboard in the middle, flanked by the
 // most-used tabs. Everything else lives behind the top-left menu.
-const ISLAND_LEFT = ["/drinks", "/updates", "/checklists"];
+const ISLAND_LEFT = ["/menus", "/updates", "/checklists"];
 const ISLAND_RIGHT = ["/events", "/function-sheets", "/sops"];
 
 export function NavShell({

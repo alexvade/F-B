@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Cake, Pencil, Plus, Trash2 } from "lucide-react";
+import { Cake, Check, Pencil, Plus, Trash2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useProfile } from "@/lib/profile-context";
 import { Section } from "@/components/section";
@@ -16,11 +16,18 @@ type Birthday = { id: number; name: string; day: number; month: number };
 
 const EMPTY_FORM = { id: null as number | null, name: "", day: "", month: "" };
 
+function hasPassedThisYear(b: Birthday, today: Date): boolean {
+  const todayNoTime = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  const thisYearsBirthday = new Date(today.getFullYear(), b.month - 1, b.day);
+  return thisYearsBirthday < todayNoTime;
+}
+
 export default function BirthdaysPage() {
   const profile = useProfile();
   const isAdmin = profile.role === "admin";
   const supabase = createClient();
 
+  const today = new Date();
   const [birthdays, setBirthdays] = useState<Birthday[]>([]);
   const [form, setForm] = useState<typeof EMPTY_FORM | null>(null);
   const [saving, setSaving] = useState(false);
@@ -158,11 +165,14 @@ export default function BirthdaysPage() {
               className="flex items-center justify-between p-3 rounded-3xl"
               style={{ background: bg, border: `1px solid ${border}` }}
             >
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
                 <Cake size={18} style={{ color: orange }} />
                 <div className="text-sm font-medium" style={{ color: ink }}>
                   {b.name}
                 </div>
+                {hasPassedThisYear(b, today) && (
+                  <Check size={14} strokeWidth={3} style={{ color: ink }} aria-label="Already happened this year" />
+                )}
               </div>
               <div className="flex items-center gap-3 shrink-0">
                 <span className="text-xs" style={{ color: inkSoft }}>

@@ -12,7 +12,10 @@ export type TimelineDay = {
   date: string;
   tag?: string;
   core?: boolean;
-  events: { time: string; what: string; where?: string; note?: string }[];
+  // `brief` is a short food/drink summary (e.g. "Tea, coffee, pastries") shown
+  // next to this line on the Dashboard's "Events today" — distinct from
+  // `note`, which is the fuller operational instruction shown in the guide.
+  events: { time: string; what: string; where?: string; note?: string; brief?: string }[];
 };
 
 export type EventContent = {

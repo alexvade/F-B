@@ -667,6 +667,11 @@ export default function DashboardPage() {
                                     {currentWhere}
                                   </div>
                                 ))}
+                              {e.brief && (
+                                <div className="text-xs mt-0.5" style={{ color: orange }}>
+                                  {e.brief}
+                                </div>
+                              )}
                             </div>
                             <button
                               onClick={() => startEditingItem(id, day.date, j, currentTime, currentWhat, currentWhere)}

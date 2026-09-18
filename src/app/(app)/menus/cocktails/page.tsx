@@ -279,8 +279,8 @@ export default function CocktailsPage() {
 
   return (
     <div>
-      <Link href="/drinks" className="text-xs mb-4 inline-block" style={{ color: navyText }}>
-        ← Back to Drinks
+      <Link href="/menus" className="text-xs mb-4 inline-block" style={{ color: navyText }}>
+        ← Back to Menus
       </Link>
       <div className="flex items-center justify-between">
         <h1
