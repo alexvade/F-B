@@ -78,18 +78,21 @@ export function WeatherWidget() {
   const Icon = condition?.Icon ?? Cloud;
 
   return (
-    <div className="flex items-center justify-between p-4 rounded-2xl mb-4" style={{ background: bg, border: `1px solid ${border}` }}>
+    <div
+      className="flex items-center justify-between p-4 rounded-2xl"
+      style={{ background: bg, border: `1px solid ${border}`, minHeight: 76 }}
+    >
       <div>
         <div className="flex items-center gap-1 text-xs mb-1" style={{ color: inkSoft }}>
           <MapPin size={11} /> Wetherby, LS22
         </div>
         {weather ? (
           <>
-            <div className="text-2xl font-semibold" style={{ color: navyText }}>
+            <div className="text-2xl font-semibold tabular-nums" style={{ color: navyText }}>
               {weather.tempC}°C
             </div>
             <div className="text-xs" style={{ color: ink }}>
-              {condition?.label ?? "—"} · Feels {weather.feelsLikeC}° · H{weather.todayHigh}° L{weather.todayLow}°
+              {condition?.label ?? "—"} · H{weather.todayHigh}° L{weather.todayLow}°
             </div>
           </>
         ) : (

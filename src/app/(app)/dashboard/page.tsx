@@ -346,14 +346,14 @@ export default function DashboardPage() {
       {/* Date & time, and weather, side by side */}
       <div className="grid grid-cols-2 gap-4 mb-4">
         <div
-          className="flex items-center justify-between p-5 rounded-3xl"
-          style={{ background: bg, border: `1px solid ${border}` }}
+          className="flex items-center justify-between p-4 rounded-2xl"
+          style={{ background: bg, border: `1px solid ${border}`, minHeight: 76 }}
         >
           <div>
-            <div className="text-sm" style={{ color: inkSoft }}>
+            <div className="text-xs mb-1" style={{ color: inkSoft }}>
               {dateLabel}
             </div>
-            <div className="text-3xl font-semibold tabular-nums" style={{ color: navyText }}>
+            <div className="text-2xl font-semibold tabular-nums" style={{ color: navyText }}>
               {timeLabel}
             </div>
           </div>
