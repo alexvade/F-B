@@ -10,6 +10,7 @@
 // instead of erroring, which is a nasty one to debug.
 
 import type { EventContent } from "../event-content";
+import type { MenuContent } from "../menu-content";
 
 export type Role = "admin" | "staff";
 export type ShiftStatus = "work" | "off" | "holiday";
@@ -443,6 +444,22 @@ export interface Database {
       birthdays: Table<
         { id: number; name: string; day: number; month: number; created_at: string },
         { id?: number; name: string; day: number; month: number; created_at?: string }
+      >;
+      menus: Table<
+        {
+          slug: string;
+          title: string;
+          content: MenuContent | null;
+          updated_by: string | null;
+          updated_at: string | null;
+        },
+        {
+          slug: string;
+          title: string;
+          content?: MenuContent | null;
+          updated_by?: string | null;
+          updated_at?: string | null;
+        }
       >;
     };
     Views: Record<string, never>;
