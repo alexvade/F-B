@@ -12,6 +12,20 @@ import { bg, border, fill, ink, inkSoft, navy, navyText, orange } from "@/lib/de
 // item as low-friction as adding a to do.
 const QUICK_ADD_CATEGORY = "General";
 
+// Fixed display order for known tabs; anything else (a newly synced sheet
+// tab, say) falls after these, alphabetically.
+const TAB_ORDER = ["Breakfast", "Beer Cellar", "Wine Cellar", "Bin End", "Miscellaneous"];
+function sortTabs(labels: string[]): string[] {
+  return [...labels].sort((a, b) => {
+    const ai = TAB_ORDER.indexOf(a);
+    const bi = TAB_ORDER.indexOf(b);
+    if (ai === -1 && bi === -1) return a.localeCompare(b);
+    if (ai === -1) return 1;
+    if (bi === -1) return -1;
+    return ai - bi;
+  });
+}
+
 type Product = {
   id: number;
   tab_label: string;
@@ -46,7 +60,7 @@ export default function StockOrdersPage() {
       .order("tab_label")
       .order("sort_order");
     const all = data ?? [];
-    const tabLabels = Array.from(new Set(all.map((p) => p.tab_label)));
+    const tabLabels = sortTabs(Array.from(new Set(all.map((p) => p.tab_label))));
     setTabs(tabLabels);
     setTab((current) => current ?? tabLabels[0] ?? null);
     setProducts(all);
