@@ -343,23 +343,25 @@ export default function DashboardPage() {
         Here&apos;s what&apos;s happening on shift today
       </p>
 
-      {/* Date & time */}
-      <div
-        className="flex items-center justify-between p-5 rounded-3xl mb-4"
-        style={{ background: bg, border: `1px solid ${border}` }}
-      >
-        <div>
-          <div className="text-sm" style={{ color: inkSoft }}>
-            {dateLabel}
+      {/* Date & time, and weather, side by side */}
+      <div className="grid grid-cols-2 gap-4 mb-4">
+        <div
+          className="flex items-center justify-between p-5 rounded-3xl"
+          style={{ background: bg, border: `1px solid ${border}` }}
+        >
+          <div>
+            <div className="text-sm" style={{ color: inkSoft }}>
+              {dateLabel}
+            </div>
+            <div className="text-3xl font-semibold tabular-nums" style={{ color: navyText }}>
+              {timeLabel}
+            </div>
           </div>
-          <div className="text-3xl font-semibold tabular-nums" style={{ color: navyText }}>
-            {timeLabel}
-          </div>
+          <Clock size={32} style={{ color: orange, opacity: 0.8 }} />
         </div>
-        <Clock size={32} style={{ color: orange, opacity: 0.8 }} />
-      </div>
 
-      <WeatherWidget />
+        <WeatherWidget />
+      </div>
 
       {/* Birthdays today — only shown when it's actually someone's birthday */}
       {todaysBirthdays.length > 0 && (

@@ -224,6 +224,27 @@ export default function StockOrdersPage() {
         </button>
       </div>
 
+      {tab && (
+        <div className="flex items-center gap-2 mb-6">
+          <input
+            value={itemDraft}
+            onChange={(e) => setItemDraft(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && addItem()}
+            placeholder={`Add something to ${tab}…`}
+            className="flex-1 text-sm px-4 py-2 rounded-full outline-none"
+            style={{ border: `1px solid ${border}`, color: ink, background: fill }}
+          />
+          <button
+            onClick={addItem}
+            disabled={addingItem}
+            className="text-xs font-medium px-3 py-1.5 rounded-2xl shrink-0 disabled:opacity-60"
+            style={{ background: navy, color: "#FFFFFF" }}
+          >
+            {addingItem ? "Adding…" : "Add"}
+          </button>
+        </div>
+      )}
+
       {tabProducts.length === 0 ? (
         <p className="text-sm" style={{ color: inkSoft }}>
           {tabs.length === 0 ? "No stock sheet synced yet." : "Nothing in this tab yet."}
@@ -297,27 +318,6 @@ export default function StockOrdersPage() {
             </div>
           </div>
         ))
-      )}
-
-      {tab && (
-        <div className="flex items-center gap-2 mt-2">
-          <input
-            value={itemDraft}
-            onChange={(e) => setItemDraft(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && addItem()}
-            placeholder={`Add something to ${tab}…`}
-            className="flex-1 text-sm px-4 py-2 rounded-full outline-none"
-            style={{ border: `1px solid ${border}`, color: ink, background: fill }}
-          />
-          <button
-            onClick={addItem}
-            disabled={addingItem}
-            className="text-xs font-medium px-3 py-1.5 rounded-2xl shrink-0 disabled:opacity-60"
-            style={{ background: navy, color: "#FFFFFF" }}
-          >
-            {addingItem ? "Adding…" : "Add"}
-          </button>
-        </div>
       )}
     </Section>
   );
