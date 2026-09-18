@@ -10,6 +10,7 @@ import { timestamp } from "@/lib/relative-time";
 import { computeShiftStatus, initials } from "@/lib/shift-status";
 import type { EventContent } from "@/lib/event-content";
 import { EmojiText } from "@/components/emoji-text";
+import { WeatherWidget } from "@/components/weather-widget";
 import {
   bg,
   border,
@@ -357,6 +358,8 @@ export default function DashboardPage() {
         </div>
         <Clock size={32} style={{ color: orange, opacity: 0.8 }} />
       </div>
+
+      <WeatherWidget />
 
       {/* Birthdays today — only shown when it's actually someone's birthday */}
       {todaysBirthdays.length > 0 && (
