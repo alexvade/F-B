@@ -11,8 +11,8 @@ export async function GET() {
   const url =
     `https://api.open-meteo.com/v1/forecast?latitude=${LATITUDE}&longitude=${LONGITUDE}` +
     `&current=temperature_2m,apparent_temperature,weather_code` +
-    `&daily=temperature_2m_max,temperature_2m_min` +
-    `&timezone=Europe%2FLondon&forecast_days=1`;
+    `&daily=temperature_2m_max,temperature_2m_min,weather_code` +
+    `&timezone=Europe%2FLondon&forecast_days=7`;
 
   const res = await fetch(url, { next: { revalidate: 600 } });
   if (!res.ok) {
@@ -24,7 +24,11 @@ export async function GET() {
     tempC: Math.round(data.current.temperature_2m),
     feelsLikeC: Math.round(data.current.apparent_temperature),
     weatherCode: data.current.weather_code as number,
-    todayHigh: Math.round(data.daily.temperature_2m_max[0]),
-    todayLow: Math.round(data.daily.temperature_2m_min[0]),
+    daily: (data.daily.time as string[]).map((date, i) => ({
+      date,
+      weatherCode: data.daily.weather_code[i] as number,
+      high: Math.round(data.daily.temperature_2m_max[i]),
+      low: Math.round(data.daily.temperature_2m_min[i]),
+    })),
   });
 }
