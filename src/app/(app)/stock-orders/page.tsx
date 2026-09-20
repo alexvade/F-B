@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { RotateCcw, Plus, Trash2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useProfile } from "@/lib/profile-context";
+import { useFeatureFlag } from "@/lib/feature-flags-context";
 import { Section } from "@/components/section";
 import { bg, border, fill, ink, inkSoft, navy, navyText, orange } from "@/lib/design-tokens";
 
@@ -41,6 +42,8 @@ type Product = {
 
 export default function StockOrdersPage() {
   const profile = useProfile();
+  const editEnabled = useFeatureFlag("stock_orders_edit");
+  const canAccess = profile.role === "admin" || editEnabled;
   const supabase = createClient();
   const [tabs, setTabs] = useState<string[]>([]);
   const [tab, setTab] = useState<string | null>(null);
@@ -179,7 +182,7 @@ export default function StockOrdersPage() {
   const tabProducts = products.filter((p) => p.tab_label === tab);
   const categories = Array.from(new Set(tabProducts.map((p) => p.category)));
 
-  if (profile.role !== "admin") {
+  if (!canAccess) {
     return (
       <Section title="Stock Orders">
         <p className="text-sm" style={{ color: inkSoft }}>

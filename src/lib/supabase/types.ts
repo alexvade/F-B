@@ -261,6 +261,48 @@ export interface Database {
           uploaded_at?: string;
         }
       >;
+      // Read-only view — returns `email` only for admins (see
+      // 0027_training_visibility.sql), null for everyone else. Use this
+      // instead of `training_records` wherever staff (not just admins)
+      // need to read the data; `training_records` itself stays admin-only.
+      training_directory: Table<
+        {
+          id: number;
+          learner_name: string;
+          identifier: string | null;
+          email: string | null;
+          employment_start_date: string | null;
+          compliance_item_name: string;
+          compliance_item_type: string | null;
+          status: string;
+          due_date: string | null;
+          allocation_date: string | null;
+          allocated_by: string | null;
+          collection_name: string | null;
+          department: string | null;
+          completed_date: string | null;
+          job_title: string | null;
+          uploaded_at: string;
+        },
+        {
+          id?: number;
+          learner_name: string;
+          identifier?: string | null;
+          email?: string | null;
+          employment_start_date?: string | null;
+          compliance_item_name: string;
+          compliance_item_type?: string | null;
+          status: string;
+          due_date?: string | null;
+          allocation_date?: string | null;
+          allocated_by?: string | null;
+          collection_name?: string | null;
+          department?: string | null;
+          completed_date?: string | null;
+          job_title?: string | null;
+          uploaded_at?: string;
+        }
+      >;
       comments: Table<
         {
           id: number;
@@ -444,6 +486,10 @@ export interface Database {
       birthdays: Table<
         { id: number; name: string; day: number; month: number; created_at: string },
         { id?: number; name: string; day: number; month: number; created_at?: string }
+      >;
+      feature_flags: Table<
+        { key: string; enabled: boolean; updated_by: string | null; updated_at: string | null },
+        { key: string; enabled?: boolean; updated_by?: string | null; updated_at?: string | null }
       >;
       menus: Table<
         {

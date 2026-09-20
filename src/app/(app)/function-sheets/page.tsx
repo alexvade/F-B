@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { ChevronRight, FileStack, Trash2, Upload } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useProfile } from "@/lib/profile-context";
+import { useFeatureFlag } from "@/lib/feature-flags-context";
 import { uploadAttachment, getAttachmentUrl, deleteAttachment } from "@/lib/storage";
 import { Section } from "@/components/section";
 import { bg, border, ink, inkSoft, navy, orangeSoft, orange } from "@/lib/design-tokens";
@@ -13,6 +14,8 @@ type Sheet = { id: number; title: string; file_url: string; file_name: string | 
 export default function FunctionSheetsPage() {
   const profile = useProfile();
   const isAdmin = profile.role === "admin";
+  const uploadEnabled = useFeatureFlag("function_sheets_upload");
+  const canEdit = isAdmin || uploadEnabled;
   const supabase = createClient();
 
   const [sheets, setSheets] = useState<Sheet[]>([]);
@@ -56,7 +59,7 @@ export default function FunctionSheetsPage() {
 
   return (
     <Section title="Function Sheets" subtitle="Tap a sheet to open the original PDF">
-      {isAdmin && (
+      {canEdit && (
         <label
           className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-2xl mb-4 cursor-pointer w-fit"
           style={{ background: orangeSoft, color: navy }}
@@ -94,7 +97,7 @@ export default function FunctionSheetsPage() {
               </div>
             </button>
             <div className="flex items-center gap-2 shrink-0">
-              {isAdmin && (
+              {canEdit && (
                 <button onClick={() => deleteSheet(sheet.id, sheet.file_url)} style={{ color: "#000000" }}>
                   <Trash2 size={15} />
                 </button>

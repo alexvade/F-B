@@ -77,7 +77,7 @@ export default function TrainingPage() {
 
   const loadData = useCallback(async () => {
     const [recordsRes, uploadRes] = await Promise.all([
-      supabase.from("training_records").select("*").order("learner_name"),
+      supabase.from("training_directory").select("*").order("learner_name"),
       supabase.from("training_uploads").select("*").order("uploaded_at", { ascending: false }).limit(1),
     ]);
     setRecords(recordsRes.data ?? []);
@@ -93,8 +93,8 @@ export default function TrainingPage() {
   }, [supabase]);
 
   useEffect(() => {
-    if (isAdmin) loadData();
-  }, [isAdmin, loadData]);
+    loadData();
+  }, [loadData]);
 
   useEffect(() => {
     setShareStatus(null);
@@ -189,16 +189,6 @@ export default function TrainingPage() {
 
   const inputStyle = { border: `1px solid ${border}`, background: fill, color: ink } as const;
 
-  if (!isAdmin) {
-    return (
-      <Section title="Training">
-        <p className="text-sm" style={{ color: inkSoft }}>
-          Admins only.
-        </p>
-      </Section>
-    );
-  }
-
   const selectedPerson = viewMode === "person" ? personGroups.find((g) => g.key === selectedKey) : undefined;
   const selectedItem = viewMode === "item" ? itemGroups.find((g) => g.key === selectedKey) : undefined;
 
@@ -213,7 +203,7 @@ export default function TrainingPage() {
           <h2 className="text-lg font-semibold" style={{ color: navyText }}>
             {selectedPerson.learner_name}
           </h2>
-          {overdueCount > 0 && (
+          {isAdmin && overdueCount > 0 && (
             <button
               onClick={() => shareReminder(selectedPerson.learner_name, overdueCount)}
               className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-2xl shrink-0"
@@ -300,23 +290,25 @@ export default function TrainingPage() {
 
   return (
     <Section title="Training" subtitle="Weekly compliance export — identify overdue training at a glance">
-      <label
-        className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-2xl mb-2 cursor-pointer w-fit"
-        style={{ background: orangeSoft, color: navy }}
-      >
-        <Upload size={13} />
-        {uploading ? "Uploading…" : "Upload this week's export (.csv)"}
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept=".csv,text/csv"
-          className="hidden"
-          onChange={(e) => {
-            const file = e.target.files?.[0];
-            if (file) handleFile(file);
-          }}
-        />
-      </label>
+      {isAdmin && (
+        <label
+          className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-2xl mb-2 cursor-pointer w-fit"
+          style={{ background: orangeSoft, color: navy }}
+        >
+          <Upload size={13} />
+          {uploading ? "Uploading…" : "Upload this week's export (.csv)"}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".csv,text/csv"
+            className="hidden"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) handleFile(file);
+            }}
+          />
+        </label>
+      )}
       {uploadError && (
         <p className="text-xs mb-2" style={{ color: ink }}>
           {uploadError}

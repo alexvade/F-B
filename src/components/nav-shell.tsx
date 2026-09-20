@@ -22,9 +22,11 @@ import {
   Sun,
   X,
   GraduationCap,
+  SlidersHorizontal,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useProfile } from "@/lib/profile-context";
+import type { FeatureFlags } from "@/lib/feature-flags-context";
 import { bg, bgText, bgTextSoft, border, ink, inkSoft, navy, orange, panel, surface } from "@/lib/design-tokens";
 import { ThemeContext } from "@/lib/theme-context";
 
@@ -38,10 +40,17 @@ const NAV_ITEMS = [
   { href: "/colleague-of-the-month", label: "Colleague of the Month", icon: Award },
   { href: "/function-sheets", label: "Function Sheets", icon: FileStack },
   { href: "/events", label: "Events", icon: Sparkles },
-  { href: "/stock-orders", label: "Stock Orders", icon: ClipboardList, adminOnly: true },
+  { href: "/stock-orders", label: "Stock Orders", icon: ClipboardList, adminOnly: true, staffFlag: "stock_orders_edit" },
   { href: "/birthdays", label: "Birthdays", icon: Cake, adminOnly: true },
-  { href: "/training", label: "Training", icon: GraduationCap, adminOnly: true },
+  { href: "/training", label: "Training", icon: GraduationCap },
+  { href: "/settings", label: "Settings", icon: SlidersHorizontal, adminOnly: true },
 ];
+
+function canSeeNavItem(item: (typeof NAV_ITEMS)[number], isAdmin: boolean, flags: FeatureFlags): boolean {
+  if (!item.adminOnly) return true;
+  if (isAdmin) return true;
+  return Boolean(item.staffFlag && flags[item.staffFlag]);
+}
 
 // Bottom island (mobile only): Dashboard in the middle, flanked by the
 // most-used tabs. Everything else lives behind the top-left menu.
@@ -51,10 +60,12 @@ const ISLAND_RIGHT = ["/events", "/function-sheets", "/sops"];
 export function NavShell({
   name,
   isAdmin,
+  flags,
   children,
 }: {
   name: string;
   isAdmin: boolean;
+  flags: FeatureFlags;
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
@@ -177,7 +188,7 @@ export function NavShell({
           </div>
         </div>
         <nav className="flex flex-col gap-1">
-          {NAV_ITEMS.filter((item) => !item.adminOnly || isAdmin).map(({ href, label, icon: Icon }) => {
+          {NAV_ITEMS.filter((item) => canSeeNavItem(item, isAdmin, flags)).map(({ href, label, icon: Icon }) => {
             const active = isActive(href);
             return (
               <Link
@@ -256,7 +267,7 @@ export function NavShell({
               </button>
             </div>
             <nav className="flex flex-col gap-1">
-              {NAV_ITEMS.filter((item) => item.href !== "/dashboard" && (!item.adminOnly || isAdmin)).map(({ href, label, icon: Icon }) => {
+              {NAV_ITEMS.filter((item) => item.href !== "/dashboard" && canSeeNavItem(item, isAdmin, flags)).map(({ href, label, icon: Icon }) => {
                 const active = isActive(href);
                 return (
                   <Link
