@@ -368,6 +368,7 @@ export interface Database {
           ingredients: string[];
           method: string[];
           sort_order: number;
+          pinned: boolean;
         },
         {
           id?: number;
@@ -379,6 +380,7 @@ export interface Database {
           ingredients?: string[];
           method?: string[];
           sort_order?: number;
+          pinned?: boolean;
         }
       >;
       wines: Table<

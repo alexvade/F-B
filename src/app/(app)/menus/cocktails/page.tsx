@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { Search, Pencil, Plus, Trash2, Check } from "lucide-react";
+import { Search, Pencil, Plus, Trash2, Check, Star } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useProfile } from "@/lib/profile-context";
 import { CocktailGlass } from "@/components/cocktail-glass";
@@ -18,6 +18,7 @@ type Cocktail = {
   garnish: string | null;
   ingredients: string[];
   method: string[];
+  pinned: boolean;
 };
 
 const SHAPES = ["balloon", "rocks", "highball", "coupe", "martini", "flute", "mug"];
@@ -107,6 +108,12 @@ export default function CocktailsPage() {
   const deleteCocktail = async (id: number) => {
     await supabase.from("cocktails").delete().eq("id", id);
     setActive(null);
+    loadData();
+  };
+
+  const togglePinned = async (c: Cocktail) => {
+    await supabase.from("cocktails").update({ pinned: !c.pinned }).eq("id", c.id);
+    setActive((prev) => (prev && prev.id === c.id ? { ...prev, pinned: !c.pinned } : prev));
     loadData();
   };
 
@@ -201,6 +208,14 @@ export default function CocktailsPage() {
           </button>
           {isAdmin && (
             <div className="flex gap-2">
+              <button
+                onClick={() => togglePinned(active)}
+                aria-label={active.pinned ? "Unpin from Most Popular" : "Pin to Most Popular"}
+                title={active.pinned ? "Unpin from Most Popular" : "Pin to Most Popular"}
+                style={{ color: "#000000" }}
+              >
+                <Star size={15} fill={active.pinned ? "#000000" : "none"} />
+              </button>
               <button onClick={() => openEdit(active)} style={{ color: navyText }}>
                 <Pencil size={15} />
               </button>
@@ -221,6 +236,7 @@ export default function CocktailsPage() {
           <div>
             <div className="text-xs font-semibold mb-1" style={{ color: orange }}>
               {active.category.toUpperCase()}
+              {active.pinned && " · MOST POPULAR"}
             </div>
             <h2 className="text-lg font-semibold" style={{ color: navyText }}>
               {active.name}
@@ -276,6 +292,36 @@ export default function CocktailsPage() {
   }
 
   const filtered = cocktails.filter((c) => c.name.toLowerCase().includes(search.trim().toLowerCase()));
+  const pinnedMatches = filtered.filter((c) => c.pinned).sort((a, b) => a.name.localeCompare(b.name));
+
+  const renderTile = (c: Cocktail) => {
+    const inStock = stockHaystack ? cocktailInStock(c.ingredients, stockHaystack) : false;
+    return (
+      <button
+        key={c.id}
+        onClick={() => setActive(c)}
+        className="relative flex flex-col items-center text-center rounded-3xl p-2"
+        style={{ background: bg, border: `1px solid ${border}` }}
+      >
+        <div style={{ width: 56, height: 78 }}>
+          <CocktailGlass shape={c.glass_shape} color={c.colour} />
+        </div>
+        <span className="text-xs mt-1 leading-tight" style={{ color: ink }}>
+          {c.name}
+        </span>
+        {inStock && (
+          <Check
+            size={14}
+            strokeWidth={3}
+            color="#000000"
+            className="absolute"
+            style={{ top: 4, right: 4 }}
+            aria-label="We have ingredients for this"
+          />
+        )}
+      </button>
+    );
+  };
 
   return (
     <div>
@@ -320,44 +366,26 @@ export default function CocktailsPage() {
         </p>
       )}
 
+      {pinnedMatches.length > 0 && (
+        <div className="mb-6">
+          <div className="flex items-center gap-1.5 text-xs font-semibold mb-3" style={{ color: orange }}>
+            <Star size={12} fill={orange} /> MOST POPULAR
+          </div>
+          <div className="grid grid-cols-3 gap-3">{pinnedMatches.map(renderTile)}</div>
+        </div>
+      )}
+
       {["Cocktail", "Mocktail"].map((cat) => {
-        const matches = filtered.filter((c) => c.category === cat).sort((a, b) => a.name.localeCompare(b.name));
+        const matches = filtered
+          .filter((c) => c.category === cat && !c.pinned)
+          .sort((a, b) => a.name.localeCompare(b.name));
         if (matches.length === 0) return null;
         return (
           <div key={cat} className="mb-6">
             <div className="text-xs font-semibold mb-3" style={{ color: orange }}>
               {cat.toUpperCase()}S
             </div>
-            <div className="grid grid-cols-3 gap-3">
-              {matches.map((c) => {
-                const inStock = stockHaystack ? cocktailInStock(c.ingredients, stockHaystack) : false;
-                return (
-                  <button
-                    key={c.id}
-                    onClick={() => setActive(c)}
-                    className="relative flex flex-col items-center text-center rounded-3xl p-2"
-                    style={{ background: bg, border: `1px solid ${border}` }}
-                  >
-                    <div style={{ width: 56, height: 78 }}>
-                      <CocktailGlass shape={c.glass_shape} color={c.colour} />
-                    </div>
-                    <span className="text-xs mt-1 leading-tight" style={{ color: ink }}>
-                      {c.name}
-                    </span>
-                    {inStock && (
-                      <Check
-                        size={14}
-                        strokeWidth={3}
-                        color="#000000"
-                        className="absolute"
-                        style={{ top: 4, right: 4 }}
-                        aria-label="We have ingredients for this"
-                      />
-                    )}
-                  </button>
-                );
-              })}
-            </div>
+            <div className="grid grid-cols-3 gap-3">{matches.map(renderTile)}</div>
           </div>
         );
       })}
