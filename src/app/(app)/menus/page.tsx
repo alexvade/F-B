@@ -14,8 +14,8 @@ export default async function MenusPage() {
     { href: "/menus/cocktails", label: "Cocktails", icon: Martini, subtitle: `${cocktailCount ?? 0} drinks` },
     { href: "/menus/wines", label: "Wines", icon: Wine, subtitle: `${wineCount ?? 0} wines` },
     { href: "/menus/breakfast", label: "Breakfast", icon: Coffee, subtitle: "Coming soon" },
-    { href: "/menus/afternoon-tea", label: "Afternoon Tea", icon: Cookie, subtitle: "Coming soon" },
-    { href: "/menus/dinner", label: "Dinner", icon: UtensilsCrossed, subtitle: "Coming soon" },
+    { href: "/menus/afternoon-tea", label: "Afternoon Tea", icon: Cookie, subtitle: "" },
+    { href: "/menus/dinner", label: "Dinner", icon: UtensilsCrossed, subtitle: "" },
     { href: "/menus/bar", label: "Bar", icon: GlassWater, subtitle: "Coming soon" },
     { href: "/menus/in-room-dining", label: "In-Room Dining", icon: BedDouble, subtitle: "Coming soon" },
   ];
@@ -43,9 +43,11 @@ export default async function MenusPage() {
             <span className="text-sm font-semibold text-center" style={{ color: navyText }}>
               {label}
             </span>
-            <span className="text-xs" style={{ color: inkSoft }}>
-              {subtitle}
-            </span>
+            {subtitle && (
+              <span className="text-xs" style={{ color: inkSoft }}>
+                {subtitle}
+              </span>
+            )}
           </Link>
         ))}
       </div>
