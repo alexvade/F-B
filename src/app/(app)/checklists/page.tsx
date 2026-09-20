@@ -1,10 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Pencil, Plus, Trash2 } from "lucide-react";
+import { Pencil, Plus, Trash2, Download } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useProfile } from "@/lib/profile-context";
-import { checklistDayISO } from "@/lib/dates";
+import { checklistDayISO, addDaysISO } from "@/lib/dates";
 import { initials } from "@/lib/shift-status";
 import { Section } from "@/components/section";
 import { bg, border, fill, ink, inkSoft, navy, navyText, orange, orangeSoft } from "@/lib/design-tokens";
@@ -32,6 +32,9 @@ export default function ChecklistsPage() {
   const [checklists, setChecklists] = useState<Checklist[]>([]);
   const [form, setForm] = useState<typeof EMPTY_FORM | null>(null);
   const [saving, setSaving] = useState(false);
+  const [showReport, setShowReport] = useState(false);
+  const [reportFrom, setReportFrom] = useState(() => addDaysISO(checklistDay, -6));
+  const [reportTo, setReportTo] = useState(checklistDay);
 
   const loadData = useCallback(async () => {
     const [listsRes, itemsRes, completionsRes] = await Promise.all([
@@ -213,13 +216,74 @@ export default function ChecklistsPage() {
       </div>
 
       {isAdmin && (
-        <button
-          onClick={() => openEdit()}
-          className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-2xl mb-4"
-          style={{ background: orangeSoft, color: navy }}
-        >
-          <Plus size={13} /> Add checklist to {section}
-        </button>
+        <div className="flex items-center gap-2 mb-4">
+          <button
+            onClick={() => openEdit()}
+            className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-2xl"
+            style={{ background: orangeSoft, color: navy }}
+          >
+            <Plus size={13} /> Add checklist to {section}
+          </button>
+          <button
+            onClick={() => setShowReport((v) => !v)}
+            className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-2xl"
+            style={{ background: "#FFFFFF", color: navy, border: `1px solid ${border}` }}
+          >
+            <Download size={13} /> Export report
+          </button>
+        </div>
+      )}
+
+      {isAdmin && showReport && (
+        <div className="flex flex-col gap-3 p-3 rounded-2xl mb-6" style={{ background: bg, border: `1px solid ${border}` }}>
+          <div className="text-sm font-semibold" style={{ color: navyText }}>
+            Export completion report
+          </div>
+          <p className="text-xs" style={{ color: inkSoft }}>
+            Shows every task ticked in the selected period, when, and by whom — across all sections.
+          </p>
+          <div className="flex items-center gap-2">
+            <label className="text-xs flex-1" style={{ color: inkSoft }}>
+              From
+              <input
+                type="date"
+                value={reportFrom}
+                onChange={(e) => setReportFrom(e.target.value)}
+                max={reportTo}
+                className="block mt-1 w-full text-sm px-3 py-1.5 rounded-full outline-none"
+                style={{ border: `1px solid ${border}`, background: fill, color: ink }}
+              />
+            </label>
+            <label className="text-xs flex-1" style={{ color: inkSoft }}>
+              To
+              <input
+                type="date"
+                value={reportTo}
+                onChange={(e) => setReportTo(e.target.value)}
+                min={reportFrom}
+                max={checklistDay}
+                className="block mt-1 w-full text-sm px-3 py-1.5 rounded-full outline-none"
+                style={{ border: `1px solid ${border}`, background: fill, color: ink }}
+              />
+            </label>
+          </div>
+          <div className="flex gap-2">
+            <a
+              href={`/api/checklists/report?from=${reportFrom}&to=${reportTo}&format=xlsx`}
+              className="flex-1 text-center text-sm font-medium py-2 rounded-full"
+              style={{ background: navy, color: "#FFFFFF" }}
+            >
+              Download .xlsx
+            </a>
+            <a
+              href={`/api/checklists/report?from=${reportFrom}&to=${reportTo}&format=pdf`}
+              className="flex-1 text-center text-sm font-medium py-2 rounded-full"
+              style={{ background: "#FFFFFF", color: navy, border: `1px solid ${border}` }}
+            >
+              Download PDF
+            </a>
+          </div>
+        </div>
       )}
 
       {sectionChecklists.length === 0 ? (
