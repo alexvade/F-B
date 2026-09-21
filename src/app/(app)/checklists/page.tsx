@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Pencil, Plus, Trash2, Download } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useProfile } from "@/lib/profile-context";
-import { checklistDayISO, addDaysISO } from "@/lib/dates";
+import { checklistDayISO, addDaysISO, weekStartOf } from "@/lib/dates";
 import { initials } from "@/lib/shift-status";
 import { Section } from "@/components/section";
 import { bg, border, fill, ink, inkSoft, navy, navyText, orange, orangeSoft } from "@/lib/design-tokens";
@@ -18,15 +18,16 @@ type Item = {
   done: boolean;
   completedByName: string | null;
 };
-type Checklist = { id: number; title: string; section: string; items: Item[] };
+type Checklist = { id: number; title: string; section: string; weekly: boolean; items: Item[] };
 
-const EMPTY_FORM = { id: null as number | null, title: "", items: "" };
+const EMPTY_FORM = { id: null as number | null, title: "", items: "", weekly: false };
 
 export default function ChecklistsPage() {
   const profile = useProfile();
   const isAdmin = profile.role === "admin";
   const supabase = createClient();
   const checklistDay = checklistDayISO();
+  const weekStart = weekStartOf(checklistDay);
 
   const [section, setSection] = useState(SECTIONS[0]);
   const [checklists, setChecklists] = useState<Checklist[]>([]);
@@ -37,17 +38,20 @@ export default function ChecklistsPage() {
   const [reportTo, setReportTo] = useState(checklistDay);
 
   const loadData = useCallback(async () => {
+    const dayKeys = Array.from(new Set([checklistDay, weekStart]));
     const [listsRes, itemsRes, completionsRes] = await Promise.all([
-      supabase.from("checklists").select("id, title, section").order("sort_order"),
+      supabase.from("checklists").select("id, title, section, weekly").order("sort_order"),
       supabase.from("checklist_items").select("id, checklist_id, text, sort_order").order("sort_order"),
       supabase
         .from("checklist_completions")
-        .select("item_id, completed_by")
-        .eq("checklist_day", checklistDay),
+        .select("item_id, checklist_day, completed_by")
+        .in("checklist_day", dayKeys),
     ]);
 
-    const completedByItemId = new Map(
-      (completionsRes.data ?? []).map((c) => [c.item_id, c.completed_by])
+    // Keyed by "itemId:checklistDay" since a weekly checklist's completion
+    // lives under weekStart while a daily one lives under today's checklistDay.
+    const completionByKey = new Map(
+      (completionsRes.data ?? []).map((c) => [`${c.item_id}:${c.checklist_day}`, c.completed_by])
     );
     const completerIds = Array.from(
       new Set((completionsRes.data ?? []).map((c) => c.completed_by).filter(Boolean))
@@ -58,25 +62,29 @@ export default function ChecklistsPage() {
     const nameById = new Map((profiles ?? []).map((p) => [p.id, p.name]));
 
     setChecklists(
-      (listsRes.data ?? []).map((list) => ({
-        id: list.id,
-        title: list.title,
-        section: list.section,
-        items: (itemsRes.data ?? [])
-          .filter((i) => i.checklist_id === list.id)
-          .map((i) => {
-            const completedBy = completedByItemId.get(i.id) ?? null;
-            return {
-              id: i.id,
-              text: i.text,
-              sort_order: i.sort_order,
-              done: completedByItemId.has(i.id),
-              completedByName: completedBy ? nameById.get(completedBy) ?? "Someone" : null,
-            };
-          }),
-      }))
+      (listsRes.data ?? []).map((list) => {
+        const resetKey = list.weekly ? weekStart : checklistDay;
+        return {
+          id: list.id,
+          title: list.title,
+          section: list.section,
+          weekly: list.weekly,
+          items: (itemsRes.data ?? [])
+            .filter((i) => i.checklist_id === list.id)
+            .map((i) => {
+              const completedBy = completionByKey.get(`${i.id}:${resetKey}`) ?? null;
+              return {
+                id: i.id,
+                text: i.text,
+                sort_order: i.sort_order,
+                done: completionByKey.has(`${i.id}:${resetKey}`),
+                completedByName: completedBy ? nameById.get(completedBy) ?? "Someone" : null,
+              };
+            }),
+        };
+      })
     );
-  }, [supabase, checklistDay]);
+  }, [supabase, checklistDay, weekStart]);
 
   useEffect(() => {
     loadData();
@@ -95,17 +103,18 @@ export default function ChecklistsPage() {
     };
   }, [loadData, supabase]);
 
-  const toggleItem = async (item: Item) => {
+  const toggleItem = async (item: Item, weekly: boolean) => {
+    const dayKey = weekly ? weekStart : checklistDay;
     if (item.done) {
       await supabase
         .from("checklist_completions")
         .delete()
         .eq("item_id", item.id)
-        .eq("checklist_day", checklistDay);
+        .eq("checklist_day", dayKey);
     } else {
       await supabase
         .from("checklist_completions")
-        .insert({ item_id: item.id, checklist_day: checklistDay, completed_by: profile.id });
+        .insert({ item_id: item.id, checklist_day: dayKey, completed_by: profile.id });
     }
     loadData();
   };
@@ -113,7 +122,7 @@ export default function ChecklistsPage() {
   const openEdit = (list?: Checklist) => {
     setForm(
       list
-        ? { id: list.id, title: list.title, items: list.items.map((i) => i.text).join("\n") }
+        ? { id: list.id, title: list.title, items: list.items.map((i) => i.text).join("\n"), weekly: list.weekly }
         : { ...EMPTY_FORM }
     );
   };
@@ -125,12 +134,12 @@ export default function ChecklistsPage() {
       const itemTexts = form.items.split("\n").map((s) => s.trim()).filter(Boolean);
       let checklistId = form.id;
       if (checklistId) {
-        await supabase.from("checklists").update({ title: form.title.trim() }).eq("id", checklistId);
+        await supabase.from("checklists").update({ title: form.title.trim(), weekly: form.weekly }).eq("id", checklistId);
         await supabase.from("checklist_items").delete().eq("checklist_id", checklistId);
       } else {
         const { data, error } = await supabase
           .from("checklists")
-          .insert({ title: form.title.trim(), section, sort_order: checklists.length })
+          .insert({ title: form.title.trim(), section, sort_order: checklists.length, weekly: form.weekly })
           .select()
           .single();
         if (error || !data) throw error;
@@ -179,6 +188,14 @@ export default function ChecklistsPage() {
             className="text-sm px-4 py-3 rounded-2xl outline-none"
             style={{ border: `1px solid ${border}`, background: fill, color: ink }}
           />
+          <label className="flex items-center gap-2 text-xs" style={{ color: inkSoft }}>
+            <input
+              type="checkbox"
+              checked={form.weekly}
+              onChange={(e) => setForm({ ...form, weekly: e.target.checked })}
+            />
+            Resets weekly (Friday–Thursday) instead of daily — a tick stays ticked all week
+          </label>
           <button
             onClick={saveForm}
             disabled={saving}
@@ -297,7 +314,14 @@ export default function ChecklistsPage() {
             return (
               <div key={list.id}>
                 <div className="flex items-baseline justify-between mb-2">
-                  <span className="text-sm font-medium">{list.title}</span>
+                  <span className="flex items-center gap-1.5">
+                    <span className="text-sm font-medium">{list.title}</span>
+                    {list.weekly && (
+                      <span className="text-xs" style={{ color: inkSoft }}>
+                        (resets weekly)
+                      </span>
+                    )}
+                  </span>
                   <div className="flex items-center gap-2">
                     <span className="text-xs" style={{ color: inkSoft }}>
                       {doneCount}/{list.items.length}
@@ -318,7 +342,7 @@ export default function ChecklistsPage() {
                   {list.items.map((item) => (
                     <button
                       key={item.id}
-                      onClick={() => toggleItem(item)}
+                      onClick={() => toggleItem(item, list.weekly)}
                       className="flex items-center gap-3 p-2.5 rounded-2xl text-left"
                       style={{ background: bg, border: `1px solid ${border}` }}
                     >
