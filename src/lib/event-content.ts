@@ -18,6 +18,11 @@ export type TimelineDay = {
   events: { time: string; what: string; where?: string; note?: string; brief?: string }[];
 };
 
+// One ordered item, optionally with the quantity ordered (as printed on the
+// function sheet, e.g. "6 Salmon fishcake…") — shown as a leading number in
+// the guide so staff can see the split across a plated menu's choices.
+export type MenuLine = { qty?: number; text: string };
+
 export type EventContent = {
   eyebrow?: string;
   venueLine?: string;
@@ -27,7 +32,11 @@ export type EventContent = {
     people: { name: string; role: string; detail?: string }[];
   }[];
   timeline?: TimelineDay[];
-  menu?: { title: string; when?: string; items: string[]; flags?: string[] }[];
+  // `courses` groups items into rows separated by a divider — e.g. starters,
+  // then a gap, then mains, then a gap, then desserts — matching how a
+  // plated function-sheet menu is laid out. A card with a single course
+  // (nothing to divide) is just a one-element array.
+  menu?: { title: string; when?: string; courses: MenuLine[][]; flags?: string[] }[];
   drinks?: { title: string; when?: string; items: string[]; flags?: string[] }[];
   providedBy?: { heading: string; items: string[] }[];
   notes?: { heading: string; body: string }[];

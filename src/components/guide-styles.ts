@@ -68,7 +68,12 @@ export const GUIDE_STYLES = `
 .eg-menu-card { background: var(--eg-surface); border: 1px solid var(--eg-border); border-radius: 14px; padding: 14px 16px; box-shadow: var(--eg-shadow); }
 .eg-menu-card h3 { font-size: 0.94rem; margin-bottom: 2px; font-family: var(--font-fraunces), serif; font-weight: 600; }
 .eg-menu-card .when { font-size: 0.74rem; color: var(--eg-muted); font-family: var(--font-plex-mono), monospace; }
-.eg-menu-card ol { margin: 10px 0 0; padding-left: 16px; font-size: 0.86rem; display: flex; flex-direction: column; gap: 4px; }
+.eg-course-list { margin-top: 10px; display: flex; flex-direction: column; }
+.eg-course { padding: 8px 0; border-bottom: 1px solid var(--eg-border); display: flex; flex-direction: column; gap: 4px; }
+.eg-course:last-child { border-bottom: none; padding-bottom: 0; }
+.eg-course:first-child { padding-top: 0; }
+.eg-course-line { display: flex; gap: 8px; font-size: 0.86rem; align-items: baseline; }
+.eg-course-line .qty { font-family: var(--font-plex-mono), monospace; font-weight: 600; color: var(--eg-accent); min-width: 16px; text-align: right; flex-shrink: 0; }
 .eg-flags { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 6px; }
 .eg-flag { font-size: 0.68rem; background: var(--eg-accent-soft); color: var(--eg-accent); padding: 2px 8px; border-radius: 20px; font-weight: 600; }
 .eg-split { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px,1fr)); gap: 20px; }

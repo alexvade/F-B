@@ -125,11 +125,18 @@ export function EventGuide({ content }: { content: EventContent }) {
               <div key={i} className="eg-menu-card">
                 <h3>{m.title}</h3>
                 {m.when && <div className="when">{m.when}</div>}
-                <ol>
-                  {m.items.map((item, j) => (
-                    <li key={j}>{item}</li>
+                <div className="eg-course-list">
+                  {m.courses.map((course, ci) => (
+                    <div key={ci} className="eg-course">
+                      {course.map((line, li) => (
+                        <div key={li} className="eg-course-line">
+                          {line.qty != null && <span className="qty">{line.qty}</span>}
+                          <span>{line.text}</span>
+                        </div>
+                      ))}
+                    </div>
                   ))}
-                </ol>
+                </div>
                 {m.flags && m.flags.length > 0 && (
                   <div className="eg-flags">
                     {m.flags.map((f, j) => (
