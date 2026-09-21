@@ -78,8 +78,6 @@ export default function StockOrdersPage() {
   const [savingIds, setSavingIds] = useState<Set<number>>(new Set());
   const [resetting, setResetting] = useState(false);
   const [deletingIds, setDeletingIds] = useState<Set<number>>(new Set());
-  const [itemDraft, setItemDraft] = useState("");
-  const [addingItem, setAddingItem] = useState(false);
   const [creatingTab, setCreatingTab] = useState(false);
   const [eventOrders, setEventOrders] = useState<EventDrinkOrder[] | null>(null);
   const [expandedProduct, setExpandedProduct] = useState<string | null>(null);
@@ -267,22 +265,6 @@ export default function StockOrdersPage() {
       loadData();
     } finally {
       setSavingEdit(false);
-    }
-  };
-
-  const addItem = async () => {
-    const product = itemDraft.trim();
-    if (!product || !tab) return;
-    setAddingItem(true);
-    try {
-      await fetch("/api/stock/add-item", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ tabLabel: tab, category: QUICK_ADD_CATEGORY, product }),
-      });
-      setItemDraft("");
-    } finally {
-      setAddingItem(false);
     }
   };
 
@@ -499,27 +481,6 @@ export default function StockOrdersPage() {
               </>
             )}
           </div>
-        </div>
-      )}
-
-      {tab && tab !== EVENTS_TAB && (
-        <div className="flex items-center gap-2 mb-3">
-          <input
-            value={itemDraft}
-            onChange={(e) => setItemDraft(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && addItem()}
-            placeholder={`Add something to ${tab}…`}
-            className="flex-1 text-sm px-4 py-2 rounded-full outline-none"
-            style={{ border: `1px solid ${border}`, color: ink, background: fill }}
-          />
-          <button
-            onClick={addItem}
-            disabled={addingItem}
-            className="text-xs font-medium px-3 py-1.5 rounded-2xl shrink-0 disabled:opacity-60"
-            style={{ background: navy, color: "#FFFFFF" }}
-          >
-            {addingItem ? "Adding…" : "Add"}
-          </button>
         </div>
       )}
 
