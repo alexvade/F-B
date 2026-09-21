@@ -23,8 +23,29 @@ export default function FunctionSheetsPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const loadData = useCallback(async () => {
-    const { data } = await supabase.from("function_sheets").select("*").order("uploaded_at", { ascending: false });
-    setSheets(data ?? []);
+    const [{ data: sheetsData }, { data: eventsData }] = await Promise.all([
+      supabase.from("function_sheets").select("*").order("uploaded_at", { ascending: false }),
+      supabase.from("events").select("function_sheet_id, event_date"),
+    ]);
+
+    // Sort by the linked event's date (soonest first) where one exists —
+    // a function sheet has no date of its own, only an upload timestamp.
+    // Sheets with no linked event (or no date set) fall to the end, kept
+    // in upload-recency order among themselves.
+    const eventDateBySheetId = new Map(
+      (eventsData ?? [])
+        .filter((e) => e.function_sheet_id != null && e.event_date != null)
+        .map((e) => [e.function_sheet_id as number, e.event_date as string])
+    );
+    const sorted = [...(sheetsData ?? [])].sort((a, b) => {
+      const dateA = eventDateBySheetId.get(a.id);
+      const dateB = eventDateBySheetId.get(b.id);
+      if (dateA && dateB) return dateA.localeCompare(dateB);
+      if (dateA) return -1;
+      if (dateB) return 1;
+      return 0;
+    });
+    setSheets(sorted);
   }, [supabase]);
 
   useEffect(() => {
