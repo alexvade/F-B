@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { ChevronDown, ChevronRight, RotateCcw, Plus, Trash2 } from "lucide-react";
+import { ChevronDown, ChevronRight, Download, RotateCcw, Plus, Trash2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useProfile } from "@/lib/profile-context";
 import { useFeatureFlag } from "@/lib/feature-flags-context";
@@ -56,10 +56,20 @@ type Product = {
   delisted: boolean;
 };
 
+type EditDraft = {
+  product: string;
+  code: string;
+  cellarCode: string;
+  supplier: string;
+  category: string;
+  delisted: boolean;
+};
+
 export default function StockOrdersPage() {
   const profile = useProfile();
+  const isAdmin = profile.role === "admin";
   const editEnabled = useFeatureFlag("stock_orders_edit");
-  const canAccess = profile.role === "admin" || editEnabled;
+  const canAccess = isAdmin || editEnabled;
   const supabase = createClient();
   const [tabs, setTabs] = useState<string[]>([]);
   const [tab, setTab] = useState<string | null>(null);
@@ -73,6 +83,11 @@ export default function StockOrdersPage() {
   const [creatingTab, setCreatingTab] = useState(false);
   const [eventOrders, setEventOrders] = useState<EventDrinkOrder[] | null>(null);
   const [expandedProduct, setExpandedProduct] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editDraft, setEditDraft] = useState<EditDraft | null>(null);
+  const [savingEdit, setSavingEdit] = useState(false);
+  const [editError, setEditError] = useState<string | null>(null);
+  const [showExport, setShowExport] = useState(false);
 
   const loadData = useCallback(async () => {
     const { data } = await supabase
@@ -200,6 +215,52 @@ export default function StockOrdersPage() {
     }
   };
 
+  const toggleEdit = (product: Product) => {
+    if (editingId === product.id) {
+      setEditingId(null);
+      setEditDraft(null);
+      setEditError(null);
+      return;
+    }
+    setEditingId(product.id);
+    setEditError(null);
+    setEditDraft({
+      product: product.product,
+      code: product.code ?? "",
+      cellarCode: product.cellar_code ?? "",
+      supplier: product.supplier ?? "",
+      category: product.category,
+      delisted: product.delisted,
+    });
+  };
+
+  const saveEdit = async () => {
+    if (editingId == null || !editDraft) return;
+    if (!editDraft.product.trim() || !editDraft.category.trim()) {
+      setEditError("Product and category can't be empty.");
+      return;
+    }
+    setSavingEdit(true);
+    setEditError(null);
+    try {
+      const res = await fetch("/api/stock/update-item", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: editingId, ...editDraft }),
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setEditError(body.error || "Couldn't save that — try again.");
+        return;
+      }
+      setEditingId(null);
+      setEditDraft(null);
+      loadData();
+    } finally {
+      setSavingEdit(false);
+    }
+  };
+
   const addItem = async () => {
     const product = itemDraft.trim();
     if (!product || !tab) return;
@@ -287,17 +348,53 @@ export default function StockOrdersPage() {
             From Events
           </button>
         </div>
-        <button
-          onClick={createTab}
-          disabled={creatingTab}
-          aria-label="New tab"
-          title="New tab"
-          className="flex items-center justify-center shrink-0 rounded-2xl disabled:opacity-60"
-          style={{ width: 28, height: 28, border: "1px solid #000000", color: "#000000" }}
-        >
-          <Plus size={14} />
-        </button>
+        <div className="flex items-center gap-2 shrink-0">
+          {isAdmin && (
+            <button
+              onClick={() => setShowExport((v) => !v)}
+              className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-2xl"
+              style={{ background: "#FFFFFF", color: "#000000", border: "1px solid #000000" }}
+            >
+              <Download size={13} /> Export
+            </button>
+          )}
+          <button
+            onClick={createTab}
+            disabled={creatingTab}
+            aria-label="New tab"
+            title="New tab"
+            className="flex items-center justify-center shrink-0 rounded-2xl disabled:opacity-60"
+            style={{ width: 28, height: 28, border: "1px solid #000000", color: "#000000" }}
+          >
+            <Plus size={14} />
+          </button>
+        </div>
       </div>
+
+      {showExport && isAdmin && (
+        <div
+          className="flex items-center gap-3 p-3 rounded-2xl mb-6"
+          style={{ background: bg, border: `1px solid ${border}` }}
+        >
+          <span className="text-xs" style={{ color: inkSoft }}>
+            Everything with a quantity set right now, across every tab:
+          </span>
+          <a
+            href="/api/stock/report?format=xlsx"
+            className="text-xs font-medium px-3 py-1.5 rounded-2xl"
+            style={{ background: navy, color: "#FFFFFF" }}
+          >
+            .xlsx
+          </a>
+          <a
+            href="/api/stock/report?format=pdf"
+            className="text-xs font-medium px-3 py-1.5 rounded-2xl"
+            style={{ background: navy, color: "#FFFFFF" }}
+          >
+            .pdf
+          </a>
+        </div>
+      )}
 
       {tab && tab !== EVENTS_TAB && (
         <div className="flex items-center gap-2 mb-6">
@@ -403,51 +500,144 @@ export default function StockOrdersPage() {
             <div className="flex flex-col gap-1">
               {tabProducts
                 .filter((p) => p.category === cat)
-                .map((p) => (
-                  <div
-                    key={p.id}
-                    className="flex items-center gap-3 p-2.5 rounded-2xl"
-                    style={{ background: bg, border: `1px solid ${border}` }}
-                  >
-                    <div className="flex-1 min-w-0">
-                      <div className="text-sm font-medium truncate" style={{ color: ink }}>
-                        {p.product}
+                .map((p) => {
+                  const editing = editingId === p.id;
+                  return (
+                    <div
+                      key={p.id}
+                      className="rounded-2xl overflow-hidden"
+                      style={{ background: bg, border: `1px solid ${editing ? navy : border}` }}
+                    >
+                      <div className="flex items-center gap-3 p-2.5">
+                        <button onClick={() => toggleEdit(p)} className="flex-1 min-w-0 text-left">
+                          <div className="text-sm font-medium truncate" style={{ color: ink }}>
+                            {p.product}
+                          </div>
+                          {p.delisted && (
+                            <div className="text-xs font-bold truncate dark-mode-invert" style={{ color: "#E4002B" }}>
+                              DELISTED
+                            </div>
+                          )}
+                          <div className="text-xs truncate" style={{ color: inkSoft }}>
+                            {[p.code, p.supplier].filter(Boolean).join(" · ")}
+                          </div>
+                        </button>
+                        <input
+                          type="number"
+                          min={0}
+                          inputMode="numeric"
+                          value={drafts[p.id] ?? ""}
+                          onChange={(e) => setDrafts((prev) => ({ ...prev, [p.id]: e.target.value }))}
+                          onBlur={() => commitQuantity(p)}
+                          onKeyDown={(e) => e.key === "Enter" && (e.target as HTMLInputElement).blur()}
+                          placeholder="0"
+                          className="w-16 text-sm text-center px-2 py-1.5 rounded-full outline-none shrink-0"
+                          style={{
+                            border: `1px solid ${savingIds.has(p.id) ? navy : border}`,
+                            color: navyText,
+                            background: fill,
+                          }}
+                        />
+                        <button
+                          onClick={() => deleteProduct(p)}
+                          disabled={deletingIds.has(p.id)}
+                          aria-label="Remove item"
+                          className="shrink-0 disabled:opacity-40"
+                        >
+                          <Trash2 size={14} style={{ color: inkSoft }} />
+                        </button>
                       </div>
-                      {p.delisted && (
-                        <div className="text-xs font-bold truncate dark-mode-invert" style={{ color: "#E4002B" }}>
-                          DELISTED
+
+                      {editing && editDraft && (
+                        <div
+                          className="px-3 pb-3 flex flex-col gap-2"
+                          style={{ borderTop: `1px solid ${border}` }}
+                        >
+                          <div className="flex flex-col sm:flex-row gap-2 pt-3">
+                            <label className="flex-1 text-xs" style={{ color: inkSoft }}>
+                              Product
+                              <input
+                                value={editDraft.product}
+                                onChange={(e) => setEditDraft({ ...editDraft, product: e.target.value })}
+                                className="block w-full mt-1 text-sm px-3 py-1.5 rounded-full outline-none"
+                                style={{ border: `1px solid ${border}`, color: ink, background: fill }}
+                              />
+                            </label>
+                            <label className="flex-1 text-xs" style={{ color: inkSoft }}>
+                              Category
+                              <input
+                                value={editDraft.category}
+                                onChange={(e) => setEditDraft({ ...editDraft, category: e.target.value })}
+                                className="block w-full mt-1 text-sm px-3 py-1.5 rounded-full outline-none"
+                                style={{ border: `1px solid ${border}`, color: ink, background: fill }}
+                              />
+                            </label>
+                          </div>
+                          <div className="flex flex-col sm:flex-row gap-2">
+                            <label className="flex-1 text-xs" style={{ color: inkSoft }}>
+                              Code
+                              <input
+                                value={editDraft.code}
+                                onChange={(e) => setEditDraft({ ...editDraft, code: e.target.value })}
+                                className="block w-full mt-1 text-sm px-3 py-1.5 rounded-full outline-none"
+                                style={{ border: `1px solid ${border}`, color: ink, background: fill }}
+                              />
+                            </label>
+                            <label className="flex-1 text-xs" style={{ color: inkSoft }}>
+                              Cellar code
+                              <input
+                                value={editDraft.cellarCode}
+                                onChange={(e) => setEditDraft({ ...editDraft, cellarCode: e.target.value })}
+                                className="block w-full mt-1 text-sm px-3 py-1.5 rounded-full outline-none"
+                                style={{ border: `1px solid ${border}`, color: ink, background: fill }}
+                              />
+                            </label>
+                            <label className="flex-1 text-xs" style={{ color: inkSoft }}>
+                              Supplier
+                              <input
+                                value={editDraft.supplier}
+                                onChange={(e) => setEditDraft({ ...editDraft, supplier: e.target.value })}
+                                className="block w-full mt-1 text-sm px-3 py-1.5 rounded-full outline-none"
+                                style={{ border: `1px solid ${border}`, color: ink, background: fill }}
+                              />
+                            </label>
+                          </div>
+                          <label className="flex items-center gap-2 text-xs" style={{ color: inkSoft }}>
+                            <input
+                              type="checkbox"
+                              checked={editDraft.delisted}
+                              onChange={(e) => setEditDraft({ ...editDraft, delisted: e.target.checked })}
+                            />
+                            Delisted
+                          </label>
+                          {editError && (
+                            <p className="text-xs" style={{ color: "#E4002B" }}>
+                              {editError}
+                            </p>
+                          )}
+                          <div className="flex gap-2">
+                            <button
+                              onClick={saveEdit}
+                              disabled={savingEdit}
+                              className="text-xs font-medium px-3 py-1.5 rounded-2xl disabled:opacity-60"
+                              style={{ background: navy, color: "#FFFFFF" }}
+                            >
+                              {savingEdit ? "Saving…" : "Save"}
+                            </button>
+                            <button
+                              onClick={() => toggleEdit(p)}
+                              disabled={savingEdit}
+                              className="text-xs font-medium px-3 py-1.5 rounded-2xl disabled:opacity-60"
+                              style={{ background: "#FFFFFF", color: "#000000", border: "1px solid #000000" }}
+                            >
+                              Cancel
+                            </button>
+                          </div>
                         </div>
                       )}
-                      <div className="text-xs truncate" style={{ color: inkSoft }}>
-                        {[p.code, p.supplier].filter(Boolean).join(" · ")}
-                      </div>
                     </div>
-                    <input
-                      type="number"
-                      min={0}
-                      inputMode="numeric"
-                      value={drafts[p.id] ?? ""}
-                      onChange={(e) => setDrafts((prev) => ({ ...prev, [p.id]: e.target.value }))}
-                      onBlur={() => commitQuantity(p)}
-                      onKeyDown={(e) => e.key === "Enter" && (e.target as HTMLInputElement).blur()}
-                      placeholder="0"
-                      className="w-16 text-sm text-center px-2 py-1.5 rounded-full outline-none shrink-0"
-                      style={{
-                        border: `1px solid ${savingIds.has(p.id) ? navy : border}`,
-                        color: navyText,
-                        background: fill,
-                      }}
-                    />
-                    <button
-                      onClick={() => deleteProduct(p)}
-                      disabled={deletingIds.has(p.id)}
-                      aria-label="Remove item"
-                      className="shrink-0 disabled:opacity-40"
-                    >
-                      <Trash2 size={14} style={{ color: inkSoft }} />
-                    </button>
-                  </div>
-                ))}
+                  );
+                })}
             </div>
           </div>
         ))
