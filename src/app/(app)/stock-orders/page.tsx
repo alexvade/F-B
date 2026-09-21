@@ -87,6 +87,11 @@ export default function StockOrdersPage() {
   const [editError, setEditError] = useState<string | null>(null);
   const [showExport, setShowExport] = useState(false);
   const [exportTabs, setExportTabs] = useState<string[]>([]);
+  const [showEmailForm, setShowEmailForm] = useState(false);
+  const [emailTo, setEmailTo] = useState("");
+  const [emailFormat, setEmailFormat] = useState<"xlsx" | "pdf">("xlsx");
+  const [sendingEmail, setSendingEmail] = useState(false);
+  const [emailStatus, setEmailStatus] = useState<{ ok: boolean; message: string } | null>(null);
   const [addingSection, setAddingSection] = useState(false);
   const [sectionName, setSectionName] = useState("");
   const [sectionItems, setSectionItems] = useState("");
@@ -329,6 +334,29 @@ export default function StockOrdersPage() {
     loadData();
   };
 
+  const sendReportEmail = async () => {
+    const to = emailTo.trim();
+    if (!to || exportTabs.length === 0) return;
+    setSendingEmail(true);
+    setEmailStatus(null);
+    try {
+      const res = await fetch("/api/stock/send-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ to, tabs: exportTabs, format: emailFormat }),
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setEmailStatus({ ok: false, message: body.error || "Couldn't send that — try again." });
+        return;
+      }
+      setEmailStatus({ ok: true, message: `Sent to ${to}.` });
+      setEmailTo("");
+    } finally {
+      setSendingEmail(false);
+    }
+  };
+
   const createTab = async () => {
     const tabLabel = prompt("New tab name, e.g. Breakfast")?.trim();
     if (!tabLabel) return;
@@ -481,6 +509,61 @@ export default function StockOrdersPage() {
               </>
             )}
           </div>
+
+          <button
+            onClick={() => {
+              setShowEmailForm((v) => !v);
+              setEmailStatus(null);
+            }}
+            className="text-xs underline w-fit"
+            style={{ color: navyText }}
+          >
+            {showEmailForm ? "Cancel" : "Send by email instead"}
+          </button>
+
+          {showEmailForm && (
+            <div className="flex flex-col gap-2">
+              <input
+                type="email"
+                value={emailTo}
+                onChange={(e) => setEmailTo(e.target.value)}
+                placeholder="Send to…"
+                className="text-sm px-4 py-2 rounded-full outline-none"
+                style={{ border: `1px solid ${border}`, color: ink, background: fill }}
+              />
+              <div className="flex items-center gap-4">
+                <label className="flex items-center gap-1.5 text-xs" style={{ color: ink }}>
+                  <input
+                    type="radio"
+                    checked={emailFormat === "xlsx"}
+                    onChange={() => setEmailFormat("xlsx")}
+                  />
+                  .xlsx
+                </label>
+                <label className="flex items-center gap-1.5 text-xs" style={{ color: ink }}>
+                  <input
+                    type="radio"
+                    checked={emailFormat === "pdf"}
+                    onChange={() => setEmailFormat("pdf")}
+                  />
+                  .pdf
+                </label>
+              </div>
+              {emailStatus && (
+                <p className="text-xs" style={{ color: emailStatus.ok ? inkSoft : "#E4002B" }}>
+                  {emailStatus.message}
+                </p>
+              )}
+              <button
+                onClick={sendReportEmail}
+                disabled={sendingEmail || !emailTo.trim() || exportTabs.length === 0}
+                className="text-xs font-medium px-3 py-1.5 rounded-2xl w-fit disabled:opacity-60"
+                style={{ background: navy, color: "#FFFFFF" }}
+              >
+                {sendingEmail ? "Sending…" : "Send"}
+              </button>
+            </div>
+          )}
         </div>
       )}
 
