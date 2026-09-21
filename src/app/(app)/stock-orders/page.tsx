@@ -88,6 +88,7 @@ export default function StockOrdersPage() {
   const [savingEdit, setSavingEdit] = useState(false);
   const [editError, setEditError] = useState<string | null>(null);
   const [showExport, setShowExport] = useState(false);
+  const [exportTabs, setExportTabs] = useState<string[]>([]);
   const [addingSection, setAddingSection] = useState(false);
   const [sectionName, setSectionName] = useState("");
   const [sectionItems, setSectionItems] = useState("");
@@ -399,7 +400,10 @@ export default function StockOrdersPage() {
         <div className="flex items-center gap-2 shrink-0">
           {isAdmin && (
             <button
-              onClick={() => setShowExport((v) => !v)}
+              onClick={() => {
+                setShowExport((v) => !v);
+                setExportTabs((prev) => (prev.length === 0 ? tabs : prev));
+              }}
               aria-label="Export"
               title="Export"
               className="flex items-center justify-center shrink-0 rounded-2xl"
@@ -423,26 +427,57 @@ export default function StockOrdersPage() {
 
       {showExport && isAdmin && (
         <div
-          className="flex items-center gap-3 p-3 rounded-2xl mb-6"
+          className="flex flex-col gap-3 p-3 rounded-2xl mb-6"
           style={{ background: bg, border: `1px solid ${border}` }}
         >
           <span className="text-xs" style={{ color: inkSoft }}>
-            Everything with a quantity set right now, across every tab:
+            Everything with a quantity set right now, from these tabs:
           </span>
-          <a
-            href="/api/stock/report?format=xlsx"
-            className="text-xs font-medium px-3 py-1.5 rounded-2xl"
-            style={{ background: navy, color: "#FFFFFF" }}
-          >
-            .xlsx
-          </a>
-          <a
-            href="/api/stock/report?format=pdf"
-            className="text-xs font-medium px-3 py-1.5 rounded-2xl"
-            style={{ background: navy, color: "#FFFFFF" }}
-          >
-            .pdf
-          </a>
+          <div className="flex flex-wrap gap-x-4 gap-y-1.5">
+            {tabs.map((t) => (
+              <label key={t} className="flex items-center gap-1.5 text-xs" style={{ color: ink }}>
+                <input
+                  type="checkbox"
+                  checked={exportTabs.includes(t)}
+                  onChange={(e) =>
+                    setExportTabs((prev) => (e.target.checked ? [...prev, t] : prev.filter((x) => x !== t)))
+                  }
+                />
+                {t}
+              </label>
+            ))}
+            <button
+              onClick={() => setExportTabs((prev) => (prev.length === tabs.length ? [] : tabs))}
+              className="text-xs underline"
+              style={{ color: navyText }}
+            >
+              {exportTabs.length === tabs.length ? "Select none" : "Select all"}
+            </button>
+          </div>
+          <div className="flex items-center gap-2">
+            {exportTabs.length === 0 ? (
+              <span className="text-xs" style={{ color: inkSoft }}>
+                Pick at least one tab to export.
+              </span>
+            ) : (
+              <>
+                <a
+                  href={`/api/stock/report?format=xlsx&tabs=${encodeURIComponent(exportTabs.join(","))}`}
+                  className="text-xs font-medium px-3 py-1.5 rounded-2xl"
+                  style={{ background: navy, color: "#FFFFFF" }}
+                >
+                  .xlsx
+                </a>
+                <a
+                  href={`/api/stock/report?format=pdf&tabs=${encodeURIComponent(exportTabs.join(","))}`}
+                  className="text-xs font-medium px-3 py-1.5 rounded-2xl"
+                  style={{ background: navy, color: "#FFFFFF" }}
+                >
+                  .pdf
+                </a>
+              </>
+            )}
+          </div>
         </div>
       )}
 

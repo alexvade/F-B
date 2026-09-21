@@ -25,14 +25,27 @@ export async function GET(request: Request) {
   if (format !== "xlsx" && format !== "pdf") {
     return NextResponse.json({ error: "Missing or invalid format" }, { status: 400 });
   }
+  // Comma-separated tab labels to restrict the export to — omit to include
+  // every tab, same as before this option existed.
+  const tabsParam = searchParams.get("tabs");
+  const tabLabels = tabsParam
+    ? tabsParam
+        .split(",")
+        .map((t) => t.trim())
+        .filter(Boolean)
+    : null;
 
-  const { data: products, error } = await supabase
+  let query = supabase
     .from("stock_products")
     .select("tab_label, category, product, code, cellar_code, supplier, quantity, delisted, sort_order")
     .not("quantity", "is", null)
     .gt("quantity", 0)
     .order("tab_label")
     .order("sort_order");
+  if (tabLabels && tabLabels.length > 0) {
+    query = query.in("tab_label", tabLabels);
+  }
+  const { data: products, error } = await query;
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
