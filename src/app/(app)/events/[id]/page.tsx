@@ -9,8 +9,32 @@ export default async function EventDetailPage({ params }: PageProps<"/events/[id
   const { id } = await params;
   const supabase = await createClient();
 
-  const { data: event } = await supabase.from("events").select("*").eq("id", Number(id)).single();
+  const [{ data: event }, { data: auth }] = await Promise.all([
+    supabase.from("events").select("*").eq("id", Number(id)).single(),
+    supabase.auth.getUser(),
+  ]);
   if (!event) notFound();
+
+  let isAdmin = false;
+  if (auth?.user) {
+    const { data: viewerProfile } = await supabase.from("profiles").select("role").eq("id", auth.user.id).single();
+    isAdmin = viewerProfile?.role === "admin";
+  }
+
+  // Phone numbers and other contact detail live in each contact's `detail`
+  // field — admin-only, same redaction pattern as profiles_directory
+  // (0019_profiles_email_privacy.sql), just done here rather than via a
+  // view since event content is a JSONB blob, not a table column.
+  const content =
+    event.content && !isAdmin
+      ? {
+          ...event.content,
+          contacts: event.content.contacts?.map((group) => ({
+            ...group,
+            people: group.people.map((person) => ({ name: person.name, role: person.role })),
+          })),
+        }
+      : event.content;
 
   let fileUrl: string | null = null;
   if (event.function_sheet_id) {
@@ -34,8 +58,8 @@ export default async function EventDetailPage({ params }: PageProps<"/events/[id
         ← Back to Events
       </Link>
 
-      {event.content ? (
-        <EventGuide content={event.content} />
+      {content ? (
+        <EventGuide content={content} />
       ) : (
         <div>
           <h1
