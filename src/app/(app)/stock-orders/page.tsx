@@ -400,10 +400,12 @@ export default function StockOrdersPage() {
           {isAdmin && (
             <button
               onClick={() => setShowExport((v) => !v)}
-              className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-2xl"
-              style={{ background: "#FFFFFF", color: "#000000", border: "1px solid #000000" }}
+              aria-label="Export"
+              title="Export"
+              className="flex items-center justify-center shrink-0 rounded-2xl"
+              style={{ width: 28, height: 28, border: "1px solid #000000", color: "#000000" }}
             >
-              <Download size={13} /> Export
+              <Download size={14} />
             </button>
           )}
           <button
