@@ -23,6 +23,18 @@ export type TimelineDay = {
 // the guide so staff can see the split across a plated menu's choices.
 export type MenuLine = { qty?: number; text: string };
 
+// A single countable drink pre-order pulled from the function sheet's
+// beverage service section — distinct from `drinks` (the free-text display
+// list) because it's specifically for tallying up how much of something is
+// needed across every upcoming event, on the Stock Orders "From Events" tab.
+// Only genuine, countable pre-orders belong here — skip anything billed "on
+// consumption" or left for guests to choose/pay for themselves. `product`
+// should match verbatim across events for the same drink (e.g. always
+// "Prosecco", not "prosecco"/"Prosecco (sparkling)") so totals combine
+// correctly; entries only combine with others sharing the same `unit` too,
+// since e.g. glasses and bottles of the same drink can't be summed.
+export type DrinkOrderLine = { product: string; qty: number; unit?: string; note?: string };
+
 export type EventContent = {
   eyebrow?: string;
   venueLine?: string;
@@ -38,6 +50,7 @@ export type EventContent = {
   // (nothing to divide) is just a one-element array.
   menu?: { title: string; when?: string; courses: MenuLine[][]; flags?: string[] }[];
   drinks?: { title: string; when?: string; items: string[]; flags?: string[] }[];
+  drinkOrders?: DrinkOrderLine[];
   providedBy?: { heading: string; items: string[] }[];
   notes?: { heading: string; body: string }[];
   footer?: string;

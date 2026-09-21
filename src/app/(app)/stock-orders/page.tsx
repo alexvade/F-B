@@ -1,12 +1,28 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-import { RotateCcw, Plus, Trash2 } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import { ChevronDown, ChevronRight, RotateCcw, Plus, Trash2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useProfile } from "@/lib/profile-context";
 import { useFeatureFlag } from "@/lib/feature-flags-context";
 import { Section } from "@/components/section";
+import type { EventContent } from "@/lib/event-content";
 import { bg, border, fill, ink, inkSoft, navy, navyText, orange } from "@/lib/design-tokens";
+
+// Synthetic tab id for the collated drink-pre-orders view — not a real
+// stock_products.tab_label, so it can't collide with a synced sheet tab.
+const EVENTS_TAB = "__events__";
+
+type EventDrinkOrder = {
+  eventId: number;
+  eventTitle: string;
+  eventDate: string | null;
+  product: string;
+  qty: number;
+  unit?: string;
+  note?: string;
+};
 
 // Manually-added items (quick add or a brand new tab's first item) all fall
 // under one shared category, rather than asking for one — keeps adding an
@@ -55,6 +71,8 @@ export default function StockOrdersPage() {
   const [itemDraft, setItemDraft] = useState("");
   const [addingItem, setAddingItem] = useState(false);
   const [creatingTab, setCreatingTab] = useState(false);
+  const [eventOrders, setEventOrders] = useState<EventDrinkOrder[] | null>(null);
+  const [expandedProduct, setExpandedProduct] = useState<string | null>(null);
 
   const loadData = useCallback(async () => {
     const { data } = await supabase
@@ -86,6 +104,48 @@ export default function StockOrdersPage() {
       supabase.removeChannel(channel);
     };
   }, [loadData, supabase]);
+
+  const loadEventOrders = useCallback(async () => {
+    const { data } = await supabase
+      .from("events")
+      .select("id, title, event_date, content")
+      .order("event_date", { ascending: true, nullsFirst: false });
+    const rows: EventDrinkOrder[] = [];
+    for (const e of data ?? []) {
+      const content = e.content as EventContent | null;
+      for (const line of content?.drinkOrders ?? []) {
+        rows.push({
+          eventId: e.id,
+          eventTitle: e.title,
+          eventDate: e.event_date,
+          product: line.product,
+          qty: line.qty,
+          unit: line.unit,
+          note: line.note,
+        });
+      }
+    }
+    setEventOrders(rows);
+  }, [supabase]);
+
+  useEffect(() => {
+    if (tab === EVENTS_TAB && eventOrders === null) loadEventOrders();
+  }, [tab, eventOrders, loadEventOrders]);
+
+  const groupedEventOrders = useMemo(() => {
+    const map = new Map<string, { product: string; unit?: string; qty: number; lines: EventDrinkOrder[] }>();
+    for (const line of eventOrders ?? []) {
+      const key = `${line.product}__${line.unit ?? ""}`;
+      const existing = map.get(key);
+      if (existing) {
+        existing.qty += line.qty;
+        existing.lines.push(line);
+      } else {
+        map.set(key, { product: line.product, unit: line.unit, qty: line.qty, lines: [line] });
+      }
+    }
+    return Array.from(map.values()).sort((a, b) => b.qty - a.qty);
+  }, [eventOrders]);
 
   const commitQuantity = async (product: Product) => {
     const draft = drafts[product.id] ?? "";
@@ -214,6 +274,18 @@ export default function StockOrdersPage() {
               </button>
             );
           })}
+          <button
+            onClick={() => setTab(EVENTS_TAB)}
+            className="text-xs px-3.5 py-1.5 rounded-2xl shrink-0 whitespace-nowrap"
+            style={{
+              background: tab === EVENTS_TAB ? "#000000" : "#FFFFFF",
+              color: tab === EVENTS_TAB ? "#FFFFFF" : "#000000",
+              border: "1px solid #000000",
+              fontWeight: tab === EVENTS_TAB ? 600 : 400,
+            }}
+          >
+            From Events
+          </button>
         </div>
         <button
           onClick={createTab}
@@ -227,7 +299,7 @@ export default function StockOrdersPage() {
         </button>
       </div>
 
-      {tab && (
+      {tab && tab !== EVENTS_TAB && (
         <div className="flex items-center gap-2 mb-6">
           <input
             value={itemDraft}
@@ -248,7 +320,65 @@ export default function StockOrdersPage() {
         </div>
       )}
 
-      {tabProducts.length === 0 ? (
+      {tab === EVENTS_TAB ? (
+        eventOrders === null ? (
+          <p className="text-sm" style={{ color: inkSoft }}>
+            Loading…
+          </p>
+        ) : groupedEventOrders.length === 0 ? (
+          <p className="text-sm" style={{ color: inkSoft }}>
+            No drink pre-orders found on any event guide yet.
+          </p>
+        ) : (
+          <div className="flex flex-col gap-1">
+            {groupedEventOrders.map((g) => {
+              const key = `${g.product}__${g.unit ?? ""}`;
+              const open = expandedProduct === key;
+              return (
+                <div key={key} className="rounded-2xl overflow-hidden" style={{ background: bg, border: `1px solid ${border}` }}>
+                  <button
+                    onClick={() => setExpandedProduct(open ? null : key)}
+                    className="w-full flex items-center justify-between gap-3 p-3"
+                  >
+                    <span className="flex items-center gap-2 min-w-0">
+                      {open ? (
+                        <ChevronDown size={14} style={{ color: inkSoft }} />
+                      ) : (
+                        <ChevronRight size={14} style={{ color: inkSoft }} />
+                      )}
+                      <span className="text-sm font-medium truncate" style={{ color: ink }}>
+                        {g.product}
+                      </span>
+                    </span>
+                    <span className="text-sm font-semibold shrink-0" style={{ color: navyText }}>
+                      {g.qty}
+                      {g.unit ? ` ${g.unit}` : ""}
+                    </span>
+                  </button>
+                  {open && (
+                    <div className="px-3 pb-3 flex flex-col gap-1.5" style={{ borderTop: `1px solid ${border}` }}>
+                      {g.lines.map((l, i) => (
+                        <div key={i} className="flex items-center justify-between gap-3 pt-2 text-xs">
+                          <Link href={`/events/${l.eventId}`} className="truncate" style={{ color: navyText }}>
+                            {l.eventTitle}
+                            {l.eventDate &&
+                              ` · ${new Date(l.eventDate + "T00:00:00").toLocaleDateString(undefined, { day: "numeric", month: "short" })}`}
+                          </Link>
+                          <span className="shrink-0" style={{ color: inkSoft }}>
+                            {l.qty}
+                            {l.unit ? ` ${l.unit}` : ""}
+                            {l.note ? ` (${l.note})` : ""}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )
+      ) : tabProducts.length === 0 ? (
         <p className="text-sm" style={{ color: inkSoft }}>
           {tabs.length === 0 ? "No stock sheet synced yet." : "Nothing in this tab yet."}
         </p>
