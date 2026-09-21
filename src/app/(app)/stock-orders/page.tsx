@@ -94,6 +94,9 @@ export default function StockOrdersPage() {
   const [sectionItems, setSectionItems] = useState("");
   const [savingSection, setSavingSection] = useState(false);
   const [sectionError, setSectionError] = useState<string | null>(null);
+  const [addToCategory, setAddToCategory] = useState<string | null>(null);
+  const [categoryDraft, setCategoryDraft] = useState("");
+  const [addingCategoryItem, setAddingCategoryItem] = useState(false);
 
   const loadData = useCallback(async () => {
     const { data } = await supabase
@@ -280,6 +283,24 @@ export default function StockOrdersPage() {
       setItemDraft("");
     } finally {
       setAddingItem(false);
+    }
+  };
+
+  const addItemToCategory = async (category: string) => {
+    const product = categoryDraft.trim();
+    if (!product || !tab) return;
+    setAddingCategoryItem(true);
+    try {
+      await fetch("/api/stock/add-item", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tabLabel: tab, category, product }),
+      });
+      setCategoryDraft("");
+      setAddToCategory(null);
+      loadData();
+    } finally {
+      setAddingCategoryItem(false);
     }
   };
 
@@ -633,8 +654,22 @@ export default function StockOrdersPage() {
                   onClick={() => tab && renameSection(tab, cat)}
                   aria-label={`Rename ${cat}`}
                   title="Rename section"
+                  className="flex items-center justify-center shrink-0 rounded-full"
+                  style={{ width: 20, height: 20, border: "1px solid #000000" }}
                 >
-                  <Pencil size={11} style={{ color: inkSoft }} />
+                  <Pencil size={10} style={{ color: "#000000" }} />
+                </button>
+                <button
+                  onClick={() => {
+                    setAddToCategory((current) => (current === cat ? null : cat));
+                    setCategoryDraft("");
+                  }}
+                  aria-label={`Add item to ${cat}`}
+                  title="Add item to this section"
+                  className="flex items-center justify-center shrink-0 rounded-full"
+                  style={{ width: 20, height: 20, border: "1px solid #000000" }}
+                >
+                  <Plus size={11} style={{ color: "#000000" }} />
                 </button>
               </div>
               {i === 0 && (
@@ -648,6 +683,27 @@ export default function StockOrdersPage() {
                 </button>
               )}
             </div>
+            {addToCategory === cat && (
+              <div className="flex items-center gap-2 mb-2">
+                <input
+                  autoFocus
+                  value={categoryDraft}
+                  onChange={(e) => setCategoryDraft(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && addItemToCategory(cat)}
+                  placeholder={`Add to ${cat}…`}
+                  className="flex-1 text-sm px-4 py-2 rounded-full outline-none"
+                  style={{ border: `1px solid ${border}`, color: ink, background: fill }}
+                />
+                <button
+                  onClick={() => addItemToCategory(cat)}
+                  disabled={addingCategoryItem}
+                  className="text-xs font-medium px-3 py-1.5 rounded-2xl shrink-0 disabled:opacity-60"
+                  style={{ background: navy, color: "#FFFFFF" }}
+                >
+                  {addingCategoryItem ? "Adding…" : "Add"}
+                </button>
+              </div>
+            )}
             <div className="flex flex-col gap-1">
               {tabProducts
                 .filter((p) => p.category === cat)
