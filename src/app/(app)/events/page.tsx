@@ -34,7 +34,7 @@ export default function EventsPage() {
     const { data } = await supabase
       .from("events")
       .select("id, title, event_date, content")
-      .order("event_date", { ascending: false, nullsFirst: true })
+      .order("event_date", { ascending: true, nullsFirst: false })
       .order("id", { ascending: false });
     setEvents(data ?? []);
   }, [supabase]);
