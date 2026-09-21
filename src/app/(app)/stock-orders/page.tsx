@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { ChevronDown, ChevronRight, Download, RotateCcw, Plus, Trash2 } from "lucide-react";
+import { ChevronDown, ChevronRight, Download, Pencil, RotateCcw, Plus, Trash2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useProfile } from "@/lib/profile-context";
 import { useFeatureFlag } from "@/lib/feature-flags-context";
@@ -88,6 +88,11 @@ export default function StockOrdersPage() {
   const [savingEdit, setSavingEdit] = useState(false);
   const [editError, setEditError] = useState<string | null>(null);
   const [showExport, setShowExport] = useState(false);
+  const [addingSection, setAddingSection] = useState(false);
+  const [sectionName, setSectionName] = useState("");
+  const [sectionItems, setSectionItems] = useState("");
+  const [savingSection, setSavingSection] = useState(false);
+  const [sectionError, setSectionError] = useState<string | null>(null);
 
   const loadData = useCallback(async () => {
     const { data } = await supabase
@@ -277,6 +282,49 @@ export default function StockOrdersPage() {
     }
   };
 
+  const addSection = async () => {
+    const category = sectionName.trim();
+    const items = sectionItems
+      .split("\n")
+      .map((s) => s.trim())
+      .filter(Boolean);
+    if (!category || items.length === 0 || !tab) {
+      setSectionError("A section name and at least one item are required.");
+      return;
+    }
+    setSavingSection(true);
+    setSectionError(null);
+    try {
+      const res = await fetch("/api/stock/add-section", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tabLabel: tab, category, items }),
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setSectionError(body.error || "Couldn't add that section — try again.");
+        return;
+      }
+      setSectionName("");
+      setSectionItems("");
+      setAddingSection(false);
+      loadData();
+    } finally {
+      setSavingSection(false);
+    }
+  };
+
+  const renameSection = async (tabLabel: string, category: string) => {
+    const newName = prompt("Rename section", category)?.trim();
+    if (!newName || newName === category) return;
+    await fetch("/api/stock/rename-category", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ tabLabel, category, newCategory: newName }),
+    });
+    loadData();
+  };
+
   const createTab = async () => {
     const tabLabel = prompt("New tab name, e.g. Breakfast")?.trim();
     if (!tabLabel) return;
@@ -397,7 +445,7 @@ export default function StockOrdersPage() {
       )}
 
       {tab && tab !== EVENTS_TAB && (
-        <div className="flex items-center gap-2 mb-6">
+        <div className="flex items-center gap-2 mb-3">
           <input
             value={itemDraft}
             onChange={(e) => setItemDraft(e.target.value)}
@@ -414,6 +462,63 @@ export default function StockOrdersPage() {
           >
             {addingItem ? "Adding…" : "Add"}
           </button>
+        </div>
+      )}
+
+      {tab && tab !== EVENTS_TAB && (
+        <div className="mb-6">
+          <button
+            onClick={() => setAddingSection((v) => !v)}
+            className="text-xs font-medium"
+            style={{ color: navyText }}
+          >
+            {addingSection ? "Cancel" : `+ Add a section to ${tab}`}
+          </button>
+          {addingSection && (
+            <div
+              className="flex flex-col gap-2 mt-2 p-3 rounded-2xl"
+              style={{ background: bg, border: `1px solid ${border}` }}
+            >
+              <input
+                value={sectionName}
+                onChange={(e) => setSectionName(e.target.value)}
+                placeholder="Section name, e.g. Gin"
+                className="text-sm px-4 py-2 rounded-full outline-none"
+                style={{ border: `1px solid ${border}`, color: ink, background: fill }}
+              />
+              <textarea
+                value={sectionItems}
+                onChange={(e) => setSectionItems(e.target.value)}
+                placeholder={"One item per line, e.g.\nBombay Sapphire\nHendrick's\nTanqueray No. Ten"}
+                rows={4}
+                className="text-sm px-4 py-2 rounded-2xl outline-none resize-y"
+                style={{ border: `1px solid ${border}`, color: ink, background: fill }}
+              />
+              {sectionError && (
+                <p className="text-xs" style={{ color: "#E4002B" }}>
+                  {sectionError}
+                </p>
+              )}
+              <div className="flex gap-2">
+                <button
+                  onClick={addSection}
+                  disabled={savingSection}
+                  className="text-xs font-medium px-3 py-1.5 rounded-2xl disabled:opacity-60"
+                  style={{ background: navy, color: "#FFFFFF" }}
+                >
+                  {savingSection ? "Adding…" : "Add section"}
+                </button>
+                <button
+                  onClick={() => setAddingSection(false)}
+                  disabled={savingSection}
+                  className="text-xs font-medium px-3 py-1.5 rounded-2xl disabled:opacity-60"
+                  style={{ background: "#FFFFFF", color: "#000000", border: "1px solid #000000" }}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -483,8 +588,17 @@ export default function StockOrdersPage() {
         categories.map((cat, i) => (
           <div key={cat} className="mb-6">
             <div className="flex items-center justify-between mb-2">
-              <div className="text-xs font-semibold" style={{ color: orange }}>
-                {cat.toUpperCase()}
+              <div className="flex items-center gap-1.5">
+                <div className="text-xs font-semibold" style={{ color: orange }}>
+                  {cat.toUpperCase()}
+                </div>
+                <button
+                  onClick={() => tab && renameSection(tab, cat)}
+                  aria-label={`Rename ${cat}`}
+                  title="Rename section"
+                >
+                  <Pencil size={11} style={{ color: inkSoft }} />
+                </button>
               </div>
               {i === 0 && (
                 <button
