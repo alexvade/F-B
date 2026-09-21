@@ -139,14 +139,15 @@ export async function GET(request: Request) {
   doc.moveDown(1);
 
   const columns = [
-    { key: "date" as const, label: "Date", width: 65 },
-    { key: "section" as const, label: "Section", width: 65 },
-    { key: "checklist" as const, label: "Checklist", width: 100 },
-    { key: "item" as const, label: "Item", width: 155 },
+    { key: "date" as const, label: "Date", width: 60 },
+    { key: "section" as const, label: "Section", width: 60 },
+    { key: "checklist" as const, label: "Checklist", width: 90 },
+    { key: "item" as const, label: "Item", width: 165 },
     { key: "completedBy" as const, label: "By", width: 60 },
-    { key: "completedAt" as const, label: "Completed At", width: 90 },
+    { key: "completedAt" as const, label: "Completed At", width: 80 },
   ];
-  const rowHeight = 16;
+  const rowPadding = 6;
+  const headerRowHeight = 16;
 
   let y = doc.y;
   const drawHeader = () => {
@@ -156,7 +157,7 @@ export async function GET(request: Request) {
       doc.text(c.label, x, y, { width: c.width, lineBreak: false });
       x += c.width;
     }
-    y += rowHeight;
+    y += headerRowHeight;
     doc
       .moveTo(doc.page.margins.left, y)
       .lineTo(doc.page.width - doc.page.margins.right, y)
@@ -166,16 +167,22 @@ export async function GET(request: Request) {
   };
   drawHeader();
 
+  doc.fontSize(8);
   for (const r of rows) {
-    if (y > doc.page.height - doc.page.margins.bottom - rowHeight) {
+    const rowHeight =
+      Math.max(...columns.map((c) => doc.heightOfString(r[c.key], { width: c.width }))) + rowPadding;
+
+    if (y + rowHeight > doc.page.height - doc.page.margins.bottom) {
       doc.addPage();
       y = doc.page.margins.top;
       drawHeader();
+      doc.fontSize(8);
     }
+
     let x = doc.page.margins.left;
-    doc.fontSize(8).fillColor("#000");
+    doc.fillColor("#000");
     for (const c of columns) {
-      doc.text(r[c.key], x, y, { width: c.width, lineBreak: false });
+      doc.text(r[c.key], x, y, { width: c.width });
       x += c.width;
     }
     y += rowHeight;
