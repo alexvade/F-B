@@ -5,8 +5,11 @@ import { parseRotaSheet } from "@/lib/rota-sheet";
 // Called by the Apps Script bound to the F&B Rota Google Sheet whenever it's
 // edited (see docs/rota-sheet-sync.md for the script + setup steps). Fetches
 // that one week-tab's CSV export and upserts it into rota_shifts /
-// daily_covers / daily_events. Staff are matched to existing accounts by
-// name — anyone not yet invited is reported back in `unmatched`, not synced.
+// daily_events. Staff are matched to existing accounts by name — anyone not
+// yet invited is reported back in `unmatched`, not synced.
+//
+// Does NOT touch daily_covers — GIH/breakfast/etc. figures come solely from
+// the WHH Daily Overview spreadsheet import (scripts/import-daily-overview.mjs).
 export async function POST(request: Request) {
   const secret = request.headers.get("x-rota-sync-secret");
   if (!secret || secret !== process.env.ROTA_SYNC_SECRET) {
@@ -72,11 +75,6 @@ export async function POST(request: Request) {
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  if (parsed.covers.length) {
-    const { error } = await supabase.from("daily_covers").upsert(parsed.covers, { onConflict: "date" });
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  }
-
   if (parsed.dates.length) {
     const { error: deleteError } = await supabase
       .from("daily_events")
@@ -104,7 +102,6 @@ export async function POST(request: Request) {
     ok: true,
     datesSynced: parsed.dates,
     shiftsWritten: shiftRows.length,
-    coversWritten: parsed.covers.length,
     eventsWritten: parsed.events.length,
     unmatched: Array.from(unmatched),
   });

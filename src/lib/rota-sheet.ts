@@ -8,12 +8,10 @@ export type ParsedShift = {
   start_time: string | null;
   end_time: string | null;
 };
-export type ParsedCovers = { date: string; gih_count: number | null; breakfast_count: number | null };
 export type ParsedEvent = { date: string; room: string; title: string; details: string | null };
 
 export type ParsedRotaSheet = {
   shifts: ParsedShift[];
-  covers: ParsedCovers[];
   events: ParsedEvent[];
   dates: string[];
   /** Staff names in the order their rows appear in the sheet. */
@@ -48,14 +46,11 @@ export function parseRotaSheet(csvText: string): ParsedRotaSheet {
     if (iso) dayColumns.push({ col: i, date: iso });
   }
 
-  const covers: ParsedCovers[] = dayColumns.map((d) => ({
-    date: d.date,
-    gih_count: null,
-    breakfast_count: null,
-  }));
-  const coversByDate = new Map(covers.map((c) => [c.date, c]));
-
   // --- Section above "Date": GIH / Breakfast / room & event bookings ---
+  // GIH and Breakfast rows are no longer read into daily_covers — those
+  // figures now come solely from the WHH Daily Overview spreadsheet import
+  // (scripts/import-daily-overview.mjs) — but the rows still need skipping
+  // here so they aren't mistaken for a room/event booking row.
   const eventsByRoomDate = new Map<string, ParsedEvent>();
   let lastRoomLabel: string | null = null;
 
@@ -64,21 +59,7 @@ export function parseRotaSheet(csvText: string): ParsedRotaSheet {
     const label = row[0] ?? "";
     const labelLower = label.toLowerCase();
     if (!label || labelLower === "notes") continue;
-
-    if (labelLower === "gih") {
-      for (const d of dayColumns) {
-        const v = row[d.col];
-        if (v) coversByDate.get(d.date)!.gih_count = Number(v) || null;
-      }
-      continue;
-    }
-    if (labelLower === "breakfast") {
-      for (const d of dayColumns) {
-        const v = row[d.col];
-        if (v) coversByDate.get(d.date)!.breakfast_count = Number(v) || null;
-      }
-      continue;
-    }
+    if (labelLower === "gih" || labelLower === "breakfast") continue;
 
     const lunchDinnerMatch = /^(.*)\s+lunch\s*\|\s*dinner$/i.exec(label);
     if (lunchDinnerMatch && lunchDinnerMatch[1].trim() === lastRoomLabel) {
@@ -151,7 +132,6 @@ export function parseRotaSheet(csvText: string): ParsedRotaSheet {
 
   return {
     shifts,
-    covers,
     staffOrder,
     events: Array.from(eventsByRoomDate.values()),
     dates: dayColumns.map((d) => d.date),

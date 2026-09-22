@@ -13,7 +13,7 @@ https://docs.google.com/spreadsheets/d/<SHEET_ID>/export?format=csv&gid=<TAB_GID
 A small Apps Script bound to the Sheet fires on every edit and calls the
 app's `/api/sync/rota-sheet` webhook with just the tab's `gid`. The webhook
 re-fetches that tab's CSV, parses it (`src/lib/rota-sheet.ts`), and upserts
-`rota_shifts`, `daily_covers`, and `daily_events` for that week.
+`rota_shifts` and `daily_events` for that week.
 
 Staff are matched to existing accounts **by name** (case-insensitive, minus
 the `(40)`/`(C)` contract suffix). Anyone in the sheet who hasn't been
@@ -21,8 +21,14 @@ invited yet via **Manage staff** is skipped and reported in the response's
 `unmatched` list — invite them, and the next edit (or a manual re-sync) will
 pick their shifts up.
 
-Only `rota_shifts` / `daily_covers` / `daily_events` are touched — never
-`profiles`, so this can't accidentally create or modify accounts.
+Only `rota_shifts` / `daily_events` are touched — never `profiles`, so this
+can't accidentally create or modify accounts. It also no longer touches
+`daily_covers`: the GIH/breakfast/afternoon-tea/etc. figures on the
+dashboard's Guests card come solely from the WHH Daily Overview spreadsheet
+import (`scripts/import-daily-overview.mjs`) now, not from this sheet — the
+sheet's own `GIH`/`Breakfast` rows are still parsed just enough to be
+skipped over (so they aren't mistaken for a room/event booking row), but
+their values are discarded.
 
 ## One-time setup (per Google account that owns the Sheet)
 
