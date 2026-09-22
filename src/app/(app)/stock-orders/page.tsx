@@ -45,6 +45,8 @@ const QUICK_ADD_CATEGORY = "General";
 const QUICK_EMAIL_CONTACTS = [
   { label: "Alex", email: "avadeanu@handpicked.co.uk" },
   { label: "Shane", email: "wzhao@handpicked.co.uk" },
+  { label: "Ali", email: "adiouf@handpicked.co.uk" },
+  { label: "Jamie", email: "jbrunskill@handpicked.co.uk" },
 ];
 
 // Fallback display order for a tab with no row in stock_tab_order (i.e.
