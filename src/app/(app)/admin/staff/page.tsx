@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Trash2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useProfile } from "@/lib/profile-context";
+import { usePresenceViewer } from "@/lib/presence";
 import { Section } from "@/components/section";
 import { border, fill, ink, inkSoft, navy, orangeSoft } from "@/lib/design-tokens";
 import type { Role } from "@/lib/supabase/types";
@@ -13,6 +14,7 @@ type StaffRow = { id: string; name: string; email: string | null; role: Role; co
 export default function StaffAdminPage() {
   const profile = useProfile();
   const supabase = createClient();
+  const presence = usePresenceViewer();
 
   const [staff, setStaff] = useState<StaffRow[]>([]);
   const [name, setName] = useState("");
@@ -157,12 +159,29 @@ export default function StaffAdminPage() {
       </div>
 
       <div className="flex flex-col gap-1">
-        {staff.map((s) => (
+        {staff.map((s) => {
+          const status = presence.get(s.id);
+          const statusLabel = status === "online" ? "Online" : status === "idle" ? "Idle" : "Offline";
+          return (
           <div key={s.id} className="flex items-center justify-between p-3 rounded-2xl" style={{ border: `1px solid ${border}` }}>
             <div>
-              <div className="text-sm font-medium">{s.name}</div>
+              <div className="text-sm font-medium flex items-center gap-1.5">
+                <span
+                  aria-hidden
+                  style={{
+                    width: 8,
+                    height: 8,
+                    borderRadius: "50%",
+                    flexShrink: 0,
+                    background: status === "online" ? "#000000" : "transparent",
+                    border: `1.5px solid ${border}`,
+                    opacity: status ? 1 : 0.3,
+                  }}
+                />
+                {s.name}
+              </div>
               <div className="text-xs" style={{ color: inkSoft }}>
-                {s.email} {s.contract_hours ? `· ${s.contract_hours}h contract` : ""}
+                {statusLabel} · {s.email} {s.contract_hours ? `· ${s.contract_hours}h contract` : ""}
               </div>
             </div>
             <div className="flex items-center gap-2 shrink-0">
@@ -182,7 +201,8 @@ export default function StaffAdminPage() {
               )}
             </div>
           </div>
-        ))}
+          );
+        })}
       </div>
     </Section>
   );
