@@ -103,6 +103,19 @@ function addGridSheet(
     for (const i of items) row[String(i.id)] = cellFor(i, date, completionByKey);
     sheet.addRow(row);
   }
+
+  const thinBorder = { style: "thin" as const, color: { argb: "FF999999" } };
+  const numCols = items.length + 1;
+  for (let r = 1; r <= dates.length + 1; r++) {
+    for (let c = 1; c <= numCols; c++) {
+      sheet.getRow(r).getCell(c).border = {
+        top: thinBorder,
+        left: thinBorder,
+        bottom: thinBorder,
+        right: thinBorder,
+      };
+    }
+  }
 }
 
 function drawGridSection(
@@ -126,49 +139,47 @@ function drawGridSection(
     { key: "__date", label: "Date", width: dateColWidth },
     ...items.map((i) => ({ key: String(i.id), label: i.text, width: itemColWidth })),
   ];
-  const rowPadding = 6;
+
+  const cellPad = 4;
+  const tableLeft = doc.page.margins.left;
 
   let y = doc.y;
-  const drawHeader = () => {
-    let x = doc.page.margins.left;
+  const drawRow = (cells: Record<string, string>, bold: boolean) => {
+    const height =
+      Math.max(...columns.map((c) => doc.heightOfString(cells[c.key], { width: c.width - cellPad * 2 }))) +
+      cellPad * 2;
+    let x = tableLeft;
     doc.fontSize(8).fillColor("#000");
-    const headerHeight =
-      Math.max(...columns.map((c) => doc.heightOfString(c.label, { width: c.width }))) + rowPadding;
     for (const c of columns) {
-      doc.text(c.label, x, y, { width: c.width });
+      doc.rect(x, y, c.width, height).strokeColor("#999").lineWidth(0.75).stroke();
+      doc.font(bold ? "Helvetica-Bold" : "Helvetica").text(cells[c.key], x + cellPad, y + cellPad, {
+        width: c.width - cellPad * 2,
+      });
       x += c.width;
     }
-    y += headerHeight;
-    doc
-      .moveTo(doc.page.margins.left, y)
-      .lineTo(doc.page.width - doc.page.margins.right, y)
-      .strokeColor("#999")
-      .stroke();
-    y += 4;
+    doc.font("Helvetica");
+    y += height;
+    return height;
+  };
+  const drawHeader = () => {
+    const headerCells: Record<string, string> = Object.fromEntries(columns.map((c) => [c.key, c.label]));
+    drawRow(headerCells, true);
   };
   drawHeader();
 
-  doc.fontSize(8);
   for (const date of dates) {
     const cells: Record<string, string> = { __date: formatDay(date) };
     for (const i of items) cells[String(i.id)] = cellFor(i, date, completionByKey);
 
-    const rowHeight =
-      Math.max(...columns.map((c) => doc.heightOfString(cells[c.key], { width: c.width }))) + rowPadding;
-    if (y + rowHeight > doc.page.height - doc.page.margins.bottom) {
+    const projectedHeight =
+      Math.max(...columns.map((c) => doc.heightOfString(cells[c.key], { width: c.width - cellPad * 2 }))) +
+      cellPad * 2;
+    if (y + projectedHeight > doc.page.height - doc.page.margins.bottom) {
       doc.addPage();
       y = doc.page.margins.top;
       drawHeader();
-      doc.fontSize(8);
     }
-
-    let x = doc.page.margins.left;
-    doc.fillColor("#000");
-    for (const c of columns) {
-      doc.text(cells[c.key], x, y, { width: c.width });
-      x += c.width;
-    }
-    y += rowHeight;
+    drawRow(cells, false);
   }
 
   if (dates.length === 0) {
