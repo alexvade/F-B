@@ -31,7 +31,7 @@ import { bg, bgText, bgTextSoft, border, ink, inkSoft, navy, orange, panel, surf
 import { ThemeContext } from "@/lib/theme-context";
 
 const NAV_ITEMS = [
-  { href: "/menus", label: "Menus", icon: UtensilsCrossed },
+  { href: "/menus", label: "Drinks", icon: UtensilsCrossed },
   { href: "/updates", label: "Noticeboard", icon: MessageCircle },
   { href: "/rota", label: "Rota", icon: CalendarDays },
   { href: "/checklists", label: "Checklists", icon: CheckSquare },

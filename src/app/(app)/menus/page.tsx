@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Martini, Wine, Coffee, Cookie, UtensilsCrossed, GlassWater, BedDouble } from "lucide-react";
+import { Martini, Wine } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { bg, border, inkSoft, navyText, orange } from "@/lib/design-tokens";
 
@@ -13,11 +13,6 @@ export default async function MenusPage() {
   const tiles = [
     { href: "/menus/cocktails", label: "Cocktails", icon: Martini, subtitle: `${cocktailCount ?? 0} drinks` },
     { href: "/menus/wines", label: "Wines", icon: Wine, subtitle: `${wineCount ?? 0} wines` },
-    { href: "/menus/breakfast", label: "Breakfast", icon: Coffee, subtitle: "Coming soon" },
-    { href: "/menus/afternoon-tea", label: "Afternoon Tea", icon: Cookie, subtitle: "" },
-    { href: "/menus/dinner", label: "Dinner", icon: UtensilsCrossed, subtitle: "" },
-    { href: "/menus/bar", label: "Bar", icon: GlassWater, subtitle: "Coming soon" },
-    { href: "/menus/in-room-dining", label: "In-Room Dining", icon: BedDouble, subtitle: "Coming soon" },
   ];
 
   return (
@@ -26,7 +21,7 @@ export default async function MenusPage() {
         className="text-lg font-semibold mb-1 inline-block pb-1"
         style={{ color: navyText, borderBottom: `3px solid ${orange}` }}
       >
-        Menus
+        Drinks
       </h1>
       <p className="text-sm mb-6 mt-2" style={{ color: inkSoft }}>
         Choose a menu to browse
