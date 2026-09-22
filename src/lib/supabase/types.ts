@@ -90,8 +90,32 @@ export interface Database {
         }
       >;
       daily_covers: Table<
-        { date: string; gih_count: number | null; breakfast_count: number | null },
-        { date: string; gih_count?: number | null; breakfast_count?: number | null }
+        {
+          date: string;
+          gih_count: number | null;
+          breakfast_count: number | null;
+          rooms_in_house: number | null;
+          arrival_rooms: number | null;
+          departure_rooms: number | null;
+          afternoon_tea: number | null;
+          dinner_covers: number | null;
+          confirmed_events: number | null;
+          non_resident_dinners: number | null;
+          floaters: number | null;
+        },
+        {
+          date: string;
+          gih_count?: number | null;
+          breakfast_count?: number | null;
+          rooms_in_house?: number | null;
+          arrival_rooms?: number | null;
+          departure_rooms?: number | null;
+          afternoon_tea?: number | null;
+          dinner_covers?: number | null;
+          confirmed_events?: number | null;
+          non_resident_dinners?: number | null;
+          floaters?: number | null;
+        }
       >;
       rota_staff_order: Table<
         { staff_name: string; sort_order: number },

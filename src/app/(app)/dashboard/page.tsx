@@ -2,10 +2,23 @@
 
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
-import { Clock, Sparkles, Users, BedDouble, CheckSquare, Cake, Trash2, History, Pencil, Check } from "lucide-react";
+import {
+  Clock,
+  Sparkles,
+  Users,
+  BedDouble,
+  CheckSquare,
+  Cake,
+  Trash2,
+  History,
+  Pencil,
+  Check,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useProfile } from "@/lib/profile-context";
-import { todayISO, checklistDayISO } from "@/lib/dates";
+import { todayISO, checklistDayISO, addDaysISO } from "@/lib/dates";
 import { timestamp } from "@/lib/relative-time";
 import { computeShiftStatus, initials } from "@/lib/shift-status";
 import type { EventContent } from "@/lib/event-content";
@@ -24,6 +37,20 @@ import {
   orangeSoft,
 } from "@/lib/design-tokens";
 
+type DailyCovers = {
+  date: string;
+  gih_count: number | null;
+  breakfast_count: number | null;
+  rooms_in_house: number | null;
+  arrival_rooms: number | null;
+  departure_rooms: number | null;
+  afternoon_tea: number | null;
+  dinner_covers: number | null;
+  confirmed_events: number | null;
+  non_resident_dinners: number | null;
+  floaters: number | null;
+};
+const GUESTS_CARD_DAYS_AHEAD = 7;
 type WorkingToday = { name: string; start: string | null; end: string | null };
 type EventRow = { id: number; title: string; content: EventContent | null };
 type BirthdayRow = { id: number; name: string; day: number; month: number };
@@ -96,7 +123,8 @@ export default function DashboardPage() {
   }, []);
 
   const [now, setNow] = useState(new Date());
-  const [covers, setCovers] = useState<{ gih_count: number | null; breakfast_count: number | null } | null>(null);
+  const [coversByDate, setCoversByDate] = useState<Map<string, DailyCovers>>(new Map());
+  const [guestsDayOffset, setGuestsDayOffset] = useState(0);
   const [working, setWorking] = useState<WorkingToday[]>([]);
   const [events, setEvents] = useState<EventRow[]>([]);
   const [birthdays, setBirthdays] = useState<BirthdayRow[]>([]);
@@ -125,7 +153,11 @@ export default function DashboardPage() {
   const loadData = useCallback(async () => {
     const [coversRes, shiftsRes, eventsRes, birthdaysRes, todayTodosRes, outstandingRes, overridesRes] =
       await Promise.all([
-        supabase.from("daily_covers").select("*").eq("date", today).maybeSingle(),
+        supabase
+          .from("daily_covers")
+          .select("*")
+          .gte("date", today)
+          .lte("date", addDaysISO(today, GUESTS_CARD_DAYS_AHEAD)),
         supabase
           .from("rota_shifts")
           .select("staff_id, staff_name, start_time, end_time, status")
@@ -147,7 +179,7 @@ export default function DashboardPage() {
         supabase.from("event_line_overrides").select("*").order("changed_at"),
       ]);
 
-    setCovers(coversRes.data ?? null);
+    setCoversByDate(new Map((coversRes.data ?? []).map((c) => [c.date, c])));
     setEvents(eventsRes.data ?? []);
     setBirthdays(birthdaysRes.data ?? []);
 
@@ -331,6 +363,13 @@ export default function DashboardPage() {
     second: "2-digit",
   });
 
+  const guestsDate = addDaysISO(today, guestsDayOffset);
+  const guestsCovers = coversByDate.get(guestsDate) ?? null;
+  const guestsDateLabel =
+    guestsDayOffset === 0
+      ? "today"
+      : new Date(guestsDate + "T00:00:00").toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short" });
+
   return (
     <div>
       <h1
@@ -383,7 +422,8 @@ export default function DashboardPage() {
       )}
 
       <div className="grid sm:grid-cols-2 gap-4 mb-4">
-        {/* Guests today */}
+        {/* Guests — pages through today + the next several days via the
+            "WHH Daily Overview" spreadsheet import (scripts/import-daily-overview.mjs) */}
         <div
           className="p-4 rounded-2xl"
           style={{
@@ -391,34 +431,59 @@ export default function DashboardPage() {
             border: `1px solid ${border}`,
           }}
         >
-          <div className="flex items-center gap-2 mb-3">
-            <BedDouble size={15} style={{ color: orange }} />
-            <span className="text-sm font-medium" style={{ color: navyText }}>
-              Guests today
-            </span>
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <BedDouble size={15} style={{ color: orange }} />
+              <span className="text-sm font-medium" style={{ color: navyText }}>
+                Guests {guestsDateLabel}
+              </span>
+            </div>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => setGuestsDayOffset((d) => Math.max(0, d - 1))}
+                disabled={guestsDayOffset === 0}
+                aria-label="Previous day"
+                className="flex items-center justify-center rounded-full disabled:opacity-30"
+                style={{ width: 20, height: 20, border: `1px solid ${border}` }}
+              >
+                <ChevronLeft size={12} />
+              </button>
+              <button
+                onClick={() => setGuestsDayOffset((d) => Math.min(GUESTS_CARD_DAYS_AHEAD, d + 1))}
+                disabled={guestsDayOffset >= GUESTS_CARD_DAYS_AHEAD}
+                aria-label="Next day"
+                className="flex items-center justify-center rounded-full disabled:opacity-30"
+                style={{ width: 20, height: 20, border: `1px solid ${border}` }}
+              >
+                <ChevronRight size={12} />
+              </button>
+            </div>
           </div>
-          {covers ? (
-            <div className="flex items-center gap-8">
-              <div>
-                <div className="text-xs" style={{ color: inkSoft }}>
-                  Breakfast
+          {guestsCovers ? (
+            <div className="grid grid-cols-2 gap-x-4 gap-y-3">
+              {[
+                { label: "Rooms", value: guestsCovers.rooms_in_house },
+                { label: "GIH", value: guestsCovers.gih_count },
+                { label: "Breakfast", value: guestsCovers.breakfast_count },
+                { label: "Afternoon tea", value: guestsCovers.afternoon_tea },
+                { label: "Dinner covers", value: guestsCovers.dinner_covers },
+                { label: "Events / out", value: guestsCovers.confirmed_events },
+                { label: "Non-res dinners", value: guestsCovers.non_resident_dinners },
+                { label: "Floaters", value: guestsCovers.floaters },
+              ].map((s) => (
+                <div key={s.label}>
+                  <div className="text-xs" style={{ color: inkSoft }}>
+                    {s.label}
+                  </div>
+                  <div className="text-xl font-semibold" style={{ color: navyText }}>
+                    {s.value ?? "–"}
+                  </div>
                 </div>
-                <div className="text-2xl font-semibold" style={{ color: navyText }}>
-                  {covers.breakfast_count ?? "–"}
-                </div>
-              </div>
-              <div>
-                <div className="text-xs" style={{ color: inkSoft }}>
-                  GIH
-                </div>
-                <div className="text-2xl font-semibold" style={{ color: navyText }}>
-                  {covers.gih_count ?? "–"}
-                </div>
-              </div>
+              ))}
             </div>
           ) : (
             <p className="text-sm" style={{ color: inkSoft }}>
-              No data for today
+              No data for this date
             </p>
           )}
         </div>
