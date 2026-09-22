@@ -420,6 +420,32 @@ export default function StockOrdersPage() {
   const tabProducts = products.filter((p) => p.tab_label === tab);
   const categories = Array.from(new Set(tabProducts.map((p) => p.category)));
 
+  // Shared by the download and email panels — both let you pick which tabs
+  // to include from the same `exportTabs` selection.
+  const tabCheckboxes = (
+    <div className="flex flex-wrap gap-x-4 gap-y-1.5">
+      {tabs.map((t) => (
+        <label key={t} className="flex items-center gap-1.5 text-xs" style={{ color: ink }}>
+          <input
+            type="checkbox"
+            checked={exportTabs.includes(t)}
+            onChange={(e) =>
+              setExportTabs((prev) => (e.target.checked ? [...prev, t] : prev.filter((x) => x !== t)))
+            }
+          />
+          {t}
+        </label>
+      ))}
+      <button
+        onClick={() => setExportTabs((prev) => (prev.length === tabs.length ? [] : tabs))}
+        className="text-xs underline"
+        style={{ color: navyText }}
+      >
+        {exportTabs.length === tabs.length ? "Select none" : "Select all"}
+      </button>
+    </div>
+  );
+
   if (!canAccess) {
     return (
       <Section title="Stock Orders">
@@ -432,9 +458,8 @@ export default function StockOrdersPage() {
 
   return (
     <Section title="Stock Orders" subtitle="Add a quantity for anything that needs ordering">
-      <div className="flex items-center justify-between gap-3 mb-6">
-        <div className="flex gap-1.5 overflow-x-auto pb-1 items-center" style={{ scrollbarWidth: "thin" }}>
-          {tabs.map((t, i) => {
+      <div className="flex gap-1.5 overflow-x-auto pb-1 items-center mb-3" style={{ scrollbarWidth: "thin" }}>
+        {tabs.map((t, i) => {
             const active = t === tab;
             return (
               <div key={t} className="flex items-center gap-0.5 shrink-0">
@@ -487,47 +512,6 @@ export default function StockOrdersPage() {
           >
             From Events
           </button>
-        </div>
-        <div className="flex items-center gap-2 shrink-0">
-          {isAdmin && (
-            <button
-              onClick={() => {
-                setShowExport((v) => !v);
-                setExportTabs((prev) => (prev.length === 0 ? tabs : prev));
-              }}
-              aria-label="Export"
-              title="Export"
-              className="flex items-center justify-center shrink-0 rounded-2xl"
-              style={{ width: 28, height: 28, border: "1px solid #000000", color: "#000000" }}
-            >
-              <Download size={14} />
-            </button>
-          )}
-          <button
-            onClick={() => setReorderingTabs((v) => !v)}
-            aria-label="Reorder tabs"
-            title="Reorder tabs"
-            className="flex items-center justify-center shrink-0 rounded-2xl"
-            style={{
-              width: 28,
-              height: 28,
-              border: `1px solid ${reorderingTabs ? navy : "#000000"}`,
-              background: reorderingTabs ? navy : "transparent",
-            }}
-          >
-            <ArrowLeftRight size={13} style={{ color: reorderingTabs ? "#FFFFFF" : "#000000" }} />
-          </button>
-          <button
-            onClick={createTab}
-            disabled={creatingTab}
-            aria-label="New tab"
-            title="New tab"
-            className="flex items-center justify-center shrink-0 rounded-2xl disabled:opacity-60"
-            style={{ width: 28, height: 28, border: "1px solid #000000", color: "#000000" }}
-          >
-            <Plus size={14} />
-          </button>
-        </div>
       </div>
 
       {showExport && isAdmin && (
@@ -538,27 +522,7 @@ export default function StockOrdersPage() {
           <span className="text-xs" style={{ color: inkSoft }}>
             Everything with a quantity set right now, from these tabs:
           </span>
-          <div className="flex flex-wrap gap-x-4 gap-y-1.5">
-            {tabs.map((t) => (
-              <label key={t} className="flex items-center gap-1.5 text-xs" style={{ color: ink }}>
-                <input
-                  type="checkbox"
-                  checked={exportTabs.includes(t)}
-                  onChange={(e) =>
-                    setExportTabs((prev) => (e.target.checked ? [...prev, t] : prev.filter((x) => x !== t)))
-                  }
-                />
-                {t}
-              </label>
-            ))}
-            <button
-              onClick={() => setExportTabs((prev) => (prev.length === tabs.length ? [] : tabs))}
-              className="text-xs underline"
-              style={{ color: navyText }}
-            >
-              {exportTabs.length === tabs.length ? "Select none" : "Select all"}
-            </button>
-          </div>
+          {tabCheckboxes}
           <div className="flex items-center gap-2">
             {exportTabs.length === 0 ? (
               <span className="text-xs" style={{ color: inkSoft }}>
@@ -580,70 +544,52 @@ export default function StockOrdersPage() {
                 >
                   .pdf
                 </a>
-                <button
-                  onClick={() => {
-                    setShowEmailForm((v) => !v);
-                    setEmailStatus(null);
-                  }}
-                  aria-label="Send by email"
-                  title="Send by email"
-                  className="flex items-center justify-center shrink-0 rounded-full"
-                  style={{
-                    width: 28,
-                    height: 28,
-                    border: `1px solid ${showEmailForm ? navy : "#000000"}`,
-                    background: showEmailForm ? navy : "transparent",
-                  }}
-                >
-                  <SendIcon size={13} style={{ color: showEmailForm ? "#FFFFFF" : "#000000" }} />
-                </button>
               </>
             )}
           </div>
+        </div>
+      )}
 
-          {showEmailForm && (
-            <div className="flex flex-col gap-2">
-              <input
-                type="email"
-                value={emailTo}
-                onChange={(e) => setEmailTo(e.target.value)}
-                placeholder="Send to…"
-                className="text-sm px-4 py-2 rounded-full outline-none"
-                style={{ border: `1px solid ${border}`, color: ink, background: fill }}
-              />
-              <div className="flex items-center gap-4">
-                <label className="flex items-center gap-1.5 text-xs" style={{ color: ink }}>
-                  <input
-                    type="radio"
-                    checked={emailFormat === "xlsx"}
-                    onChange={() => setEmailFormat("xlsx")}
-                  />
-                  .xlsx
-                </label>
-                <label className="flex items-center gap-1.5 text-xs" style={{ color: ink }}>
-                  <input
-                    type="radio"
-                    checked={emailFormat === "pdf"}
-                    onChange={() => setEmailFormat("pdf")}
-                  />
-                  .pdf
-                </label>
-              </div>
-              {emailStatus && (
-                <p className="text-xs" style={{ color: emailStatus.ok ? inkSoft : "#E4002B" }}>
-                  {emailStatus.message}
-                </p>
-              )}
-              <button
-                onClick={sendReportEmail}
-                disabled={sendingEmail || !emailTo.trim() || exportTabs.length === 0}
-                className="text-xs font-medium px-3 py-1.5 rounded-2xl w-fit disabled:opacity-60"
-                style={{ background: navy, color: "#FFFFFF" }}
-              >
-                {sendingEmail ? "Sending…" : "Send"}
-              </button>
-            </div>
+      {showEmailForm && isAdmin && (
+        <div
+          className="flex flex-col gap-3 p-3 rounded-2xl mb-6"
+          style={{ background: bg, border: `1px solid ${border}` }}
+        >
+          <span className="text-xs" style={{ color: inkSoft }}>
+            Email everything with a quantity set right now, from these tabs:
+          </span>
+          {tabCheckboxes}
+          <input
+            type="email"
+            value={emailTo}
+            onChange={(e) => setEmailTo(e.target.value)}
+            placeholder="Send to…"
+            className="text-sm px-4 py-2 rounded-full outline-none"
+            style={{ border: `1px solid ${border}`, color: ink, background: fill }}
+          />
+          <div className="flex items-center gap-4">
+            <label className="flex items-center gap-1.5 text-xs" style={{ color: ink }}>
+              <input type="radio" checked={emailFormat === "xlsx"} onChange={() => setEmailFormat("xlsx")} />
+              .xlsx
+            </label>
+            <label className="flex items-center gap-1.5 text-xs" style={{ color: ink }}>
+              <input type="radio" checked={emailFormat === "pdf"} onChange={() => setEmailFormat("pdf")} />
+              .pdf
+            </label>
+          </div>
+          {emailStatus && (
+            <p className="text-xs" style={{ color: emailStatus.ok ? inkSoft : "#E4002B" }}>
+              {emailStatus.message}
+            </p>
           )}
+          <button
+            onClick={sendReportEmail}
+            disabled={sendingEmail || !emailTo.trim() || exportTabs.length === 0}
+            className="text-xs font-medium px-3 py-1.5 rounded-2xl w-fit disabled:opacity-60"
+            style={{ background: navy, color: "#FFFFFF" }}
+          >
+            {sendingEmail ? "Sending…" : "Send"}
+          </button>
         </div>
       )}
 
@@ -797,14 +743,75 @@ export default function StockOrdersPage() {
                 </button>
               </div>
               {i === 0 && (
-                <button
-                  onClick={resetAllQuantities}
-                  disabled={resetting}
-                  className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-2xl disabled:opacity-60"
-                  style={{ background: "#FFFFFF", color: "#000000", border: "1px solid #000000" }}
-                >
-                  <RotateCcw size={13} /> {resetting ? "Resetting…" : "Reset all to 0"}
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={resetAllQuantities}
+                    disabled={resetting}
+                    className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-2xl disabled:opacity-60"
+                    style={{ background: "#FFFFFF", color: "#000000", border: "1px solid #000000" }}
+                  >
+                    <RotateCcw size={13} /> {resetting ? "Resetting…" : "Reset all to 0"}
+                  </button>
+                  {isAdmin && (
+                    <button
+                      onClick={() => {
+                        setShowExport((v) => !v);
+                        setExportTabs((prev) => (prev.length === 0 ? tabs : prev));
+                      }}
+                      aria-label="Export"
+                      title="Export"
+                      className="flex items-center justify-center shrink-0 rounded-2xl"
+                      style={{ width: 28, height: 28, border: "1px solid #000000", color: "#000000" }}
+                    >
+                      <Download size={14} />
+                    </button>
+                  )}
+                  {isAdmin && (
+                    <button
+                      onClick={() => {
+                        const opening = !showEmailForm;
+                        setShowEmailForm(opening);
+                        if (opening) setExportTabs(tab && tab !== EVENTS_TAB ? [tab] : tabs);
+                        setEmailStatus(null);
+                      }}
+                      aria-label="Send by email"
+                      title="Send by email"
+                      className="flex items-center justify-center shrink-0 rounded-2xl"
+                      style={{
+                        width: 28,
+                        height: 28,
+                        border: `1px solid ${showEmailForm ? navy : "#000000"}`,
+                        background: showEmailForm ? navy : "transparent",
+                      }}
+                    >
+                      <SendIcon size={14} style={{ color: showEmailForm ? "#FFFFFF" : "#000000" }} />
+                    </button>
+                  )}
+                  <button
+                    onClick={() => setReorderingTabs((v) => !v)}
+                    aria-label="Reorder tabs"
+                    title="Reorder tabs"
+                    className="flex items-center justify-center shrink-0 rounded-2xl"
+                    style={{
+                      width: 28,
+                      height: 28,
+                      border: `1px solid ${reorderingTabs ? navy : "#000000"}`,
+                      background: reorderingTabs ? navy : "transparent",
+                    }}
+                  >
+                    <ArrowLeftRight size={13} style={{ color: reorderingTabs ? "#FFFFFF" : "#000000" }} />
+                  </button>
+                  <button
+                    onClick={createTab}
+                    disabled={creatingTab}
+                    aria-label="New tab"
+                    title="New tab"
+                    className="flex items-center justify-center shrink-0 rounded-2xl disabled:opacity-60"
+                    style={{ width: 28, height: 28, border: "1px solid #000000", color: "#000000" }}
+                  >
+                    <Plus size={14} />
+                  </button>
+                </div>
               )}
             </div>
             {addToCategory === cat && (
