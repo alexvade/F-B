@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { todayISO, weekStartOf, weekDates } from "@/lib/dates";
-import { bg, border, fill, ink, inkSoft, navy, navyText, orange } from "@/lib/design-tokens";
+import { bg, border, ink, inkSoft, navy, navyText, orange } from "@/lib/design-tokens";
 
 type LogItem = { id: number; text: string; sort_order: number };
 
@@ -74,6 +74,8 @@ export function ChecklistLogTable({
     }
   };
 
+  const gridBorder = `1px solid ${border}`;
+
   return (
     <div>
       <div className="flex items-center justify-between mb-2">
@@ -107,67 +109,68 @@ export function ChecklistLogTable({
         </div>
       </div>
 
-      <div className="overflow-x-auto rounded-2xl" style={{ border: `1px solid ${border}` }}>
-        <table className="text-xs" style={{ borderCollapse: "collapse", minWidth: 160 + items.length * 150 }}>
+      <div className="overflow-x-auto rounded-2xl" style={{ border: gridBorder }}>
+        <table className="text-xs" style={{ borderCollapse: "collapse", minWidth: 130 + days.length * 92 }}>
           <thead>
             <tr>
               <th
                 className="text-left p-2 sticky left-0"
-                style={{ background: bg, color: ink, minWidth: 90, borderBottom: `1px solid ${border}` }}
+                style={{ background: bg, color: ink, minWidth: 130, border: gridBorder }}
               >
-                Day
+                Item
               </th>
-              {items.map((item) => (
-                <th
-                  key={item.id}
-                  className="text-left p-2"
-                  style={{ background: bg, color: ink, minWidth: 150, borderBottom: `1px solid ${border}` }}
-                >
-                  {item.text}
-                </th>
-              ))}
+              {days.map((d) => {
+                const isToday = d.date === todayISO();
+                return (
+                  <th
+                    key={d.date}
+                    className="text-center p-2"
+                    style={{
+                      background: isToday ? orange : bg,
+                      color: isToday ? "#FFFFFF" : ink,
+                      minWidth: 92,
+                      border: gridBorder,
+                    }}
+                  >
+                    <div>{d.day}</div>
+                    <div style={{ fontWeight: 400, color: isToday ? "#FFFFFF" : inkSoft }}>{d.label}</div>
+                  </th>
+                );
+              })}
             </tr>
           </thead>
           <tbody>
-            {days.map((d) => {
-              const isToday = d.date === todayISO();
-              return (
-                <tr key={d.date}>
-                  <td
-                    className="p-2 sticky left-0"
-                    style={{
-                      background: isToday ? orange : fill,
-                      color: isToday ? "#FFFFFF" : ink,
-                      fontWeight: 500,
-                      borderBottom: `1px solid ${border}`,
-                    }}
-                  >
-                    {d.day} {d.label}
-                  </td>
-                  {items.map((item) => {
-                    const key = `${item.id}:${d.date}`;
-                    return (
-                      <td key={item.id} className="p-1" style={{ borderBottom: `1px solid ${border}` }}>
-                        <input
-                          value={drafts[key] ?? ""}
-                          onChange={(e) => setDrafts((prev) => ({ ...prev, [key]: e.target.value }))}
-                          onBlur={() => saveCell(item.id, d.date)}
-                          onKeyDown={(e) => e.key === "Enter" && (e.target as HTMLInputElement).blur()}
-                          disabled={!canEdit}
-                          className="w-full text-xs px-2 py-1.5 rounded-lg outline-none disabled:opacity-70"
-                          style={{
-                            border: `1px solid ${savingKey === key ? navy : "transparent"}`,
-                            color: navyText,
-                            background: "#FFFFFF",
-                            minWidth: 130,
-                          }}
-                        />
-                      </td>
-                    );
-                  })}
-                </tr>
-              );
-            })}
+            {items.map((item) => (
+              <tr key={item.id}>
+                <td
+                  className="p-2 sticky left-0"
+                  style={{ background: bg, color: ink, fontWeight: 500, border: gridBorder }}
+                >
+                  {item.text}
+                </td>
+                {days.map((d) => {
+                  const key = `${item.id}:${d.date}`;
+                  return (
+                    <td key={d.date} className="p-1" style={{ border: gridBorder, background: bg }}>
+                      <input
+                        value={drafts[key] ?? ""}
+                        onChange={(e) => setDrafts((prev) => ({ ...prev, [key]: e.target.value }))}
+                        onBlur={() => saveCell(item.id, d.date)}
+                        onKeyDown={(e) => e.key === "Enter" && (e.target as HTMLInputElement).blur()}
+                        disabled={!canEdit}
+                        className="w-full text-xs px-2 py-1.5 rounded-lg outline-none disabled:opacity-70"
+                        style={{
+                          border: `1.5px solid ${savingKey === key ? navy : border}`,
+                          color: navyText,
+                          background: "#FFFFFF",
+                          minWidth: 80,
+                        }}
+                      />
+                    </td>
+                  );
+                })}
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>
