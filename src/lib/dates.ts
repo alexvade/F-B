@@ -59,6 +59,11 @@ export function addDaysISO(iso: string, days: number): string {
   return d.toISOString().slice(0, 10);
 }
 
+/** A `time` column comes back as "HH:MM:SS" — drop the seconds for display. */
+export function formatTimeHHMM(t: string | null | undefined): string | null {
+  return t ? t.slice(0, 5) : t ?? null;
+}
+
 /** The 7 dates of the rota week starting at `weekStartIso` (a Friday). */
 export function weekDates(weekStartIso: string) {
   return Array.from({ length: 7 }, (_, i) => {

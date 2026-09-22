@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useProfile } from "@/lib/profile-context";
-import { todayISO, checklistDayISO, addDaysISO } from "@/lib/dates";
+import { todayISO, checklistDayISO, addDaysISO, formatTimeHHMM } from "@/lib/dates";
 import { timestamp } from "@/lib/relative-time";
 import { computeShiftStatus, initials } from "@/lib/shift-status";
 import type { EventContent } from "@/lib/event-content";
@@ -564,7 +564,7 @@ export default function DashboardPage() {
                     )}
                     {p.start && p.end && (
                       <span className="text-xs ml-auto" style={{ color: inkSoft }}>
-                        {p.start}–{p.end}
+                        {formatTimeHHMM(p.start)}–{formatTimeHHMM(p.end)}
                       </span>
                     )}
                     </div>
