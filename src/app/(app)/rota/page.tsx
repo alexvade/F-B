@@ -20,6 +20,9 @@ import {
   warn,
 } from "@/lib/design-tokens";
 
+// DB times come back as "HH:MM:SS" — drop the seconds for display.
+const formatTime = (t: string | null) => (t ? t.slice(0, 5) : t);
+
 type Staff = { name: string; id: string | null };
 type Shift = { status: ShiftStatus; start_time: string | null; end_time: string | null };
 type Covers = { gih_count: number | null; breakfast_count: number | null };
@@ -342,7 +345,7 @@ export default function RotaPage() {
                         </div>
                       ) : shift?.status === "work" ? (
                         <span>
-                          {shift.start_time}–{shift.end_time}
+                          {formatTime(shift.start_time)}–{formatTime(shift.end_time)}
                         </span>
                       ) : shift?.status === "holiday" ? (
                         <span style={{ color: isToday ? "#FFFFFF" : warn }}>HOL</span>
