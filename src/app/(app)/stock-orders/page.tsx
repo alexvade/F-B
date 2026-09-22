@@ -40,6 +40,13 @@ type EventDrinkOrder = {
 // item as low-friction as adding a to do.
 const QUICK_ADD_CATEGORY = "General";
 
+// One-tap "send to" shortcuts for whoever the stock report usually goes to —
+// the free-text field right below still takes any other address.
+const QUICK_EMAIL_CONTACTS = [
+  { label: "Alex", email: "avadeanu@handpicked.co.uk" },
+  { label: "Shane", email: "wzhao@handpicked.co.uk" },
+];
+
 // Fallback display order for a tab with no row in stock_tab_order (i.e.
 // nobody's ever moved it) — anything not listed here falls after these,
 // alphabetically.
@@ -559,6 +566,25 @@ export default function StockOrdersPage() {
             Email everything with a quantity set right now, from these tabs:
           </span>
           {tabCheckboxes}
+          <div className="flex items-center gap-2">
+            {QUICK_EMAIL_CONTACTS.map((c) => {
+              const active = emailTo.trim().toLowerCase() === c.email.toLowerCase();
+              return (
+                <button
+                  key={c.email}
+                  onClick={() => setEmailTo(c.email)}
+                  className="text-xs font-medium px-3 py-1.5 rounded-2xl"
+                  style={{
+                    background: active ? navy : "#FFFFFF",
+                    color: active ? "#FFFFFF" : navy,
+                    border: `1px solid ${border}`,
+                  }}
+                >
+                  Email {c.label}
+                </button>
+              );
+            })}
+          </div>
           <input
             type="email"
             value={emailTo}
