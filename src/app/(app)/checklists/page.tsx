@@ -378,7 +378,8 @@ export default function ChecklistsPage() {
             Export completion report
           </div>
           <p className="text-xs" style={{ color: inkSoft }}>
-            Shows every task ticked in the selected period, when, and by whom — across all sections.
+            One grid per checklist — a row for each day in the selected period, a column for each item —
+            for every checklist with activity in that period, across all sections.
           </p>
           <div className="flex items-center gap-2">
             <label className="text-xs flex-1" style={{ color: inkSoft }}>

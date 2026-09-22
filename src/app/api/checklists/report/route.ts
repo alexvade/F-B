@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { buildChecklistReportBuffer } from "@/lib/checklist-report";
+import { buildAllChecklistsReportBuffer } from "@/lib/checklist-grid-report";
 
 export async function GET(request: Request) {
   const supabase = await createClient();
@@ -25,7 +25,7 @@ export async function GET(request: Request) {
 
   let result;
   try {
-    result = await buildChecklistReportBuffer(supabase, from, to, format);
+    result = await buildAllChecklistsReportBuffer(supabase, from, to, format);
   } catch (err) {
     return NextResponse.json({ error: (err as Error).message }, { status: 500 });
   }

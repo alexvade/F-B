@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
 import { createClient } from "@/lib/supabase/server";
-import { buildChecklistReportBuffer } from "@/lib/checklist-report";
+import { buildAllChecklistsReportBuffer } from "@/lib/checklist-grid-report";
 
 // Emails the same report the download links produce. Same From/Reply-To
 // approach as api/stock/send-email — see that route's comment for why.
@@ -34,7 +34,7 @@ export async function POST(request: Request) {
 
   let report;
   try {
-    report = await buildChecklistReportBuffer(supabase, from, to, format);
+    report = await buildAllChecklistsReportBuffer(supabase, from, to, format);
   } catch (err) {
     return NextResponse.json({ error: (err as Error).message }, { status: 500 });
   }
