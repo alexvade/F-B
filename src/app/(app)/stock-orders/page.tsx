@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { ChevronDown, ChevronRight, Download, Pencil, RotateCcw, Plus, Trash2 } from "lucide-react";
+import { ChevronDown, ChevronRight, Download, Pencil, RotateCcw, Plus, Send as SendIcon, Trash2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useProfile } from "@/lib/profile-context";
 import { useFeatureFlag } from "@/lib/feature-flags-context";
@@ -89,7 +89,7 @@ export default function StockOrdersPage() {
   const [exportTabs, setExportTabs] = useState<string[]>([]);
   const [showEmailForm, setShowEmailForm] = useState(false);
   const [emailTo, setEmailTo] = useState("");
-  const [emailFormat, setEmailFormat] = useState<"xlsx" | "pdf">("xlsx");
+  const [emailFormat, setEmailFormat] = useState<"xlsx" | "pdf">("pdf");
   const [sendingEmail, setSendingEmail] = useState(false);
   const [emailStatus, setEmailStatus] = useState<{ ok: boolean; message: string } | null>(null);
   const [addingSection, setAddingSection] = useState(false);
@@ -506,20 +506,26 @@ export default function StockOrdersPage() {
                 >
                   .pdf
                 </a>
+                <button
+                  onClick={() => {
+                    setShowEmailForm((v) => !v);
+                    setEmailStatus(null);
+                  }}
+                  aria-label="Send by email"
+                  title="Send by email"
+                  className="flex items-center justify-center shrink-0 rounded-full"
+                  style={{
+                    width: 28,
+                    height: 28,
+                    border: `1px solid ${showEmailForm ? navy : "#000000"}`,
+                    background: showEmailForm ? navy : "transparent",
+                  }}
+                >
+                  <SendIcon size={13} style={{ color: showEmailForm ? "#FFFFFF" : "#000000" }} />
+                </button>
               </>
             )}
           </div>
-
-          <button
-            onClick={() => {
-              setShowEmailForm((v) => !v);
-              setEmailStatus(null);
-            }}
-            className="text-xs underline w-fit"
-            style={{ color: navyText }}
-          >
-            {showEmailForm ? "Cancel" : "Send by email instead"}
-          </button>
 
           {showEmailForm && (
             <div className="flex flex-col gap-2">
