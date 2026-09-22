@@ -356,6 +356,7 @@ export interface Database {
           title: string;
           steps: string[];
           photo_url: string | null;
+          video_url: string | null;
           sort_order: number;
         },
         {
@@ -364,6 +365,7 @@ export interface Database {
           title: string;
           steps: string[];
           photo_url?: string | null;
+          video_url?: string | null;
           sort_order?: number;
         }
       >;

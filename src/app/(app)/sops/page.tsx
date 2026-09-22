@@ -15,9 +15,17 @@ type Sop = {
   title: string;
   steps: string[];
   photo_url: string | null;
+  video_url: string | null;
 };
 
-const EMPTY_FORM = { id: null as number | null, category: "", title: "", steps: "", photo: null as File | null };
+const EMPTY_FORM = {
+  id: null as number | null,
+  category: "",
+  title: "",
+  steps: "",
+  photo: null as File | null,
+  video: null as File | null,
+};
 
 export default function SopsPage() {
   const profile = useProfile();
@@ -30,6 +38,7 @@ export default function SopsPage() {
   const [category, setCategory] = useState<string | null>(null);
   const [activeSop, setActiveSop] = useState<Sop | null>(null);
   const [activeSopPhotoUrl, setActiveSopPhotoUrl] = useState<string | null>(null);
+  const [activeSopVideoUrl, setActiveSopVideoUrl] = useState<string | null>(null);
   const [form, setForm] = useState<typeof EMPTY_FORM | null>(null);
   const [saving, setSaving] = useState(false);
 
@@ -46,9 +55,15 @@ export default function SopsPage() {
   useEffect(() => {
     let cancelled = false;
     setActiveSopPhotoUrl(null);
+    setActiveSopVideoUrl(null);
     if (activeSop?.photo_url) {
       getAttachmentUrl(activeSop.photo_url).then((url) => {
         if (!cancelled) setActiveSopPhotoUrl(url);
+      });
+    }
+    if (activeSop?.video_url) {
+      getAttachmentUrl(activeSop.video_url).then((url) => {
+        if (!cancelled) setActiveSopVideoUrl(url);
       });
     }
     return () => {
@@ -61,7 +76,7 @@ export default function SopsPage() {
   const openEdit = (sop?: Sop) => {
     setForm(
       sop
-        ? { id: sop.id, category: sop.category, title: sop.title, steps: sop.steps.join("\n"), photo: null }
+        ? { id: sop.id, category: sop.category, title: sop.title, steps: sop.steps.join("\n"), photo: null, video: null }
         : { ...EMPTY_FORM, category: category ?? "" }
     );
   };
@@ -71,11 +86,18 @@ export default function SopsPage() {
     setSaving(true);
     try {
       const photo_url = form.photo ? await uploadAttachment(form.photo, "sops") : undefined;
+      const video_url = form.video ? await uploadAttachment(form.video, "sops") : undefined;
       const steps = form.steps.split("\n").map((s) => s.trim()).filter(Boolean);
       if (form.id) {
         await supabase
           .from("sops")
-          .update({ category: form.category.trim(), title: form.title.trim(), steps, ...(photo_url ? { photo_url } : {}) })
+          .update({
+            category: form.category.trim(),
+            title: form.title.trim(),
+            steps,
+            ...(photo_url ? { photo_url } : {}),
+            ...(video_url ? { video_url } : {}),
+          })
           .eq("id", form.id);
       } else {
         await supabase.from("sops").insert({
@@ -83,6 +105,7 @@ export default function SopsPage() {
           title: form.title.trim(),
           steps,
           photo_url: photo_url ?? null,
+          video_url: video_url ?? null,
         });
       }
       setCategory(form.category.trim());
@@ -142,6 +165,15 @@ export default function SopsPage() {
               className="block mt-1 text-xs"
             />
           </label>
+          <label className="text-xs" style={{ color: inkSoft }}>
+            Video (optional)
+            <input
+              type="file"
+              accept="video/*"
+              onChange={(e) => setForm({ ...form, video: e.target.files?.[0] ?? null })}
+              className="block mt-1 text-xs"
+            />
+          </label>
           <button
             onClick={saveForm}
             disabled={saving}
@@ -188,6 +220,14 @@ export default function SopsPage() {
             alt={activeSop.title}
             className="rounded-2xl mb-4"
             style={{ maxWidth: "100%", maxHeight: 260, border: `1px solid ${border}` }}
+          />
+        )}
+        {activeSopVideoUrl && (
+          <video
+            src={activeSopVideoUrl}
+            controls
+            className="rounded-2xl mb-4"
+            style={{ maxWidth: "100%", maxHeight: 360, border: `1px solid ${border}` }}
           />
         )}
         <ol className="flex flex-col gap-2.5">
