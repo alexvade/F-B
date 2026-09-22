@@ -33,7 +33,7 @@ export async function POST(request: Request) {
       role: role === "admin" ? "admin" : "staff",
       contract_hours: contract_hours || null,
     },
-    redirectTo: `${origin}/auth/callback`,
+    redirectTo: `${origin}/auth/set-password`,
   });
 
   if (error) {
