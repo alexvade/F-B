@@ -130,8 +130,8 @@ export interface Database {
         { id?: number; title: string; section?: string; sort_order?: number; weekly?: boolean }
       >;
       checklist_items: Table<
-        { id: number; checklist_id: number; text: string; sort_order: number },
-        { id?: number; checklist_id: number; text: string; sort_order?: number }
+        { id: number; checklist_id: number; text: string; sort_order: number; requires_value: boolean },
+        { id?: number; checklist_id: number; text: string; sort_order?: number; requires_value?: boolean }
       >;
       checklist_completions: Table<
         {
@@ -140,6 +140,7 @@ export interface Database {
           checklist_day: string;
           completed_by: string | null;
           completed_at: string;
+          value: string | null;
         },
         {
           id?: number;
@@ -147,6 +148,7 @@ export interface Database {
           checklist_day: string;
           completed_by?: string | null;
           completed_at?: string;
+          value?: string | null;
         }
       >;
       todos: Table<

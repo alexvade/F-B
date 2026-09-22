@@ -10,13 +10,15 @@ import { initials } from "@/lib/shift-status";
 import { Section } from "@/components/section";
 import { bg, border, fill, ink, inkSoft, navy, navyText, orange, orangeSoft } from "@/lib/design-tokens";
 
-const SECTIONS = ["Bar", "Still Room", "Restaurant", "Vav Bar", "Cellars"];
+const SECTIONS = ["Bar", "Still Room", "Restaurant", "Vav Bar", "Cellars", "Barista"];
 
 type Item = {
   id: number;
   text: string;
   sort_order: number;
+  requires_value: boolean;
   done: boolean;
+  value: string | null;
   completedByName: string | null;
 };
 type Checklist = { id: number; title: string; section: string; weekly: boolean; items: Item[] };
@@ -35,6 +37,11 @@ export default function ChecklistsPage() {
   const [checklists, setChecklists] = useState<Checklist[]>([]);
   const [form, setForm] = useState<typeof EMPTY_FORM | null>(null);
   const [saving, setSaving] = useState(false);
+  const [editingValueId, setEditingValueId] = useState<number | null>(null);
+  const [valueDraft, setValueDraft] = useState("");
+  const [valueReportListId, setValueReportListId] = useState<number | null>(null);
+  const [valueReportFrom, setValueReportFrom] = useState(() => addDaysISO(checklistDay, -6));
+  const [valueReportTo, setValueReportTo] = useState(checklistDay);
   const [showReport, setShowReport] = useState(false);
   const [reportFrom, setReportFrom] = useState(() => addDaysISO(checklistDay, -6));
   const [reportTo, setReportTo] = useState(checklistDay);
@@ -48,17 +55,20 @@ export default function ChecklistsPage() {
     const dayKeys = Array.from(new Set([checklistDay, weekStart]));
     const [listsRes, itemsRes, completionsRes] = await Promise.all([
       supabase.from("checklists").select("id, title, section, weekly").order("sort_order"),
-      supabase.from("checklist_items").select("id, checklist_id, text, sort_order").order("sort_order"),
+      supabase
+        .from("checklist_items")
+        .select("id, checklist_id, text, sort_order, requires_value")
+        .order("sort_order"),
       supabase
         .from("checklist_completions")
-        .select("item_id, checklist_day, completed_by")
+        .select("item_id, checklist_day, completed_by, value")
         .in("checklist_day", dayKeys),
     ]);
 
     // Keyed by "itemId:checklistDay" since a weekly checklist's completion
     // lives under weekStart while a daily one lives under today's checklistDay.
     const completionByKey = new Map(
-      (completionsRes.data ?? []).map((c) => [`${c.item_id}:${c.checklist_day}`, c.completed_by])
+      (completionsRes.data ?? []).map((c) => [`${c.item_id}:${c.checklist_day}`, c])
     );
     const completerIds = Array.from(
       new Set((completionsRes.data ?? []).map((c) => c.completed_by).filter(Boolean))
@@ -79,13 +89,17 @@ export default function ChecklistsPage() {
           items: (itemsRes.data ?? [])
             .filter((i) => i.checklist_id === list.id)
             .map((i) => {
-              const completedBy = completionByKey.get(`${i.id}:${resetKey}`) ?? null;
+              const completion = completionByKey.get(`${i.id}:${resetKey}`);
               return {
                 id: i.id,
                 text: i.text,
                 sort_order: i.sort_order,
-                done: completionByKey.has(`${i.id}:${resetKey}`),
-                completedByName: completedBy ? nameById.get(completedBy) ?? "Someone" : null,
+                requires_value: i.requires_value,
+                done: !!completion,
+                value: completion?.value ?? null,
+                completedByName: completion?.completed_by
+                  ? nameById.get(completion.completed_by) ?? "Someone"
+                  : null,
               };
             }),
         };
@@ -123,6 +137,24 @@ export default function ChecklistsPage() {
         .from("checklist_completions")
         .insert({ item_id: item.id, checklist_day: dayKey, completed_by: profile.id });
     }
+    loadData();
+  };
+
+  const startEditingValue = (item: Item) => {
+    setEditingValueId(item.id);
+    setValueDraft(item.value ?? "");
+  };
+
+  const saveValue = async (item: Item, weekly: boolean) => {
+    const dayKey = weekly ? weekStart : checklistDay;
+    const value = valueDraft.trim();
+    await supabase.from("checklist_completions").delete().eq("item_id", item.id).eq("checklist_day", dayKey);
+    if (value) {
+      await supabase
+        .from("checklist_completions")
+        .insert({ item_id: item.id, checklist_day: dayKey, completed_by: profile.id, value });
+    }
+    setEditingValueId(null);
     loadData();
   };
 
@@ -396,6 +428,7 @@ export default function ChecklistsPage() {
         <div className="flex flex-col gap-6">
           {sectionChecklists.map((list) => {
             const doneCount = list.items.filter((i) => i.done).length;
+            const hasValueItems = list.items.some((i) => i.requires_value);
             return (
               <div key={list.id}>
                 <div className="flex items-baseline justify-between mb-2">
@@ -411,6 +444,16 @@ export default function ChecklistsPage() {
                     <span className="text-xs" style={{ color: inkSoft }}>
                       {doneCount}/{list.items.length}
                     </span>
+                    {isAdmin && hasValueItems && (
+                      <button
+                        onClick={() => setValueReportListId((cur) => (cur === list.id ? null : list.id))}
+                        aria-label="Export this log"
+                        title="Export this log"
+                        style={{ color: navyText }}
+                      >
+                        <Download size={13} />
+                      </button>
+                    )}
                     {(isAdmin || checklistsEditEnabled) && (
                       <>
                         <button onClick={() => openEdit(list)} style={{ color: navyText }}>
@@ -423,54 +466,163 @@ export default function ChecklistsPage() {
                     )}
                   </div>
                 </div>
-                <div className="flex flex-col gap-1">
-                  {list.items.map((item) => (
-                    <button
-                      key={item.id}
-                      onClick={() => toggleItem(item, list.weekly)}
-                      className="flex items-center gap-3 p-2.5 rounded-2xl text-left"
-                      style={{ background: bg, border: `1px solid ${border}` }}
-                    >
-                      <span
-                        className="flex items-center justify-center shrink-0"
-                        style={{
-                          width: 18,
-                          height: 18,
-                          borderRadius: 4,
-                          border: `1.5px solid ${item.done ? orange : border}`,
-                          background: item.done ? orange : "transparent",
-                        }}
+
+                {valueReportListId === list.id && (
+                  <div
+                    className="flex flex-col gap-3 p-3 rounded-2xl mb-3"
+                    style={{ background: bg, border: `1px solid ${border}` }}
+                  >
+                    <div className="text-sm font-semibold" style={{ color: navyText }}>
+                      Export {list.title}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <label className="text-xs flex-1" style={{ color: inkSoft }}>
+                        From
+                        <input
+                          type="date"
+                          value={valueReportFrom}
+                          onChange={(e) => setValueReportFrom(e.target.value)}
+                          max={valueReportTo}
+                          className="block mt-1 w-full text-sm px-3 py-1.5 rounded-full outline-none"
+                          style={{ border: `1px solid ${border}`, background: fill, color: ink }}
+                        />
+                      </label>
+                      <label className="text-xs flex-1" style={{ color: inkSoft }}>
+                        To
+                        <input
+                          type="date"
+                          value={valueReportTo}
+                          onChange={(e) => setValueReportTo(e.target.value)}
+                          min={valueReportFrom}
+                          max={checklistDay}
+                          className="block mt-1 w-full text-sm px-3 py-1.5 rounded-full outline-none"
+                          style={{ border: `1px solid ${border}`, background: fill, color: ink }}
+                        />
+                      </label>
+                    </div>
+                    <div className="flex gap-2">
+                      <a
+                        href={`/api/checklists/${list.id}/value-report?from=${valueReportFrom}&to=${valueReportTo}&format=xlsx`}
+                        className="flex-1 text-center text-sm font-medium py-2 rounded-full"
+                        style={{ background: navy, color: "#FFFFFF" }}
                       >
-                        {item.done && (
-                          <span style={{ color: navy, fontSize: 11, lineHeight: 1, fontWeight: 700 }}>
-                            ✓
+                        Download .xlsx
+                      </a>
+                      <a
+                        href={`/api/checklists/${list.id}/value-report?from=${valueReportFrom}&to=${valueReportTo}&format=pdf`}
+                        className="flex-1 text-center text-sm font-medium py-2 rounded-full"
+                        style={{ background: "#FFFFFF", color: navy, border: `1px solid ${border}` }}
+                      >
+                        Download PDF
+                      </a>
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex flex-col gap-1">
+                  {list.items.map((item) =>
+                    item.requires_value ? (
+                      <div
+                        key={item.id}
+                        className="rounded-2xl p-2.5"
+                        style={{ background: bg, border: `1px solid ${editingValueId === item.id ? navy : border}` }}
+                      >
+                        <div className="flex items-center gap-3">
+                          <span className="text-sm flex-1" style={{ color: ink }}>
+                            {item.text}
+                          </span>
+                          {item.value && editingValueId !== item.id && (
+                            <span className="text-xs text-right" style={{ color: navyText }}>
+                              {item.value}
+                            </span>
+                          )}
+                          {item.done && item.completedByName && editingValueId !== item.id && (
+                            <span
+                              className="flex items-center justify-center rounded-full text-xs font-medium shrink-0"
+                              style={{ width: 20, height: 20, background: "#FFFFFF", color: navy }}
+                            >
+                              {initials(item.completedByName)}
+                            </span>
+                          )}
+                          <button
+                            onClick={() =>
+                              editingValueId === item.id ? setEditingValueId(null) : startEditingValue(item)
+                            }
+                            className="shrink-0"
+                            style={{ color: navyText }}
+                          >
+                            <Pencil size={13} />
+                          </button>
+                        </div>
+                        {editingValueId === item.id && (
+                          <div className="flex items-center gap-2 mt-2">
+                            <input
+                              autoFocus
+                              value={valueDraft}
+                              onChange={(e) => setValueDraft(e.target.value)}
+                              onKeyDown={(e) => e.key === "Enter" && saveValue(item, list.weekly)}
+                              placeholder="Record a value…"
+                              className="flex-1 text-sm px-3 py-1.5 rounded-full outline-none"
+                              style={{ border: `1px solid ${border}`, background: fill, color: ink }}
+                            />
+                            <button
+                              onClick={() => saveValue(item, list.weekly)}
+                              className="text-xs font-medium px-3 py-1.5 rounded-2xl shrink-0"
+                              style={{ background: navy, color: "#FFFFFF" }}
+                            >
+                              Save
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <button
+                        key={item.id}
+                        onClick={() => toggleItem(item, list.weekly)}
+                        className="flex items-center gap-3 p-2.5 rounded-2xl text-left"
+                        style={{ background: bg, border: `1px solid ${border}` }}
+                      >
+                        <span
+                          className="flex items-center justify-center shrink-0"
+                          style={{
+                            width: 18,
+                            height: 18,
+                            borderRadius: 4,
+                            border: `1.5px solid ${item.done ? orange : border}`,
+                            background: item.done ? orange : "transparent",
+                          }}
+                        >
+                          {item.done && (
+                            <span style={{ color: navy, fontSize: 11, lineHeight: 1, fontWeight: 700 }}>
+                              ✓
+                            </span>
+                          )}
+                        </span>
+                        <span
+                          className="text-sm flex-1"
+                          style={{
+                            color: item.done ? inkSoft : ink,
+                            textDecoration: item.done ? "line-through" : "none",
+                          }}
+                        >
+                          {item.text}
+                        </span>
+                        {item.done && item.completedByName && (
+                          <span className="flex items-center gap-1.5 shrink-0">
+                            <span
+                              className="flex items-center justify-center rounded-full text-xs font-medium"
+                              style={{ width: 20, height: 20, background: "#FFFFFF", color: navy }}
+                            >
+                              {initials(item.completedByName)}
+                            </span>
+                            <span className="text-xs" style={{ color: inkSoft }}>
+                              {item.completedByName}
+                            </span>
                           </span>
                         )}
-                      </span>
-                      <span
-                        className="text-sm flex-1"
-                        style={{
-                          color: item.done ? inkSoft : ink,
-                          textDecoration: item.done ? "line-through" : "none",
-                        }}
-                      >
-                        {item.text}
-                      </span>
-                      {item.done && item.completedByName && (
-                        <span className="flex items-center gap-1.5 shrink-0">
-                          <span
-                            className="flex items-center justify-center rounded-full text-xs font-medium"
-                            style={{ width: 20, height: 20, background: "#FFFFFF", color: navy }}
-                          >
-                            {initials(item.completedByName)}
-                          </span>
-                          <span className="text-xs" style={{ color: inkSoft }}>
-                            {item.completedByName}
-                          </span>
-                        </span>
-                      )}
-                    </button>
-                  ))}
+                      </button>
+                    )
+                  )}
                 </div>
               </div>
             );
