@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Search, ChevronRight, Pencil, Plus, Trash2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useProfile } from "@/lib/profile-context";
+import { useFeatureFlag } from "@/lib/feature-flags-context";
 import { bg, border, fill, ink, inkSoft, navy, navyText, orange } from "@/lib/design-tokens";
 
 type Wine = {
@@ -30,6 +31,8 @@ const EMPTY_FORM = {
 export default function WinesPage() {
   const profile = useProfile();
   const isAdmin = profile.role === "admin";
+  const winesEditEnabled = useFeatureFlag("wines_edit");
+  const canEdit = isAdmin || winesEditEnabled;
   const supabase = createClient();
 
   const [wines, setWines] = useState<Wine[]>([]);
@@ -174,7 +177,7 @@ export default function WinesPage() {
           <button onClick={() => setActive(null)} className="text-xs" style={{ color: navyText }}>
             ← Back to Wines
           </button>
-          {isAdmin && (
+          {canEdit && (
             <div className="flex gap-2">
               <button onClick={() => openEdit(active)} style={{ color: navyText }}>
                 <Pencil size={15} />
@@ -227,7 +230,7 @@ export default function WinesPage() {
         >
           Wines
         </h1>
-        {isAdmin && (
+        {canEdit && (
           <button
             onClick={() => openEdit()}
             className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-2xl"

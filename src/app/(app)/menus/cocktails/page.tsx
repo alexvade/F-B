@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Search, Pencil, Plus, Trash2, Check, Star } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useProfile } from "@/lib/profile-context";
+import { useFeatureFlag } from "@/lib/feature-flags-context";
 import { CocktailGlass } from "@/components/cocktail-glass";
 import { buildHaystack, cocktailInStock, type StockHaystack } from "@/lib/cocktail-stock-match";
 import { bg, border, fill, ink, inkSoft, navy, navyText, orange, orangeSoft } from "@/lib/design-tokens";
@@ -37,6 +38,8 @@ const EMPTY_FORM = {
 export default function CocktailsPage() {
   const profile = useProfile();
   const isAdmin = profile.role === "admin";
+  const cocktailsEditEnabled = useFeatureFlag("cocktails_edit");
+  const canEdit = isAdmin || cocktailsEditEnabled;
   const supabase = createClient();
 
   const [cocktails, setCocktails] = useState<Cocktail[]>([]);
@@ -206,7 +209,7 @@ export default function CocktailsPage() {
           <button onClick={() => setActive(null)} className="text-xs" style={{ color: navyText }}>
             ← Back to Cocktails
           </button>
-          {isAdmin && (
+          {canEdit && (
             <div className="flex gap-2">
               <button
                 onClick={() => togglePinned(active)}
@@ -335,7 +338,7 @@ export default function CocktailsPage() {
         >
           Cocktails
         </h1>
-        {isAdmin && (
+        {canEdit && (
           <button
             onClick={() => openEdit()}
             className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-2xl"

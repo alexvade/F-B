@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { ChevronRight, Pencil, Plus, Trash2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useProfile } from "@/lib/profile-context";
+import { useFeatureFlag } from "@/lib/feature-flags-context";
 import { uploadAttachment, getAttachmentUrl, deleteAttachment } from "@/lib/storage";
 import { Section } from "@/components/section";
 import { bg, border, fill, ink, inkSoft, navy, navyText, orange, orangeSoft } from "@/lib/design-tokens";
@@ -21,6 +22,8 @@ const EMPTY_FORM = { id: null as number | null, category: "", title: "", steps: 
 export default function SopsPage() {
   const profile = useProfile();
   const isAdmin = profile.role === "admin";
+  const sopsEditEnabled = useFeatureFlag("sops_edit");
+  const canEdit = isAdmin || sopsEditEnabled;
   const supabase = createClient();
 
   const [sops, setSops] = useState<Sop[]>([]);
@@ -159,7 +162,7 @@ export default function SopsPage() {
           <button onClick={() => setActiveSop(null)} className="text-xs" style={{ color: navyText }}>
             ← Back to SOPs
           </button>
-          {isAdmin && (
+          {canEdit && (
             <div className="flex gap-2">
               <button onClick={() => openEdit(activeSop)} style={{ color: navyText }}>
                 <Pencil size={15} />
@@ -229,7 +232,7 @@ export default function SopsPage() {
         })}
       </div>
 
-      {isAdmin && (
+      {canEdit && (
         <button
           onClick={() => openEdit()}
           className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-2xl mb-4"

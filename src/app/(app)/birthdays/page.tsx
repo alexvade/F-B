@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Cake, Check, Pencil, Plus, Trash2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useProfile } from "@/lib/profile-context";
+import { useFeatureFlag } from "@/lib/feature-flags-context";
 import { Section } from "@/components/section";
 import { bg, border, fill, ink, inkSoft, navy, navyText, orange } from "@/lib/design-tokens";
 
@@ -25,6 +26,8 @@ function hasPassedThisYear(b: Birthday, today: Date): boolean {
 export default function BirthdaysPage() {
   const profile = useProfile();
   const isAdmin = profile.role === "admin";
+  const viewEnabled = useFeatureFlag("birthdays_access");
+  const canView = isAdmin || viewEnabled;
   const supabase = createClient();
 
   const today = new Date();
@@ -78,7 +81,7 @@ export default function BirthdaysPage() {
     loadData();
   };
 
-  if (!isAdmin) {
+  if (!canView) {
     return (
       <Section title="Birthdays">
         <p className="text-sm" style={{ color: inkSoft }}>
@@ -88,7 +91,7 @@ export default function BirthdaysPage() {
     );
   }
 
-  if (form) {
+  if (form && isAdmin) {
     return (
       <div>
         <button onClick={() => setForm(null)} className="text-xs mb-4" style={{ color: navyText }}>
@@ -145,13 +148,15 @@ export default function BirthdaysPage() {
 
   return (
     <Section title="Birthdays" subtitle="The team's birthdays — posted to the Noticeboard automatically on the day">
-      <button
-        onClick={() => openEdit()}
-        className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-2xl mb-4"
-        style={{ background: "#FFFFFF", color: navy, border: `1px solid ${border}` }}
-      >
-        <Plus size={13} /> Add birthday
-      </button>
+      {isAdmin && (
+        <button
+          onClick={() => openEdit()}
+          className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-2xl mb-4"
+          style={{ background: "#FFFFFF", color: navy, border: `1px solid ${border}` }}
+        >
+          <Plus size={13} /> Add birthday
+        </button>
+      )}
 
       {birthdays.length === 0 ? (
         <p className="text-sm" style={{ color: inkSoft }}>
@@ -178,12 +183,16 @@ export default function BirthdaysPage() {
                 <span className="text-xs" style={{ color: inkSoft }}>
                   {b.day} {MONTH_NAMES[b.month - 1]}
                 </span>
-                <button onClick={() => openEdit(b)} style={{ color: navyText }}>
-                  <Pencil size={14} />
-                </button>
-                <button onClick={() => deleteBirthday(b.id)} style={{ color: ink }}>
-                  <Trash2 size={14} />
-                </button>
+                {isAdmin && (
+                  <>
+                    <button onClick={() => openEdit(b)} style={{ color: navyText }}>
+                      <Pencil size={14} />
+                    </button>
+                    <button onClick={() => deleteBirthday(b.id)} style={{ color: ink }}>
+                      <Trash2 size={14} />
+                    </button>
+                  </>
+                )}
               </div>
             </div>
           ))}

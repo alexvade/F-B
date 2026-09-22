@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Upload, ChevronRight, Share2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useProfile } from "@/lib/profile-context";
+import { useFeatureFlag } from "@/lib/feature-flags-context";
 import { parseTrainingSheet } from "@/lib/training-sheet";
 import { Section } from "@/components/section";
 import { timestamp } from "@/lib/relative-time";
@@ -62,6 +63,8 @@ function randomReminderText(name: string, count: number): string {
 export default function TrainingPage() {
   const profile = useProfile();
   const isAdmin = profile.role === "admin";
+  const trainingUploadEnabled = useFeatureFlag("training_upload");
+  const canUpload = isAdmin || trainingUploadEnabled;
   const supabase = createClient();
 
   const [records, setRecords] = useState<TrainingRecord[]>([]);
@@ -203,7 +206,7 @@ export default function TrainingPage() {
           <h2 className="text-lg font-semibold" style={{ color: navyText }}>
             {selectedPerson.learner_name}
           </h2>
-          {isAdmin && overdueCount > 0 && (
+          {canUpload && overdueCount > 0 && (
             <button
               onClick={() => shareReminder(selectedPerson.learner_name, overdueCount)}
               className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-2xl shrink-0"
@@ -290,7 +293,7 @@ export default function TrainingPage() {
 
   return (
     <Section title="Training" subtitle="Weekly compliance export — identify overdue training at a glance">
-      {isAdmin && (
+      {canUpload && (
         <label
           className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-2xl mb-2 cursor-pointer w-fit"
           style={{ background: orangeSoft, color: navy }}

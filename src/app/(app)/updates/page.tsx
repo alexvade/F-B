@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Camera, Paperclip, FileText, Trash2, X, ChartColumn, Plus, Pin, PinOff } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useProfile } from "@/lib/profile-context";
+import { useFeatureFlag } from "@/lib/feature-flags-context";
 import { uploadAttachment, getAttachmentUrl, deleteAttachment } from "@/lib/storage";
 import { relativeTime, timestamp } from "@/lib/relative-time";
 import { initials } from "@/lib/shift-status";
@@ -94,6 +95,8 @@ function AttachmentPreview({
 
 export default function UpdatesPage() {
   const profile = useProfile();
+  const noticeboardPinEnabled = useFeatureFlag("noticeboard_pin");
+  const canPin = profile.role === "admin" || noticeboardPinEnabled;
   const supabase = createClient();
 
   // Picked client-side only (not in the initializer) so the server-rendered
@@ -414,7 +417,7 @@ export default function UpdatesPage() {
                 <span className="text-xs whitespace-nowrap" style={{ color: inkSoft }}>
                   {relativeTime(p.created_at)} · {timestamp(p.created_at)}
                 </span>
-                {profile.role === "admin" && (
+                {canPin && (
                   <button
                     onClick={() => togglePin(p)}
                     style={{ color: p.pinned ? orange : inkSoft }}

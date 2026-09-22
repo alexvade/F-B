@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ChevronRight, FileStack, Plus, Trash2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useProfile } from "@/lib/profile-context";
+import { useFeatureFlag } from "@/lib/feature-flags-context";
 import { uploadAttachment } from "@/lib/storage";
 import { Section } from "@/components/section";
 import { bg, border, fill, ink, inkSoft, navy, navyText, orange, orangeSoft } from "@/lib/design-tokens";
@@ -19,6 +20,8 @@ type EventRow = {
 export default function EventsPage() {
   const profile = useProfile();
   const isAdmin = profile.role === "admin";
+  const eventsEditEnabled = useFeatureFlag("events_edit");
+  const canEdit = isAdmin || eventsEditEnabled;
   const supabase = createClient();
 
   const [events, setEvents] = useState<EventRow[]>([]);
@@ -160,7 +163,7 @@ export default function EventsPage() {
 
   return (
     <Section title="Events" subtitle="Function guides — timeline, contacts, menus and more">
-      {isAdmin && (
+      {canEdit && (
         <button
           onClick={() => setAdding(true)}
           className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-2xl mb-4"
@@ -201,7 +204,7 @@ export default function EventsPage() {
                 </div>
               </Link>
               <div className="flex items-center gap-3 shrink-0 ml-3">
-                {isAdmin && (
+                {canEdit && (
                   <button onClick={() => deleteEvent(e.id)} aria-label="Remove event">
                     <Trash2 size={14} style={{ color: inkSoft }} />
                   </button>

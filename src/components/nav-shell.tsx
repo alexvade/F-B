@@ -41,7 +41,7 @@ const NAV_ITEMS = [
   { href: "/function-sheets", label: "Function Sheets", icon: FileStack },
   { href: "/events", label: "Events", icon: Sparkles },
   { href: "/stock-orders", label: "Stock Orders", icon: ClipboardList, adminOnly: true, staffFlag: "stock_orders_edit" },
-  { href: "/birthdays", label: "Birthdays", icon: Cake, adminOnly: true },
+  { href: "/birthdays", label: "Birthdays", icon: Cake, adminOnly: true, staffFlag: "birthdays_access" },
   { href: "/training", label: "Training", icon: GraduationCap },
   { href: "/settings", label: "Settings", icon: SlidersHorizontal, adminOnly: true },
 ];
