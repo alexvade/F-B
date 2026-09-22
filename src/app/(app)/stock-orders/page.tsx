@@ -2,7 +2,18 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { ChevronDown, ChevronRight, Download, Pencil, RotateCcw, Plus, Send as SendIcon, Trash2 } from "lucide-react";
+import {
+  ArrowLeftRight,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  Download,
+  Pencil,
+  RotateCcw,
+  Plus,
+  Send as SendIcon,
+  Trash2,
+} from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useProfile } from "@/lib/profile-context";
 import { useFeatureFlag } from "@/lib/feature-flags-context";
@@ -29,17 +40,30 @@ type EventDrinkOrder = {
 // item as low-friction as adding a to do.
 const QUICK_ADD_CATEGORY = "General";
 
-// Fixed display order for known tabs; anything else (a newly synced sheet
-// tab, say) falls after these, alphabetically.
+// Fallback display order for a tab with no row in stock_tab_order (i.e.
+// nobody's ever moved it) — anything not listed here falls after these,
+// alphabetically.
 const TAB_ORDER = ["Breakfast", "Beer Cellar", "Wine Cellar", "Bin End", "Miscellaneous"];
-function sortTabs(labels: string[]): string[] {
+function fallbackTabRank(a: string, b: string): number {
+  const ai = TAB_ORDER.indexOf(a);
+  const bi = TAB_ORDER.indexOf(b);
+  if (ai === -1 && bi === -1) return a.localeCompare(b);
+  if (ai === -1) return 1;
+  if (bi === -1) return -1;
+  return ai - bi;
+}
+
+// Tabs with an explicit sort_order (someone has moved at least one tab)
+// always sort before ones without — those still fall back to TAB_ORDER,
+// keeping their relative order until they're moved too.
+function sortTabs(labels: string[], order: Map<string, number>): string[] {
   return [...labels].sort((a, b) => {
-    const ai = TAB_ORDER.indexOf(a);
-    const bi = TAB_ORDER.indexOf(b);
-    if (ai === -1 && bi === -1) return a.localeCompare(b);
-    if (ai === -1) return 1;
-    if (bi === -1) return -1;
-    return ai - bi;
+    const oa = order.get(a);
+    const ob = order.get(b);
+    if (oa !== undefined && ob !== undefined) return oa - ob;
+    if (oa !== undefined) return -1;
+    if (ob !== undefined) return 1;
+    return fallbackTabRank(a, b);
   });
 }
 
@@ -100,15 +124,16 @@ export default function StockOrdersPage() {
   const [addToCategory, setAddToCategory] = useState<string | null>(null);
   const [categoryDraft, setCategoryDraft] = useState("");
   const [addingCategoryItem, setAddingCategoryItem] = useState(false);
+  const [reorderingTabs, setReorderingTabs] = useState(false);
 
   const loadData = useCallback(async () => {
-    const { data } = await supabase
-      .from("stock_products")
-      .select("*")
-      .order("tab_label")
-      .order("sort_order");
+    const [{ data }, { data: orderData }] = await Promise.all([
+      supabase.from("stock_products").select("*").order("tab_label").order("sort_order"),
+      supabase.from("stock_tab_order").select("tab_label, sort_order"),
+    ]);
     const all = data ?? [];
-    const tabLabels = sortTabs(Array.from(new Set(all.map((p) => p.tab_label))));
+    const order = new Map((orderData ?? []).map((o) => [o.tab_label, o.sort_order]));
+    const tabLabels = sortTabs(Array.from(new Set(all.map((p) => p.tab_label))), order);
     setTabs(tabLabels);
     setTab((current) => current ?? tabLabels[0] ?? null);
     setProducts(all);
@@ -126,6 +151,7 @@ export default function StockOrdersPage() {
     const channel = supabase
       .channel("stock-products-changes")
       .on("postgres_changes", { event: "*", schema: "public", table: "stock_products" }, loadData)
+      .on("postgres_changes", { event: "*", schema: "public", table: "stock_tab_order" }, loadData)
       .subscribe();
     return () => {
       supabase.removeChannel(channel);
@@ -357,6 +383,17 @@ export default function StockOrdersPage() {
     }
   };
 
+  const moveTab = async (label: string, direction: -1 | 1) => {
+    const from = tabs.indexOf(label);
+    const to = from + direction;
+    if (from === -1 || to < 0 || to >= tabs.length) return;
+    const reordered = [...tabs];
+    [reordered[from], reordered[to]] = [reordered[to], reordered[from]];
+    setTabs(reordered);
+    const rows = reordered.map((t, i) => ({ tab_label: t, sort_order: i }));
+    await supabase.from("stock_tab_order").upsert(rows);
+  };
+
   const createTab = async () => {
     const tabLabel = prompt("New tab name, e.g. Breakfast")?.trim();
     if (!tabLabel) return;
@@ -396,23 +433,46 @@ export default function StockOrdersPage() {
   return (
     <Section title="Stock Orders" subtitle="Add a quantity for anything that needs ordering">
       <div className="flex items-center justify-between gap-3 mb-6">
-        <div className="flex gap-1.5 overflow-x-auto pb-1" style={{ scrollbarWidth: "thin" }}>
-          {tabs.map((t) => {
+        <div className="flex gap-1.5 overflow-x-auto pb-1 items-center" style={{ scrollbarWidth: "thin" }}>
+          {tabs.map((t, i) => {
             const active = t === tab;
             return (
-              <button
-                key={t}
-                onClick={() => setTab(t)}
-                className="text-xs px-3.5 py-1.5 rounded-2xl shrink-0 whitespace-nowrap"
-                style={{
-                  background: active ? "#000000" : "#FFFFFF",
-                  color: active ? "#FFFFFF" : "#000000",
-                  border: "1px solid #000000",
-                  fontWeight: active ? 600 : 400,
-                }}
-              >
-                {t}
-              </button>
+              <div key={t} className="flex items-center gap-0.5 shrink-0">
+                {reorderingTabs && (
+                  <button
+                    onClick={() => moveTab(t, -1)}
+                    disabled={i === 0}
+                    aria-label={`Move ${t} earlier`}
+                    className="flex items-center justify-center shrink-0 rounded-full disabled:opacity-25"
+                    style={{ width: 20, height: 20, border: "1px solid #000000" }}
+                  >
+                    <ChevronLeft size={12} />
+                  </button>
+                )}
+                <button
+                  onClick={() => setTab(t)}
+                  className="text-xs px-3.5 py-1.5 rounded-2xl shrink-0 whitespace-nowrap"
+                  style={{
+                    background: active ? "#000000" : "#FFFFFF",
+                    color: active ? "#FFFFFF" : "#000000",
+                    border: "1px solid #000000",
+                    fontWeight: active ? 600 : 400,
+                  }}
+                >
+                  {t}
+                </button>
+                {reorderingTabs && (
+                  <button
+                    onClick={() => moveTab(t, 1)}
+                    disabled={i === tabs.length - 1}
+                    aria-label={`Move ${t} later`}
+                    className="flex items-center justify-center shrink-0 rounded-full disabled:opacity-25"
+                    style={{ width: 20, height: 20, border: "1px solid #000000" }}
+                  >
+                    <ChevronRight size={12} />
+                  </button>
+                )}
+              </div>
             );
           })}
           <button
@@ -443,6 +503,20 @@ export default function StockOrdersPage() {
               <Download size={14} />
             </button>
           )}
+          <button
+            onClick={() => setReorderingTabs((v) => !v)}
+            aria-label="Reorder tabs"
+            title="Reorder tabs"
+            className="flex items-center justify-center shrink-0 rounded-2xl"
+            style={{
+              width: 28,
+              height: 28,
+              border: `1px solid ${reorderingTabs ? navy : "#000000"}`,
+              background: reorderingTabs ? navy : "transparent",
+            }}
+          >
+            <ArrowLeftRight size={13} style={{ color: reorderingTabs ? "#FFFFFF" : "#000000" }} />
+          </button>
           <button
             onClick={createTab}
             disabled={creatingTab}

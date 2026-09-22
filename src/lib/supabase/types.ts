@@ -463,6 +463,10 @@ export interface Database {
           delisted?: boolean;
         }
       >;
+      stock_tab_order: Table<
+        { tab_label: string; sort_order: number },
+        { tab_label: string; sort_order: number }
+      >;
       events: Table<
         {
           id: number;
