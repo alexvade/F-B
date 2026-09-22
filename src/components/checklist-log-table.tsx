@@ -12,14 +12,20 @@ type LogItem = { id: number; text: string; sort_order: number };
 // matches the paper logs this replaces (e.g. "Week Commencing" Monday).
 const TABLE_WEEK_START_DAY = 1;
 
+// An item with exactly this label auto-fills with whoever's viewing today's
+// column, so they don't have to type their own name in every day.
+const AUTOFILL_NAME_LABEL = "barista name";
+
 export function ChecklistLogTable({
   items,
   canEdit,
   profileId,
+  profileName,
 }: {
   items: LogItem[];
   canEdit: boolean;
   profileId: string;
+  profileName: string;
 }) {
   const supabase = createClient();
   const [weekStart, setWeekStart] = useState(() => weekStartOf(todayISO(), TABLE_WEEK_START_DAY));
@@ -39,10 +45,32 @@ export function ChecklistLogTable({
       .gte("checklist_day", days[0].date)
       .lte("checklist_day", days[6].date);
     const next = new Map((data ?? []).map((c) => [`${c.item_id}:${c.checklist_day}`, c.value ?? ""]));
+
+    if (canEdit && profileName.trim()) {
+      const today = todayISO();
+      const nameItem = items.find((i) => i.text.trim().toLowerCase() === AUTOFILL_NAME_LABEL);
+      const key = nameItem ? `${nameItem.id}:${today}` : null;
+      if (nameItem && key && days.some((d) => d.date === today) && !next.get(key)) {
+        await supabase
+          .from("checklist_completions")
+          .insert({ item_id: nameItem.id, checklist_day: today, completed_by: profileId, value: profileName });
+        // Whether this insert won or lost a race against another concurrent
+        // load (e.g. React's dev double-effect), re-fetch this one cell so
+        // the UI reflects whatever actually ended up in the database.
+        const { data: refreshed } = await supabase
+          .from("checklist_completions")
+          .select("value")
+          .eq("item_id", nameItem.id)
+          .eq("checklist_day", today)
+          .maybeSingle();
+        if (refreshed) next.set(key, refreshed.value ?? "");
+      }
+    }
+
     setValues(next);
     setDrafts(Object.fromEntries(next.entries()));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [supabase, weekStart, items.length]);
+  }, [supabase, weekStart, items, canEdit, profileId, profileName]);
 
   useEffect(() => {
     loadValues();

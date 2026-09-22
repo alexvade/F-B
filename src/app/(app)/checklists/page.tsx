@@ -584,6 +584,7 @@ export default function ChecklistsPage() {
                     items={list.items}
                     canEdit={isAdmin || checklistsEditEnabled}
                     profileId={profile.id}
+                    profileName={profile.name}
                   />
                 ) : (
                 <div className="flex flex-col gap-1">
