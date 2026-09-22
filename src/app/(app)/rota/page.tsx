@@ -141,12 +141,6 @@ export default function RotaPage() {
       );
   };
 
-  const saveCovers = async (date: string, next: Covers) => {
-    setCovers((prev) => ({ ...prev, [date]: next }));
-    await supabase.from("daily_covers").upsert({ date, ...next });
-    loadAvailableWeeks();
-  };
-
   const addEvent = async (date: string) => {
     const draft = newEventDraft[date];
     if (!draft?.title.trim()) return;
@@ -381,40 +375,10 @@ export default function RotaPage() {
                 <span className="text-sm font-medium">
                   {d.day} {d.label}
                 </span>
-                {editing ? (
-                  <div className="flex items-center gap-2 text-xs" style={{ color: inkSoft }}>
-                    GIH
-                    <input
-                      type="number"
-                      value={dayCovers.gih_count ?? ""}
-                      onChange={(e) =>
-                        saveCovers(d.date, {
-                          ...dayCovers,
-                          gih_count: e.target.value === "" ? null : Number(e.target.value),
-                        })
-                      }
-                      className="w-14 rounded px-1 py-0.5"
-                      style={inputStyle}
-                    />
-                    Breakfast
-                    <input
-                      type="number"
-                      value={dayCovers.breakfast_count ?? ""}
-                      onChange={(e) =>
-                        saveCovers(d.date, {
-                          ...dayCovers,
-                          breakfast_count: e.target.value === "" ? null : Number(e.target.value),
-                        })
-                      }
-                      className="w-14 rounded px-1 py-0.5"
-                      style={inputStyle}
-                    />
-                  </div>
-                ) : (
-                  <span className="text-xs" style={{ color: inkSoft }}>
-                    GIH {dayCovers.gih_count ?? "–"} · Breakfast {dayCovers.breakfast_count ?? "–"}
-                  </span>
-                )}
+                {/* Read-only: these come solely from the Daily Overview spreadsheet import now, not editable here. */}
+                <span className="text-xs" style={{ color: inkSoft }}>
+                  GIH {dayCovers.gih_count ?? "–"} · Breakfast {dayCovers.breakfast_count ?? "–"}
+                </span>
               </div>
               {dayEvents.length === 0 ? (
                 <p className="text-xs" style={{ color: inkSoft }}>
