@@ -1,9 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Pencil, Plus, Trash2, Download } from "lucide-react";
+import { Pencil, Plus, Trash2, Download, Send as SendIcon } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useProfile } from "@/lib/profile-context";
+import { useFeatureFlag } from "@/lib/feature-flags-context";
 import { checklistDayISO, addDaysISO, weekStartOf } from "@/lib/dates";
 import { initials } from "@/lib/shift-status";
 import { Section } from "@/components/section";
@@ -25,6 +26,7 @@ const EMPTY_FORM = { id: null as number | null, title: "", items: "", weekly: fa
 export default function ChecklistsPage() {
   const profile = useProfile();
   const isAdmin = profile.role === "admin";
+  const checklistsEditEnabled = useFeatureFlag("checklists_edit");
   const supabase = createClient();
   const checklistDay = checklistDayISO();
   const weekStart = weekStartOf(checklistDay);
@@ -36,6 +38,11 @@ export default function ChecklistsPage() {
   const [showReport, setShowReport] = useState(false);
   const [reportFrom, setReportFrom] = useState(() => addDaysISO(checklistDay, -6));
   const [reportTo, setReportTo] = useState(checklistDay);
+  const [showEmailForm, setShowEmailForm] = useState(false);
+  const [emailTo, setEmailTo] = useState("");
+  const [emailFormat, setEmailFormat] = useState<"xlsx" | "pdf">("pdf");
+  const [sendingEmail, setSendingEmail] = useState(false);
+  const [emailStatus, setEmailStatus] = useState<{ ok: boolean; message: string } | null>(null);
 
   const loadData = useCallback(async () => {
     const dayKeys = Array.from(new Set([checklistDay, weekStart]));
@@ -209,6 +216,29 @@ export default function ChecklistsPage() {
     );
   }
 
+  const sendReportEmail = async () => {
+    const to = emailTo.trim();
+    if (!to) return;
+    setSendingEmail(true);
+    setEmailStatus(null);
+    try {
+      const res = await fetch("/api/checklists/send-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: to, from: reportFrom, to: reportTo, format: emailFormat }),
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setEmailStatus({ ok: false, message: body.error || "Couldn't send that — try again." });
+        return;
+      }
+      setEmailStatus({ ok: true, message: `Sent to ${to}.` });
+      setEmailTo("");
+    } finally {
+      setSendingEmail(false);
+    }
+  };
+
   return (
     <Section title="Checklists" subtitle="Tap an item to mark it done">
       <div className="flex gap-1.5 overflow-x-auto mb-6 pb-1" style={{ scrollbarWidth: "thin" }}>
@@ -232,7 +262,7 @@ export default function ChecklistsPage() {
         })}
       </div>
 
-      {isAdmin && (
+      {(isAdmin || checklistsEditEnabled) && (
         <div className="flex items-center gap-2 mb-4">
           <button
             onClick={() => openEdit()}
@@ -241,13 +271,15 @@ export default function ChecklistsPage() {
           >
             <Plus size={13} /> Add checklist to {section}
           </button>
-          <button
-            onClick={() => setShowReport((v) => !v)}
-            className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-2xl"
-            style={{ background: "#FFFFFF", color: navy, border: `1px solid ${border}` }}
-          >
-            <Download size={13} /> Export report
-          </button>
+          {isAdmin && (
+            <button
+              onClick={() => setShowReport((v) => !v)}
+              className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-2xl"
+              style={{ background: "#FFFFFF", color: navy, border: `1px solid ${border}` }}
+            >
+              <Download size={13} /> Export report
+            </button>
+          )}
         </div>
       )}
 
@@ -299,7 +331,60 @@ export default function ChecklistsPage() {
             >
               Download PDF
             </a>
+            <button
+              onClick={() => {
+                setShowEmailForm((v) => !v);
+                setEmailStatus(null);
+              }}
+              aria-label="Send by email"
+              title="Send by email"
+              className="flex items-center justify-center shrink-0 rounded-full"
+              style={{
+                width: 36,
+                height: 36,
+                border: `1px solid ${showEmailForm ? navy : border}`,
+                background: showEmailForm ? navy : "transparent",
+              }}
+            >
+              <SendIcon size={14} style={{ color: showEmailForm ? "#FFFFFF" : navy }} />
+            </button>
           </div>
+
+          {showEmailForm && (
+            <div className="flex flex-col gap-2 pt-1">
+              <input
+                type="email"
+                value={emailTo}
+                onChange={(e) => setEmailTo(e.target.value)}
+                placeholder="Send to…"
+                className="text-sm px-4 py-2 rounded-full outline-none"
+                style={{ border: `1px solid ${border}`, color: ink, background: fill }}
+              />
+              <div className="flex items-center gap-4">
+                <label className="flex items-center gap-1.5 text-xs" style={{ color: ink }}>
+                  <input type="radio" checked={emailFormat === "xlsx"} onChange={() => setEmailFormat("xlsx")} />
+                  .xlsx
+                </label>
+                <label className="flex items-center gap-1.5 text-xs" style={{ color: ink }}>
+                  <input type="radio" checked={emailFormat === "pdf"} onChange={() => setEmailFormat("pdf")} />
+                  .pdf
+                </label>
+              </div>
+              {emailStatus && (
+                <p className="text-xs" style={{ color: emailStatus.ok ? inkSoft : "#E4002B" }}>
+                  {emailStatus.message}
+                </p>
+              )}
+              <button
+                onClick={sendReportEmail}
+                disabled={sendingEmail || !emailTo.trim()}
+                className="text-xs font-medium px-3 py-1.5 rounded-2xl w-fit disabled:opacity-60"
+                style={{ background: navy, color: "#FFFFFF" }}
+              >
+                {sendingEmail ? "Sending…" : "Send"}
+              </button>
+            </div>
+          )}
         </div>
       )}
 
@@ -326,7 +411,7 @@ export default function ChecklistsPage() {
                     <span className="text-xs" style={{ color: inkSoft }}>
                       {doneCount}/{list.items.length}
                     </span>
-                    {isAdmin && (
+                    {(isAdmin || checklistsEditEnabled) && (
                       <>
                         <button onClick={() => openEdit(list)} style={{ color: navyText }}>
                           <Pencil size={13} />
