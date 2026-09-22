@@ -6,7 +6,7 @@ import { buildStockReportBuffer } from "@/lib/stock-report";
 // Emails the same report the download links produce. The "From" has to be a
 // domain verified with Resend — it can't literally be the admin's own
 // address (hotmail.com, gmail.com, etc. can never be verified by anyone but
-// their own owner) — so this sends from Resend's shared sandbox address
+// their own owner) — so this sends from team-ops.co.uk (verified in Resend)
 // with the admin's name in the display name, and their real address as
 // Reply-To so replies still land with them.
 export async function POST(request: Request) {
@@ -50,7 +50,7 @@ export async function POST(request: Request) {
   const resend = new Resend(apiKey);
   const adminName = callerProfile.name || "Team Ops";
   const { error: sendError } = await resend.emails.send({
-    from: `${adminName} (Team Ops) <onboarding@resend.dev>`,
+    from: `${adminName} (Team Ops) <stockorders@team-ops.co.uk>`,
     to: to.trim(),
     replyTo: callerProfile.email || undefined,
     subject: `Stock Order — ${new Date().toISOString().slice(0, 10)}`,
