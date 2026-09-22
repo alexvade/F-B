@@ -462,14 +462,14 @@ export default function DashboardPage() {
           {guestsCovers ? (
             <div className="grid grid-cols-2 gap-x-4 gap-y-3">
               {[
-                { label: "Rooms", value: guestsCovers.rooms_in_house },
-                { label: "GIH", value: guestsCovers.gih_count },
                 { label: "Breakfast", value: guestsCovers.breakfast_count },
                 { label: "Afternoon tea", value: guestsCovers.afternoon_tea },
                 { label: "Dinner covers", value: guestsCovers.dinner_covers },
+                { label: "Floaters", value: guestsCovers.floaters },
+                { label: "GIH", value: guestsCovers.gih_count },
+                { label: "Rooms", value: guestsCovers.rooms_in_house },
                 { label: "Events / out", value: guestsCovers.confirmed_events },
                 { label: "Non-res dinners", value: guestsCovers.non_resident_dinners },
-                { label: "Floaters", value: guestsCovers.floaters },
               ].map((s) => (
                 <div key={s.label}>
                   <div className="text-xs" style={{ color: inkSoft }}>
