@@ -8,6 +8,7 @@ import { useFeatureFlag } from "@/lib/feature-flags-context";
 import { checklistDayISO, addDaysISO, weekStartOf } from "@/lib/dates";
 import { initials } from "@/lib/shift-status";
 import { Section } from "@/components/section";
+import { ChecklistLogTable } from "@/components/checklist-log-table";
 import { bg, border, fill, ink, inkSoft, navy, navyText, orange, orangeSoft } from "@/lib/design-tokens";
 
 const SECTIONS = ["Bar", "Still Room", "Restaurant", "Vav Bar", "Cellars", "Barista"];
@@ -21,9 +22,16 @@ type Item = {
   value: string | null;
   completedByName: string | null;
 };
-type Checklist = { id: number; title: string; section: string; weekly: boolean; items: Item[] };
+type Checklist = {
+  id: number;
+  title: string;
+  section: string;
+  weekly: boolean;
+  table_view: boolean;
+  items: Item[];
+};
 
-const EMPTY_FORM = { id: null as number | null, title: "", items: "", weekly: false };
+const EMPTY_FORM = { id: null as number | null, title: "", items: "", weekly: false, tableView: false };
 
 export default function ChecklistsPage() {
   const profile = useProfile();
@@ -54,7 +62,7 @@ export default function ChecklistsPage() {
   const loadData = useCallback(async () => {
     const dayKeys = Array.from(new Set([checklistDay, weekStart]));
     const [listsRes, itemsRes, completionsRes] = await Promise.all([
-      supabase.from("checklists").select("id, title, section, weekly").order("sort_order"),
+      supabase.from("checklists").select("id, title, section, weekly, table_view").order("sort_order"),
       supabase
         .from("checklist_items")
         .select("id, checklist_id, text, sort_order, requires_value")
@@ -86,6 +94,7 @@ export default function ChecklistsPage() {
           title: list.title,
           section: list.section,
           weekly: list.weekly,
+          table_view: list.table_view,
           items: (itemsRes.data ?? [])
             .filter((i) => i.checklist_id === list.id)
             .map((i) => {
@@ -161,11 +170,23 @@ export default function ChecklistsPage() {
   const openEdit = (list?: Checklist) => {
     setForm(
       list
-        ? { id: list.id, title: list.title, items: list.items.map((i) => i.text).join("\n"), weekly: list.weekly }
+        ? {
+            id: list.id,
+            title: list.title,
+            items: list.items.map((i) => i.text).join("\n"),
+            weekly: list.weekly,
+            tableView: list.table_view,
+          }
         : { ...EMPTY_FORM }
     );
   };
 
+  // Reconciles by item text rather than deleting and recreating every item,
+  // so an edit that only renames the checklist, reorders items, or adds one
+  // more line doesn't cascade-delete every day's recorded history for the
+  // items that didn't change — this matters a lot for a log like Brew Log,
+  // where "editing a checklist" (e.g. adding a 12th column) should never
+  // wipe weeks of recorded values for the other 11.
   const saveForm = async () => {
     if (!form || !form.title.trim() || !form.items.trim()) return;
     setSaving(true);
@@ -173,20 +194,48 @@ export default function ChecklistsPage() {
       const itemTexts = form.items.split("\n").map((s) => s.trim()).filter(Boolean);
       let checklistId = form.id;
       if (checklistId) {
-        await supabase.from("checklists").update({ title: form.title.trim(), weekly: form.weekly }).eq("id", checklistId);
-        await supabase.from("checklist_items").delete().eq("checklist_id", checklistId);
+        await supabase
+          .from("checklists")
+          .update({ title: form.title.trim(), weekly: form.weekly, table_view: form.tableView })
+          .eq("id", checklistId);
+        const existingItems = checklists.find((c) => c.id === checklistId)?.items ?? [];
+        const existingByText = new Map(existingItems.map((i) => [i.text, i]));
+        const keepIds = new Set<number>();
+        for (const [i, text] of itemTexts.entries()) {
+          const existing = existingByText.get(text);
+          if (existing) {
+            keepIds.add(existing.id);
+            if (existing.sort_order !== i) {
+              await supabase.from("checklist_items").update({ sort_order: i }).eq("id", existing.id);
+            }
+          } else {
+            await supabase
+              .from("checklist_items")
+              .insert({ checklist_id: checklistId, text, sort_order: i, requires_value: form.tableView });
+          }
+        }
+        const removedIds = existingItems.filter((i) => !keepIds.has(i.id)).map((i) => i.id);
+        if (removedIds.length) {
+          await supabase.from("checklist_items").delete().in("id", removedIds);
+        }
       } else {
         const { data, error } = await supabase
           .from("checklists")
-          .insert({ title: form.title.trim(), section, sort_order: checklists.length, weekly: form.weekly })
+          .insert({
+            title: form.title.trim(),
+            section,
+            sort_order: checklists.length,
+            weekly: form.weekly,
+            table_view: form.tableView,
+          })
           .select()
           .single();
         if (error || !data) throw error;
         checklistId = data.id;
+        await supabase.from("checklist_items").insert(
+          itemTexts.map((text, i) => ({ checklist_id: checklistId!, text, sort_order: i, requires_value: form.tableView }))
+        );
       }
-      await supabase.from("checklist_items").insert(
-        itemTexts.map((text, i) => ({ checklist_id: checklistId!, text, sort_order: i }))
-      );
       setForm(null);
       loadData();
     } finally {
@@ -234,6 +283,14 @@ export default function ChecklistsPage() {
               onChange={(e) => setForm({ ...form, weekly: e.target.checked })}
             />
             Resets weekly (Friday–Thursday) instead of daily — a tick stays ticked all week
+          </label>
+          <label className="flex items-center gap-2 text-xs" style={{ color: inkSoft }}>
+            <input
+              type="checkbox"
+              checked={form.tableView}
+              onChange={(e) => setForm({ ...form, tableView: e.target.checked })}
+            />
+            Table view — each item becomes a column, and staff fill in a value per day (e.g. a log like Brew Log) instead of ticking items off
           </label>
           <button
             onClick={saveForm}
@@ -428,22 +485,24 @@ export default function ChecklistsPage() {
         <div className="flex flex-col gap-6">
           {sectionChecklists.map((list) => {
             const doneCount = list.items.filter((i) => i.done).length;
-            const hasValueItems = list.items.some((i) => i.requires_value);
+            const hasValueItems = list.table_view || list.items.some((i) => i.requires_value);
             return (
               <div key={list.id}>
                 <div className="flex items-baseline justify-between mb-2">
                   <span className="flex items-center gap-1.5">
                     <span className="text-sm font-medium">{list.title}</span>
-                    {list.weekly && (
+                    {list.weekly && !list.table_view && (
                       <span className="text-xs" style={{ color: inkSoft }}>
                         (resets weekly)
                       </span>
                     )}
                   </span>
                   <div className="flex items-center gap-2">
-                    <span className="text-xs" style={{ color: inkSoft }}>
-                      {doneCount}/{list.items.length}
-                    </span>
+                    {!list.table_view && (
+                      <span className="text-xs" style={{ color: inkSoft }}>
+                        {doneCount}/{list.items.length}
+                      </span>
+                    )}
                     {isAdmin && hasValueItems && (
                       <button
                         onClick={() => setValueReportListId((cur) => (cur === list.id ? null : list.id))}
@@ -519,6 +578,13 @@ export default function ChecklistsPage() {
                   </div>
                 )}
 
+                {list.table_view ? (
+                  <ChecklistLogTable
+                    items={list.items}
+                    canEdit={isAdmin || checklistsEditEnabled}
+                    profileId={profile.id}
+                  />
+                ) : (
                 <div className="flex flex-col gap-1">
                   {list.items.map((item) =>
                     item.requires_value ? (
@@ -624,6 +690,7 @@ export default function ChecklistsPage() {
                     )
                   )}
                 </div>
+                )}
               </div>
             );
           })}
