@@ -11,7 +11,7 @@ import { Section } from "@/components/section";
 import { ChecklistLogTable } from "@/components/checklist-log-table";
 import { bg, border, fill, ink, inkSoft, navy, navyText, orange, orangeSoft } from "@/lib/design-tokens";
 
-const SECTIONS = ["Bar", "Still Room", "Restaurant", "Vav Bar", "Cellars", "Barista", "Weddings"];
+const SECTIONS = ["Bar", "Still Room", "Restaurant", "Vav Bar", "Cellars", "Barista"];
 
 type Item = {
   id: number;

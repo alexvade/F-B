@@ -62,6 +62,11 @@ const FLAG_GROUPS: { group: string; flags: Flag[] }[] = [
         label: "Training",
         description: "Let staff upload the weekly training/compliance export and share overdue reminders. Viewing raw employee records stays admin-only.",
       },
+      {
+        key: "running_order_edit",
+        label: "Running Order",
+        description: "Let staff add, reorder, and remove moments on the Running Order timeline. Marking a moment done (with a photo/comment) is already open to everyone.",
+      },
     ],
   },
   {

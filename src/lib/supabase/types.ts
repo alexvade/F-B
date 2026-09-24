@@ -158,6 +158,60 @@ export interface Database {
           value?: string | null;
         }
       >;
+      running_orders: Table<
+        {
+          id: number;
+          title: string;
+          event_date: string | null;
+          sort_order: number;
+          created_by: string | null;
+          created_at: string;
+        },
+        {
+          id?: number;
+          title: string;
+          event_date?: string | null;
+          sort_order?: number;
+          created_by?: string | null;
+          created_at?: string;
+        }
+      >;
+      running_order_items: Table<
+        { id: number; running_order_id: number; text: string; sort_order: number },
+        { id?: number; running_order_id: number; text: string; sort_order?: number }
+      >;
+      running_order_completions: Table<
+        {
+          id: number;
+          item_id: number;
+          completed_by: string | null;
+          completed_at: string;
+        },
+        {
+          id?: number;
+          item_id: number;
+          completed_by?: string | null;
+          completed_at?: string;
+        }
+      >;
+      running_order_comments: Table<
+        {
+          id: number;
+          item_id: number;
+          author_id: string | null;
+          text: string | null;
+          photo_url: string | null;
+          created_at: string;
+        },
+        {
+          id?: number;
+          item_id: number;
+          author_id?: string | null;
+          text?: string | null;
+          photo_url?: string | null;
+          created_at?: string;
+        }
+      >;
       todos: Table<
         {
           id: number;
