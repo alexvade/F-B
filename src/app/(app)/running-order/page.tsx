@@ -56,6 +56,7 @@ export default function RunningOrderPage() {
   const [savingList, setSavingList] = useState(false);
   const [editingTitle, setEditingTitle] = useState(false);
   const [titleDraft, setTitleDraft] = useState("");
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
 
   const [showReport, setShowReport] = useState(false);
   const [showEmailForm, setShowEmailForm] = useState(false);
@@ -205,8 +206,8 @@ export default function RunningOrderPage() {
   };
 
   const deleteRunningOrder = async (ro: RunningOrder) => {
-    if (!confirm(`Delete "${ro.title}" and its whole timeline? This can't be undone.`)) return;
     await supabase.from("running_orders").delete().eq("id", ro.id);
+    setConfirmingDelete(false);
     setActiveId(null);
     loadRunningOrders();
   };
@@ -368,7 +369,11 @@ export default function RunningOrderPage() {
           return (
             <button
               key={ro.id}
-              onClick={() => setActiveId(ro.id)}
+              onClick={() => {
+                setActiveId(ro.id);
+                setConfirmingDelete(false);
+                setEditingTitle(false);
+              }}
               className="text-xs px-3.5 py-1.5 rounded-2xl shrink-0 whitespace-nowrap"
               style={{
                 background: isActive ? "#000000" : "#FFFFFF",
@@ -390,6 +395,28 @@ export default function RunningOrderPage() {
             style={{ width: 30, height: 30, border: "1px solid #000000" }}
           >
             <Plus size={15} />
+          </button>
+        )}
+        {active && (isAdmin || editEnabled) && (
+          <button
+            onClick={() => startEditTitle(active)}
+            aria-label="Rename"
+            title="Rename"
+            className="flex items-center justify-center shrink-0 rounded-2xl"
+            style={{ width: 30, height: 30, border: "1px solid #000000" }}
+          >
+            <Pencil size={14} />
+          </button>
+        )}
+        {active && isAdmin && (
+          <button
+            onClick={() => setConfirmingDelete(true)}
+            aria-label="Delete this running order"
+            title="Delete this running order"
+            className="flex items-center justify-center shrink-0 rounded-2xl"
+            style={{ width: 30, height: 30, border: "1px solid #000000" }}
+          >
+            <Trash2 size={14} />
           </button>
         )}
       </div>
@@ -438,39 +465,36 @@ export default function RunningOrderPage() {
         </div>
       )}
 
-      {active && (
-        <div className="flex items-center gap-2 mb-1">
-          {editingTitle ? (
-            <>
-              <input
-                autoFocus
-                value={titleDraft}
-                onChange={(e) => setTitleDraft(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && saveTitle()}
-                className="text-sm px-3 py-1 rounded-full outline-none"
-                style={{ border: `1px solid ${border}`, background: fill, color: ink }}
-              />
-              <button onClick={saveTitle} className="text-xs font-medium" style={{ color: navy }}>
-                Save
-              </button>
-              <button onClick={() => setEditingTitle(false)} className="text-xs" style={{ color: inkSoft }}>
-                Cancel
-              </button>
-            </>
-          ) : (
-            (isAdmin || editEnabled) && (
-              <>
-                <button onClick={() => startEditTitle(active)} style={{ color: navyText }} aria-label="Rename">
-                  <Pencil size={12} />
-                </button>
-                {isAdmin && (
-                  <button onClick={() => deleteRunningOrder(active)} style={{ color: "#000000" }} aria-label="Delete this running order">
-                    <Trash2 size={12} />
-                  </button>
-                )}
-              </>
-            )
-          )}
+      {active && editingTitle && (
+        <div className="flex items-center gap-2 mb-4">
+          <input
+            autoFocus
+            value={titleDraft}
+            onChange={(e) => setTitleDraft(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && saveTitle()}
+            className="text-sm px-3 py-1 rounded-full outline-none"
+            style={{ border: `1px solid ${border}`, background: fill, color: ink }}
+          />
+          <button onClick={saveTitle} className="text-xs font-medium" style={{ color: navy }}>
+            Save
+          </button>
+          <button onClick={() => setEditingTitle(false)} className="text-xs" style={{ color: inkSoft }}>
+            Cancel
+          </button>
+        </div>
+      )}
+
+      {active && confirmingDelete && (
+        <div className="flex items-center gap-2 mb-4">
+          <span className="text-xs" style={{ color: ink }}>
+            Delete &quot;{active.title}&quot;? This can&apos;t be undone.
+          </span>
+          <button onClick={() => deleteRunningOrder(active)} className="text-xs font-medium" style={{ color: "#E4002B" }}>
+            Yes, delete
+          </button>
+          <button onClick={() => setConfirmingDelete(false)} className="text-xs" style={{ color: inkSoft }}>
+            Cancel
+          </button>
         </div>
       )}
 
@@ -479,7 +503,7 @@ export default function RunningOrderPage() {
           <button
             onClick={openListEdit}
             className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-2xl"
-            style={{ background: orangeSoft, color: navy }}
+            style={{ background: "#FFFFFF", color: navy, border: `1px solid ${border}` }}
           >
             <Pencil size={13} /> Edit moments
           </button>
