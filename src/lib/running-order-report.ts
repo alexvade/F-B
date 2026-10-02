@@ -10,6 +10,8 @@ type CommentRow = {
   author_id: string | null;
   text: string | null;
   photo_url: string | null;
+  file_url: string | null;
+  file_name: string | null;
   created_at: string;
 };
 
@@ -34,6 +36,34 @@ function formatTimeHMS(iso: string): string {
 
 function slugify(title: string): string {
   return title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+}
+
+// A comment's image, whether it came from the quick-snap "photo" field or a
+// general "file" upload that happens to be an image.
+function commentImagePath(cm: CommentRow): string | null {
+  if (cm.photo_url) return cm.photo_url;
+  if (cm.file_url && imageExtension(cm.file_url)) return cm.file_url;
+  return null;
+}
+
+// Non-image file attachments can't be embedded — note them as text instead.
+function commentFileNote(cm: CommentRow): string | null {
+  if (cm.file_url && !imageExtension(cm.file_url)) return cm.file_name ?? "attached file";
+  return null;
+}
+
+// Real time rarely matches the planned running order — later steps often
+// finish before earlier ones. Completed items sort by when they actually
+// happened; anything not yet done keeps its place at the end, in list order.
+function sortByCompletionTime(items: Item[], completionByItem: Map<number, Completion>): Item[] {
+  return [...items].sort((a, b) => {
+    const ca = completionByItem.get(a.id);
+    const cb = completionByItem.get(b.id);
+    if (ca && cb) return new Date(ca.completed_at).getTime() - new Date(cb.completed_at).getTime();
+    if (ca) return -1;
+    if (cb) return 1;
+    return a.sort_order - b.sort_order;
+  });
 }
 
 // Mirrors src/lib/storage.ts's toStoragePath — older rows may hold a full
@@ -76,7 +106,7 @@ async function loadCompletionsAndComments(
     itemIds.length
       ? supabase
           .from("running_order_comments")
-          .select("id, item_id, author_id, text, photo_url, created_at")
+          .select("id, item_id, author_id, text, photo_url, file_url, file_name, created_at")
           .in("item_id", itemIds)
           .order("created_at")
       : Promise.resolve({ data: [] as CommentRow[] }),
@@ -148,7 +178,12 @@ export async function buildRunningOrderReportBuffer(
       const c = completionByItem.get(item.id);
       const comments = commentsByItem.get(item.id) ?? [];
       const commentLines = comments
-        .map((cm) => `${formatTimeHMS(cm.created_at)} ${cm.author_id ? nameById.get(cm.author_id) ?? "Someone" : "Someone"}: ${cm.text ?? ""}`.trim())
+        .map((cm) => {
+          const who = cm.author_id ? nameById.get(cm.author_id) ?? "Someone" : "Someone";
+          const fileNote = commentFileNote(cm);
+          const line = `${formatTimeHMS(cm.created_at)} ${who}: ${cm.text ?? ""}`.trim();
+          return fileNote ? `${line} [file: ${fileNote}]` : line;
+        })
         .join("\n");
       const row = sheet.addRow({
         time: c ? formatTimeHMS(c.completed_at) : "",
@@ -159,12 +194,12 @@ export async function buildRunningOrderReportBuffer(
       });
       row.alignment = { wrapText: true, vertical: "top" };
 
-      const photosForItem = comments.filter((cm) => cm.photo_url);
-      if (photosForItem.length) {
-        row.height = Math.max(60, 70 * photosForItem.length);
-        for (const [i, cm] of photosForItem.entries()) {
-          const ext = imageExtension(cm.photo_url!);
-          const buf = ext ? await downloadPhoto(supabase, cm.photo_url!) : null;
+      const imagesForItem = comments.map((cm) => commentImagePath(cm)).filter((p): p is string => !!p);
+      if (imagesForItem.length) {
+        row.height = Math.max(60, 70 * imagesForItem.length);
+        for (const [i, path] of imagesForItem.entries()) {
+          const ext = imageExtension(path);
+          const buf = ext ? await downloadPhoto(supabase, path) : null;
           if (buf) {
             // exceljs's Buffer type param predates newer @types/node additions
             // (maxByteLength etc.) — functionally identical, cast to satisfy tsc.
@@ -207,7 +242,8 @@ export async function buildRunningOrderReportBuffer(
   if (subtitle) doc.fontSize(11).fillColor("#555").font("Helvetica").text(subtitle);
   doc.moveDown(1);
 
-  for (const item of items ?? []) {
+  const timelineOrder = sortByCompletionTime(items ?? [], completionByItem);
+  for (const item of timelineOrder) {
     const c = completionByItem.get(item.id);
     const comments = commentsByItem.get(item.id) ?? [];
 
@@ -229,9 +265,9 @@ export async function buildRunningOrderReportBuffer(
       if (cm.text) {
         doc.fontSize(9).fillColor("#333").font("Helvetica").text(cm.text, { indent: 14 });
       }
-      if (cm.photo_url) {
-        const ext = imageExtension(cm.photo_url);
-        const buf = ext ? await downloadPhoto(supabase, cm.photo_url) : null;
+      const imagePath = commentImagePath(cm);
+      if (imagePath) {
+        const buf = await downloadPhoto(supabase, imagePath);
         if (buf) {
           ensureSpace(90);
           doc.image(buf, doc.page.margins.left + 14, doc.y, { width: 80, height: 80 });
@@ -239,6 +275,10 @@ export async function buildRunningOrderReportBuffer(
         } else {
           doc.fontSize(8).fillColor("#999").text("[photo attached]", { indent: 14 });
         }
+      }
+      const fileNote = commentFileNote(cm);
+      if (fileNote) {
+        doc.fontSize(8).fillColor("#999").text(`[file attached: ${fileNote}]`, { indent: 14 });
       }
     }
     doc.moveDown(0.75);

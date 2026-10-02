@@ -201,6 +201,8 @@ export interface Database {
           author_id: string | null;
           text: string | null;
           photo_url: string | null;
+          file_url: string | null;
+          file_name: string | null;
           created_at: string;
         },
         {
@@ -209,6 +211,8 @@ export interface Database {
           author_id?: string | null;
           text?: string | null;
           photo_url?: string | null;
+          file_url?: string | null;
+          file_name?: string | null;
           created_at?: string;
         }
       >;

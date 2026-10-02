@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Camera, Download, Pencil, Plus, Send as SendIcon, Trash2, X } from "lucide-react";
+import { Camera, Download, FileText, Paperclip, Pencil, Plus, Send as SendIcon, Trash2, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useProfile } from "@/lib/profile-context";
 import { useFeatureFlag } from "@/lib/feature-flags-context";
@@ -17,8 +17,13 @@ type Comment = {
   text: string | null;
   photoUrl: string | null;
   photoDisplayUrl: string | null;
+  fileUrl: string | null;
+  fileName: string | null;
+  fileDisplayUrl: string | null;
   createdAt: string;
 };
+
+const IMAGE_EXT_RE = /\.(png|jpe?g|gif|webp)$/i;
 
 type Item = {
   id: number;
@@ -50,6 +55,7 @@ export default function RunningOrderPage() {
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [commentDraft, setCommentDraft] = useState("");
   const [photoDraft, setPhotoDraft] = useState<File | null>(null);
+  const [fileDraft, setFileDraft] = useState<File | null>(null);
   const [posting, setPosting] = useState(false);
   const [editingList, setEditingList] = useState(false);
   const [listDraft, setListDraft] = useState("");
@@ -104,7 +110,7 @@ export default function RunningOrderPage() {
       itemIds.length
         ? supabase
             .from("running_order_comments")
-            .select("id, item_id, author_id, text, photo_url, created_at")
+            .select("id, item_id, author_id, text, photo_url, file_url, file_name, created_at")
             .in("item_id", itemIds)
             .order("created_at")
         : Promise.resolve({ data: [] }),
@@ -142,6 +148,9 @@ export default function RunningOrderPage() {
             text: rc.text,
             photoUrl: rc.photo_url,
             photoDisplayUrl: rc.photo_url ? await getAttachmentUrl(rc.photo_url) : null,
+            fileUrl: rc.file_url,
+            fileName: rc.file_name,
+            fileDisplayUrl: rc.file_url ? await getAttachmentUrl(rc.file_url) : null,
             createdAt: rc.created_at,
           }))
         );
@@ -237,21 +246,26 @@ export default function RunningOrderPage() {
     setExpandedId((cur) => (cur === item.id ? null : item.id));
     setCommentDraft("");
     setPhotoDraft(null);
+    setFileDraft(null);
   };
 
   const postComment = async (item: Item) => {
-    if (!commentDraft.trim() && !photoDraft) return;
+    if (!commentDraft.trim() && !photoDraft && !fileDraft) return;
     setPosting(true);
     try {
       const photoUrl = photoDraft ? await uploadAttachment(photoDraft, "running-order") : null;
+      const fileUrl = fileDraft ? await uploadAttachment(fileDraft, "running-order") : null;
       await supabase.from("running_order_comments").insert({
         item_id: item.id,
         author_id: profile.id,
         text: commentDraft.trim() || null,
         photo_url: photoUrl,
+        file_url: fileUrl,
+        file_name: fileDraft?.name ?? null,
       });
       setCommentDraft("");
       setPhotoDraft(null);
+      setFileDraft(null);
       loadItems();
     } finally {
       setPosting(false);
@@ -260,6 +274,7 @@ export default function RunningOrderPage() {
 
   const deleteComment = async (comment: Comment) => {
     if (comment.photoUrl) await deleteAttachment(comment.photoUrl);
+    if (comment.fileUrl) await deleteAttachment(comment.fileUrl);
     await supabase.from("running_order_comments").delete().eq("id", comment.id);
     loadItems();
   };
@@ -768,6 +783,31 @@ export default function RunningOrderPage() {
                                 />
                               </a>
                             )}
+                            {c.fileDisplayUrl &&
+                              (c.fileName?.match(IMAGE_EXT_RE) ? (
+                                <a href={c.fileDisplayUrl} target="_blank" rel="noreferrer">
+                                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                                  <img
+                                    src={c.fileDisplayUrl}
+                                    alt=""
+                                    className="rounded-xl object-cover mt-1"
+                                    style={{ width: 72, height: 72, border: `1px solid ${border}` }}
+                                  />
+                                </a>
+                              ) : (
+                                <a
+                                  href={c.fileDisplayUrl}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="flex items-center gap-1.5 mt-1 px-2 py-1 rounded-2xl w-fit"
+                                  style={{ background: orangeSoft }}
+                                >
+                                  <FileText size={12} style={{ color: navyText }} />
+                                  <span className="text-xs" style={{ color: navyText }}>
+                                    {c.fileName}
+                                  </span>
+                                </a>
+                              ))}
                           </div>
                         </div>
                       ))}
@@ -781,7 +821,7 @@ export default function RunningOrderPage() {
                           className="flex-1 text-sm px-3 py-2 rounded-full outline-none"
                           style={{ border: `1px solid ${border}`, background: fill, color: ink }}
                         />
-                        <label className="shrink-0 cursor-pointer" style={{ color: navyText }} aria-label="Add photo">
+                        <label className="shrink-0 cursor-pointer" style={{ color: navyText }} title="Take a photo" aria-label="Add photo">
                           <Camera size={17} />
                           <input
                             type="file"
@@ -791,9 +831,17 @@ export default function RunningOrderPage() {
                             className="hidden"
                           />
                         </label>
+                        <label className="shrink-0 cursor-pointer" style={{ color: navyText }} title="Attach a file (PDF, photo from library, etc.)" aria-label="Add file">
+                          <Paperclip size={17} />
+                          <input
+                            type="file"
+                            onChange={(e) => setFileDraft(e.target.files?.[0] ?? null)}
+                            className="hidden"
+                          />
+                        </label>
                         <button
                           onClick={() => postComment(item)}
-                          disabled={posting || (!commentDraft.trim() && !photoDraft)}
+                          disabled={posting || (!commentDraft.trim() && !photoDraft && !fileDraft)}
                           className="shrink-0 flex items-center justify-center rounded-full disabled:opacity-40"
                           style={{ width: 32, height: 32, background: navy }}
                           aria-label="Send comment"
@@ -804,6 +852,11 @@ export default function RunningOrderPage() {
                       {photoDraft && (
                         <p className="text-xs" style={{ color: inkSoft }}>
                           {photoDraft.name} attached
+                        </p>
+                      )}
+                      {fileDraft && (
+                        <p className="text-xs" style={{ color: inkSoft }}>
+                          {fileDraft.name} attached
                         </p>
                       )}
                     </div>
