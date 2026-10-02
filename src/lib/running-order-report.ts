@@ -1,5 +1,6 @@
 import ExcelJS from "exceljs";
 import PDFDocument from "pdfkit";
+import sharp from "sharp";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 type Item = { id: number; text: string; sort_order: number };
@@ -14,6 +15,12 @@ type CommentRow = {
   file_name: string | null;
   created_at: string;
 };
+
+// A comment can embed an image (either its quick-snap photo, or a general
+// file upload that turns out to be a photo) and/or note a non-image file —
+// both independently, since one comment can carry both a camera photo and
+// a separate file attachment at once.
+type ResolvedAttachment = { kind: "image"; buffer: Buffer } | { kind: "file"; name: string };
 
 function formatDayLong(iso: string): string {
   return new Date(iso + "T00:00:00Z").toLocaleDateString("en-GB", {
@@ -38,20 +45,6 @@ function slugify(title: string): string {
   return title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 }
 
-// A comment's image, whether it came from the quick-snap "photo" field or a
-// general "file" upload that happens to be an image.
-function commentImagePath(cm: CommentRow): string | null {
-  if (cm.photo_url) return cm.photo_url;
-  if (cm.file_url && imageExtension(cm.file_url)) return cm.file_url;
-  return null;
-}
-
-// Non-image file attachments can't be embedded — note them as text instead.
-function commentFileNote(cm: CommentRow): string | null {
-  if (cm.file_url && !imageExtension(cm.file_url)) return cm.file_name ?? "attached file";
-  return null;
-}
-
 // Real time rarely matches the planned running order — later steps often
 // finish before earlier ones. Completed items sort by when they actually
 // happened; anything not yet done keeps its place at the end, in list order.
@@ -74,16 +67,7 @@ function toStoragePath(stored: string): string {
   return i === -1 ? stored : stored.slice(i + marker.length);
 }
 
-// exceljs/pdfkit only embed jpeg/png directly — anything else (e.g. webp)
-// is skipped from the visual embed but still noted in the text.
-function imageExtension(path: string): "jpeg" | "png" | null {
-  const ext = path.split(".").pop()?.toLowerCase();
-  if (ext === "png") return "png";
-  if (ext === "jpg" || ext === "jpeg") return "jpeg";
-  return null;
-}
-
-async function downloadPhoto(
+async function downloadRaw(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   supabase: SupabaseClient<any>,
   path: string
@@ -91,6 +75,49 @@ async function downloadPhoto(
   const { data, error } = await supabase.storage.from("attachments").download(toStoragePath(path));
   if (error || !data) return null;
   return Buffer.from(await data.arrayBuffer());
+}
+
+// Source photos come straight off phone cameras (often several MB each,
+// with a dozen+ in one export) — embedding them at full resolution is what
+// was blowing past Resend's attachment size limit and failing the "send by
+// email" option with a 413. Downscaling to the size they're actually
+// displayed at (plus headroom) keeps every export a few hundred KB instead
+// of tens of MB. A non-image file (e.g. a PDF) fails to decode here and
+// falls back to a text note instead of an embed.
+async function downloadAndCompressImage(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  supabase: SupabaseClient<any>,
+  path: string
+): Promise<Buffer | null> {
+  const raw = await downloadRaw(supabase, path);
+  if (!raw) return null;
+  try {
+    return await sharp(raw).rotate().resize(600, 600, { fit: "inside", withoutEnlargement: true }).jpeg({ quality: 72 }).toBuffer();
+  } catch {
+    return null;
+  }
+}
+
+async function resolveAttachments(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  supabase: SupabaseClient<any>,
+  comments: CommentRow[]
+): Promise<Map<number, ResolvedAttachment[]>> {
+  const map = new Map<number, ResolvedAttachment[]>();
+  for (const cm of comments) {
+    const entries: ResolvedAttachment[] = [];
+    if (cm.photo_url) {
+      const img = await downloadAndCompressImage(supabase, cm.photo_url);
+      if (img) entries.push({ kind: "image", buffer: img });
+    }
+    if (cm.file_url) {
+      const img = await downloadAndCompressImage(supabase, cm.file_url);
+      if (img) entries.push({ kind: "image", buffer: img });
+      else entries.push({ kind: "file", name: cm.file_name ?? "attached file" });
+    }
+    if (entries.length) map.set(cm.id, entries);
+  }
+  return map;
 }
 
 async function loadCompletionsAndComments(
@@ -129,16 +156,19 @@ async function loadCompletionsAndComments(
     : { data: [] };
   const nameById = new Map((profiles ?? []).map((p: { id: string; name: string }) => [p.id, p.name]));
 
+  const attachmentsByComment = await resolveAttachments(supabase, comments);
+
   return {
     completionByItem: new Map(completions.map((c) => [c.item_id, c])),
     commentsByItem,
     nameById,
+    attachmentsByComment,
   };
 }
 
 // One event's timeline, rendered with the same detail as the on-screen
 // page — every moment, its completion timestamp (HH:MM:SS) and who did it,
-// every comment, and any attached photos.
+// every comment, and any attached photos/files.
 export async function buildRunningOrderReportBuffer(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   supabase: SupabaseClient<any>,
@@ -157,7 +187,10 @@ export async function buildRunningOrderReportBuffer(
     .select("id, text, sort_order")
     .eq("running_order_id", runningOrderId)
     .order("sort_order");
-  const { completionByItem, commentsByItem, nameById } = await loadCompletionsAndComments(supabase, items ?? []);
+  const { completionByItem, commentsByItem, nameById, attachmentsByComment } = await loadCompletionsAndComments(
+    supabase,
+    items ?? []
+  );
 
   const subtitle = runningOrder.event_date ? formatDayLong(runningOrder.event_date) : null;
   const filenameSlug = slugify(runningOrder.title) || `running-order-${runningOrderId}`;
@@ -180,9 +213,11 @@ export async function buildRunningOrderReportBuffer(
       const commentLines = comments
         .map((cm) => {
           const who = cm.author_id ? nameById.get(cm.author_id) ?? "Someone" : "Someone";
-          const fileNote = commentFileNote(cm);
+          const fileNames = (attachmentsByComment.get(cm.id) ?? [])
+            .filter((a): a is { kind: "file"; name: string } => a.kind === "file")
+            .map((a) => a.name);
           const line = `${formatTimeHMS(cm.created_at)} ${who}: ${cm.text ?? ""}`.trim();
-          return fileNote ? `${line} [file: ${fileNote}]` : line;
+          return fileNames.length ? `${line} [file: ${fileNames.join(", ")}]` : line;
         })
         .join("\n");
       const row = sheet.addRow({
@@ -194,22 +229,21 @@ export async function buildRunningOrderReportBuffer(
       });
       row.alignment = { wrapText: true, vertical: "top" };
 
-      const imagesForItem = comments.map((cm) => commentImagePath(cm)).filter((p): p is string => !!p);
-      if (imagesForItem.length) {
-        row.height = Math.max(60, 70 * imagesForItem.length);
-        for (const [i, path] of imagesForItem.entries()) {
-          const ext = imageExtension(path);
-          const buf = ext ? await downloadPhoto(supabase, path) : null;
-          if (buf) {
-            // exceljs's Buffer type param predates newer @types/node additions
-            // (maxByteLength etc.) — functionally identical, cast to satisfy tsc.
-            const imageId = workbook.addImage({ buffer: buf as unknown as ExcelJS.Buffer, extension: ext! });
-            sheet.addImage(imageId, {
-              tl: { col: 4, row: row.number - 1 + i * 0.95 },
-              ext: { width: 80, height: 80 },
-            });
-          }
-        }
+      const images = comments.flatMap(
+        (cm) =>
+          (attachmentsByComment.get(cm.id) ?? []).filter((a): a is { kind: "image"; buffer: Buffer } => a.kind === "image")
+      );
+      if (images.length) {
+        row.height = Math.max(60, 70 * images.length);
+        images.forEach((img, i) => {
+          // exceljs's Buffer type param predates newer @types/node additions
+          // (maxByteLength etc.) — functionally identical, cast to satisfy tsc.
+          const imageId = workbook.addImage({ buffer: img.buffer as unknown as ExcelJS.Buffer, extension: "jpeg" });
+          sheet.addImage(imageId, {
+            tl: { col: 4, row: row.number - 1 + i * 0.95 },
+            ext: { width: 80, height: 80 },
+          });
+        });
       }
     }
 
@@ -265,20 +299,14 @@ export async function buildRunningOrderReportBuffer(
       if (cm.text) {
         doc.fontSize(9).fillColor("#333").font("Helvetica").text(cm.text, { indent: 14 });
       }
-      const imagePath = commentImagePath(cm);
-      if (imagePath) {
-        const buf = await downloadPhoto(supabase, imagePath);
-        if (buf) {
+      for (const attachment of attachmentsByComment.get(cm.id) ?? []) {
+        if (attachment.kind === "image") {
           ensureSpace(90);
-          doc.image(buf, doc.page.margins.left + 14, doc.y, { width: 80, height: 80 });
+          doc.image(attachment.buffer, doc.page.margins.left + 14, doc.y, { width: 80, height: 80 });
           doc.y += 86;
         } else {
-          doc.fontSize(8).fillColor("#999").text("[photo attached]", { indent: 14 });
+          doc.fontSize(8).fillColor("#999").text(`[file attached: ${attachment.name}]`, { indent: 14 });
         }
-      }
-      const fileNote = commentFileNote(cm);
-      if (fileNote) {
-        doc.fontSize(8).fillColor("#999").text(`[file attached: ${fileNote}]`, { indent: 14 });
       }
     }
     doc.moveDown(0.75);
