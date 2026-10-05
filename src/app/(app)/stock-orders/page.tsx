@@ -1,11 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-
-// Matches the "(don't order)" suffix the Google Sheet sync carries over
-// verbatim into the product name — shown in italic to flag it at a glance
-// as a line to leave at 0, without needing a separate column for it.
-const DONT_ORDER_RE = /\(don't order\)/i;
 import Link from "next/link";
 import {
   ArrowLeftRight,
@@ -881,10 +876,7 @@ export default function StockOrdersPage() {
                     >
                       <div className="flex items-center gap-3 p-2.5">
                         <button onClick={() => toggleEdit(p)} className="flex-1 min-w-0 text-left">
-                          <div
-                            className="text-sm font-medium truncate"
-                            style={{ color: ink, fontStyle: DONT_ORDER_RE.test(p.product) ? "italic" : "normal" }}
-                          >
+                          <div className="text-sm font-medium truncate" style={{ color: ink }}>
                             {p.product}
                           </div>
                           {p.delisted && (
