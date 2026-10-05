@@ -102,6 +102,7 @@ export interface Database {
           confirmed_events: number | null;
           non_resident_dinners: number | null;
           floaters: number | null;
+          updated_at: string | null;
         },
         {
           date: string;
@@ -115,6 +116,7 @@ export interface Database {
           confirmed_events?: number | null;
           non_resident_dinners?: number | null;
           floaters?: number | null;
+          updated_at?: string | null;
         }
       >;
       rota_staff_order: Table<

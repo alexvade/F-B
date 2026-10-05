@@ -59,6 +59,7 @@ const run = async () => {
   // Row 1 col B: the report's "as of" date. Row 3: today's figures — note
   // this row has no Breakfast Covers column (that only appears in the
   // forward-looking table below), so breakfast_count stays null for today.
+  const importedAt = new Date().toISOString();
   const reportDate = toISODate(sheet.getRow(1).getCell(2).value);
   const todayRow = sheet.getRow(3);
   if (reportDate) {
@@ -73,6 +74,7 @@ const run = async () => {
       confirmed_events: toInt(todayRow.getCell(7).value),
       non_resident_dinners: toInt(todayRow.getCell(8).value),
       floaters: toInt(todayRow.getCell(9).value),
+      updated_at: importedAt,
     });
   }
 
@@ -92,6 +94,7 @@ const run = async () => {
       confirmed_events: toInt(row.getCell(7).value),
       non_resident_dinners: toInt(row.getCell(8).value),
       floaters: toInt(row.getCell(9).value),
+      updated_at: importedAt,
     });
   }
 

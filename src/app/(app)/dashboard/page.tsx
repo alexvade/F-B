@@ -49,6 +49,7 @@ type DailyCovers = {
   confirmed_events: number | null;
   non_resident_dinners: number | null;
   floaters: number | null;
+  updated_at: string | null;
 };
 const GUESTS_CARD_DAYS_AHEAD = 7;
 type WorkingToday = { name: string; start: string | null; end: string | null };
@@ -484,6 +485,18 @@ export default function DashboardPage() {
           ) : (
             <p className="text-sm" style={{ color: inkSoft }}>
               No data for this date
+            </p>
+          )}
+          {guestsCovers?.updated_at && (
+            <p className="text-xs mt-3" style={{ color: inkSoft }}>
+              Updated{" "}
+              {new Date(guestsCovers.updated_at).toLocaleString("en-GB", {
+                day: "2-digit",
+                month: "short",
+                hour: "2-digit",
+                minute: "2-digit",
+                timeZone: "Europe/London",
+              })}
             </p>
           )}
         </div>
