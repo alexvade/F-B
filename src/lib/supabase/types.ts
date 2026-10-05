@@ -146,6 +146,7 @@ export interface Database {
           item_id: number;
           checklist_day: string;
           completed_by: string | null;
+          completed_by_name: string | null;
           completed_at: string;
           value: string | null;
         },
@@ -154,6 +155,7 @@ export interface Database {
           item_id: number;
           checklist_day: string;
           completed_by?: string | null;
+          completed_by_name?: string | null;
           completed_at?: string;
           value?: string | null;
         }

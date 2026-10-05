@@ -3,7 +3,14 @@ import PDFDocument from "pdfkit";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 type ChecklistItem = { id: number; text: string; sort_order: number; requires_value: boolean };
-type Completion = { item_id: number; checklist_day: string; value: string | null };
+type Completion = {
+  item_id: number;
+  checklist_day: string;
+  value: string | null;
+  completed_by: string | null;
+  completed_by_name: string | null;
+  completed_at: string;
+};
 
 function formatDay(iso: string): string {
   return new Date(iso + "T00:00:00Z").toLocaleDateString("en-GB", {
@@ -12,6 +19,10 @@ function formatDay(iso: string): string {
     month: "short",
     timeZone: "UTC",
   });
+}
+
+function formatTimeHM(iso: string): string {
+  return new Date(iso).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/London" });
 }
 
 function datesBetween(from: string, to: string): string[] {
@@ -26,15 +37,32 @@ function datesBetween(from: string, to: string): string[] {
 }
 
 // One row per date in range, one column per item — a value item shows what
-// was recorded, a plain tick item shows ✓ if it was done that day.
-function cellFor(item: ChecklistItem, date: string, completionByKey: Map<string, Completion>): string {
+// was recorded; a plain tick item shows who did it and when, falling back
+// to a bare ✓ if no name can be resolved (shouldn't normally happen).
+function cellFor(item: ChecklistItem, date: string, completionByKey: Map<string, Completion>, nameById: Map<string, string>): string {
   const completion = completionByKey.get(`${item.id}:${date}`);
-  if (item.requires_value) return completion?.value ?? "";
-  return completion ? "✓" : "";
+  if (!completion) return "";
+  if (item.requires_value) return completion.value ?? "";
+  const name = completion.completed_by_name ?? (completion.completed_by ? nameById.get(completion.completed_by) : undefined);
+  return name ? `${formatTimeHM(completion.completed_at)} ${name}` : "✓";
 }
 
 function slugify(title: string): string {
   return title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+}
+
+// Some checklist items are full SOP paragraphs rather than short labels
+// (e.g. "Drain, isolate and allow to cool. Thoroughly scrub..."). Left
+// alone, a single long item balloons the whole header row — every column
+// shares one row height — and can swallow most of the page. Cap it to a
+// few lines, same idea as a spreadsheet column that doesn't auto-fit.
+function fitHeaderText(doc: PDFKit.PDFDocument, text: string, width: number, maxHeight: number): string {
+  if (doc.heightOfString(text, { width }) <= maxHeight) return text;
+  let truncated = text;
+  while (truncated.length > 1 && doc.heightOfString(truncated + "…", { width }) > maxHeight) {
+    truncated = truncated.slice(0, -1);
+  }
+  return truncated.trimEnd() + "…";
 }
 
 async function loadChecklistGrid(
@@ -43,7 +71,13 @@ async function loadChecklistGrid(
   checklistId: number,
   from: string,
   to: string
-): Promise<{ title: string; items: ChecklistItem[]; dates: string[]; completionByKey: Map<string, Completion> } | null> {
+): Promise<{
+  title: string;
+  items: ChecklistItem[];
+  dates: string[];
+  completionByKey: Map<string, Completion>;
+  nameById: Map<string, string>;
+} | null> {
   const { data: checklist, error: checklistError } = await supabase
     .from("checklists")
     .select("title")
@@ -62,18 +96,25 @@ async function loadChecklistGrid(
   const { data: completions, error: completionsError } = itemIds.length
     ? await supabase
         .from("checklist_completions")
-        .select("item_id, checklist_day, value")
+        .select("item_id, checklist_day, value, completed_by, completed_by_name, completed_at")
         .in("item_id", itemIds)
         .gte("checklist_day", from)
         .lte("checklist_day", to)
     : { data: [] as Completion[], error: null };
   if (completionsError) throw new Error(completionsError.message);
 
+  const completerIds = Array.from(new Set((completions ?? []).map((c) => c.completed_by).filter(Boolean))) as string[];
+  const { data: profiles } = completerIds.length
+    ? await supabase.from("profiles").select("id, name").in("id", completerIds)
+    : { data: [] };
+  const nameById = new Map((profiles ?? []).map((p: { id: string; name: string }) => [p.id, p.name]));
+
   return {
     title: checklist.title,
     items: items ?? [],
     dates: datesBetween(from, to),
     completionByKey: new Map((completions ?? []).map((c) => [`${c.item_id}:${c.checklist_day}`, c])),
+    nameById,
   };
 }
 
@@ -83,7 +124,8 @@ function addGridSheet(
   title: string,
   items: ChecklistItem[],
   dates: string[],
-  completionByKey: Map<string, Completion>
+  completionByKey: Map<string, Completion>,
+  nameById: Map<string, string>
 ) {
   let sheetName = title.slice(0, 31);
   let n = 2;
@@ -100,7 +142,7 @@ function addGridSheet(
   sheet.getRow(1).font = { bold: true };
   for (const date of dates) {
     const row: Record<string, string> = { date: formatDay(date) };
-    for (const i of items) row[String(i.id)] = cellFor(i, date, completionByKey);
+    for (const i of items) row[String(i.id)] = cellFor(i, date, completionByKey, nameById);
     sheet.addRow(row);
   }
 
@@ -124,6 +166,7 @@ function drawGridSection(
   items: ChecklistItem[],
   dates: string[],
   completionByKey: Map<string, Completion>,
+  nameById: Map<string, string>,
   fresh: boolean,
   subtitle?: string
 ) {
@@ -149,7 +192,7 @@ function drawGridSection(
       Math.max(...columns.map((c) => doc.heightOfString(cells[c.key], { width: c.width - cellPad * 2 }))) +
       cellPad * 2;
     let x = tableLeft;
-    doc.fontSize(8).fillColor("#000");
+    doc.fontSize(7).fillColor("#000");
     for (const c of columns) {
       doc.rect(x, y, c.width, height).strokeColor("#999").lineWidth(0.75).stroke();
       doc.font(bold ? "Helvetica-Bold" : "Helvetica").text(cells[c.key], x + cellPad, y + cellPad, {
@@ -161,15 +204,19 @@ function drawGridSection(
     y += height;
     return height;
   };
+  const headerMaxHeight = 42; // ~4 lines at the header's font size — keeps long SOP-style item text from swallowing the page
   const drawHeader = () => {
-    const headerCells: Record<string, string> = Object.fromEntries(columns.map((c) => [c.key, c.label]));
+    doc.fontSize(7).font("Helvetica-Bold");
+    const headerCells: Record<string, string> = Object.fromEntries(
+      columns.map((c) => [c.key, fitHeaderText(doc, c.label, c.width - cellPad * 2, headerMaxHeight)])
+    );
     drawRow(headerCells, true);
   };
   drawHeader();
 
   for (const date of dates) {
     const cells: Record<string, string> = { __date: formatDay(date) };
-    for (const i of items) cells[String(i.id)] = cellFor(i, date, completionByKey);
+    for (const i of items) cells[String(i.id)] = cellFor(i, date, completionByKey, nameById);
 
     const projectedHeight =
       Math.max(...columns.map((c) => doc.heightOfString(cells[c.key], { width: c.width - cellPad * 2 }))) +
@@ -204,7 +251,7 @@ export async function buildChecklistValueReportBuffer(
 
   if (format === "xlsx") {
     const workbook = new ExcelJS.Workbook();
-    addGridSheet(workbook, new Set(), grid.title, grid.items, grid.dates, grid.completionByKey);
+    addGridSheet(workbook, new Set(), grid.title, grid.items, grid.dates, grid.completionByKey, grid.nameById);
     const buffer = Buffer.from(await workbook.xlsx.writeBuffer());
     return {
       buffer,
@@ -217,7 +264,16 @@ export async function buildChecklistValueReportBuffer(
   const chunks: Buffer[] = [];
   doc.on("data", (chunk) => chunks.push(chunk));
   const donePromise = new Promise<Buffer>((resolve) => doc.on("end", () => resolve(Buffer.concat(chunks))));
-  drawGridSection(doc, grid.title, grid.items, grid.dates, grid.completionByKey, true, `${formatDay(from)} – ${formatDay(to)}`);
+  drawGridSection(
+    doc,
+    grid.title,
+    grid.items,
+    grid.dates,
+    grid.completionByKey,
+    grid.nameById,
+    true,
+    `${formatDay(from)} – ${formatDay(to)}`
+  );
   doc.end();
   const buffer = await donePromise;
   return { buffer, filename: `${filenameSlug}-${filenameRange}.pdf`, contentType: "application/pdf" };
@@ -240,7 +296,13 @@ export async function buildAllChecklistsReportBuffer(
     .order("sort_order");
   if (error) throw new Error(error.message);
 
-  const grids: { title: string; items: ChecklistItem[]; dates: string[]; completionByKey: Map<string, Completion> }[] = [];
+  const grids: {
+    title: string;
+    items: ChecklistItem[];
+    dates: string[];
+    completionByKey: Map<string, Completion>;
+    nameById: Map<string, string>;
+  }[] = [];
   for (const c of checklists ?? []) {
     const grid = await loadChecklistGrid(supabase, c.id, from, to);
     if (grid && grid.completionByKey.size > 0) grids.push(grid);
@@ -251,7 +313,7 @@ export async function buildAllChecklistsReportBuffer(
   if (format === "xlsx") {
     const workbook = new ExcelJS.Workbook();
     const usedNames = new Set<string>();
-    for (const g of grids) addGridSheet(workbook, usedNames, g.title, g.items, g.dates, g.completionByKey);
+    for (const g of grids) addGridSheet(workbook, usedNames, g.title, g.items, g.dates, g.completionByKey, g.nameById);
     if (grids.length === 0) workbook.addWorksheet("Checklist Report");
     const buffer = Buffer.from(await workbook.xlsx.writeBuffer());
     return {
@@ -273,7 +335,7 @@ export async function buildAllChecklistsReportBuffer(
     doc.fontSize(10).fillColor("#555").text("No completions in this period.");
   } else {
     doc.moveDown(1);
-    grids.forEach((g, i) => drawGridSection(doc, g.title, g.items, g.dates, g.completionByKey, i === 0));
+    grids.forEach((g, i) => drawGridSection(doc, g.title, g.items, g.dates, g.completionByKey, g.nameById, i === 0));
   }
 
   doc.end();
