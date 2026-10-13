@@ -5,10 +5,32 @@ import { bg, border, inkSoft, navyText, orange } from "@/lib/design-tokens";
 
 export default async function MenusPage() {
   const supabase = await createClient();
-  const [{ count: cocktailCount }, { count: wineCount }] = await Promise.all([
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const [{ data: profile }, { data: flag }, { count: cocktailCount }, { count: wineCount }] = await Promise.all([
+    supabase.from("profiles").select("role").eq("id", user!.id).single(),
+    supabase.from("feature_flags").select("enabled").eq("key", "page_access_menus").single(),
     supabase.from("cocktails").select("*", { count: "exact", head: true }),
     supabase.from("wines").select("*", { count: "exact", head: true }),
   ]);
+  const canView = profile?.role === "admin" || flag?.enabled;
+
+  if (!canView) {
+    return (
+      <div>
+        <h1
+          className="text-lg font-semibold mb-1 inline-block pb-1"
+          style={{ color: navyText, borderBottom: `3px solid ${orange}` }}
+        >
+          Drinks
+        </h1>
+        <p className="text-sm mt-2" style={{ color: inkSoft }}>
+          Admins only.
+        </p>
+      </div>
+    );
+  }
 
   const tiles = [
     { href: "/menus/cocktails", label: "Cocktails", icon: Martini, subtitle: `${cocktailCount ?? 0} drinks` },

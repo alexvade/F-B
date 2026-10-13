@@ -95,8 +95,11 @@ function AttachmentPreview({
 
 export default function UpdatesPage() {
   const profile = useProfile();
+  const isAdmin = profile.role === "admin";
   const noticeboardPinEnabled = useFeatureFlag("noticeboard_pin");
-  const canPin = profile.role === "admin" || noticeboardPinEnabled;
+  const canPin = isAdmin || noticeboardPinEnabled;
+  const pageAccessEnabled = useFeatureFlag("page_access_updates");
+  const canView = isAdmin || pageAccessEnabled;
   const supabase = createClient();
 
   // Picked client-side only (not in the initializer) so the server-rendered
@@ -290,6 +293,16 @@ export default function UpdatesPage() {
       setPostError((err as Error).message || "Couldn't post that reply — try again.");
     }
   };
+
+  if (!canView) {
+    return (
+      <Section title="Noticeboard">
+        <p className="text-sm" style={{ color: inkSoft }}>
+          Admins only.
+        </p>
+      </Section>
+    );
+  }
 
   return (
     <Section title="Noticeboard" subtitle="Shared announcements and shift notes">

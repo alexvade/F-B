@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Award, ThumbsUp, Trash2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useProfile } from "@/lib/profile-context";
+import { useFeatureFlag } from "@/lib/feature-flags-context";
 import { initials } from "@/lib/shift-status";
 import { relativeTime, timestamp } from "@/lib/relative-time";
 import { Section } from "@/components/section";
@@ -21,6 +22,9 @@ type Nomination = {
 
 export default function ColleagueOfTheMonthPage() {
   const profile = useProfile();
+  const isAdmin = profile.role === "admin";
+  const pageAccessEnabled = useFeatureFlag("page_access_colleague_of_the_month");
+  const canView = isAdmin || pageAccessEnabled;
   const supabase = createClient();
 
   const [nominations, setNominations] = useState<Nomination[]>([]);
@@ -105,6 +109,16 @@ export default function ColleagueOfTheMonthPage() {
   };
 
   const sorted = [...nominations].sort((a, b) => b.votes.length - a.votes.length);
+
+  if (!canView) {
+    return (
+      <Section title="Colleague of the month">
+        <p className="text-sm" style={{ color: inkSoft }}>
+          Admins only.
+        </p>
+      </Section>
+    );
+  }
 
   return (
     <Section title="Colleague of the month" subtitle="Nominate a teammate, or vote for someone already nominated">

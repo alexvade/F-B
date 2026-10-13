@@ -34,6 +34,7 @@ export interface Database {
           avatar_url: string | null;
           contract_hours: number | null;
           created_at: string;
+          is_super_admin: boolean;
         },
         {
           id: string;
@@ -43,12 +44,14 @@ export interface Database {
           avatar_url?: string | null;
           contract_hours?: number | null;
           created_at?: string;
+          is_super_admin?: boolean;
         }
       >;
       // Read-only view — returns `email` only for a viewer's own row or for
-      // admins (see 0019_profiles_email_privacy.sql), null for everyone
-      // else's. Use this instead of `profiles` wherever email is needed;
-      // `profiles` itself no longer grants column-level access to it.
+      // the super admin (see 0019_profiles_email_privacy.sql, tightened by
+      // 0042_super_admin_and_page_access.sql), null for everyone else's.
+      // Use this instead of `profiles` wherever email is needed; `profiles`
+      // itself no longer grants column-level access to it.
       profiles_directory: Table<
         {
           id: string;
@@ -58,6 +61,7 @@ export interface Database {
           avatar_url: string | null;
           contract_hours: number | null;
           created_at: string;
+          is_super_admin: boolean;
         },
         {
           id: string;
@@ -67,6 +71,7 @@ export interface Database {
           avatar_url?: string | null;
           contract_hours?: number | null;
           created_at?: string;
+          is_super_admin?: boolean;
         }
       >;
       rota_shifts: Table<

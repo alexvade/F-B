@@ -41,6 +41,8 @@ export default function RunningOrderPage() {
   const profile = useProfile();
   const isAdmin = profile.role === "admin";
   const editEnabled = useFeatureFlag("running_order_edit");
+  const pageAccessEnabled = useFeatureFlag("page_access_running_order");
+  const canView = isAdmin || pageAccessEnabled;
   const supabase = createClient();
 
   const [runningOrders, setRunningOrders] = useState<RunningOrder[]>([]);
@@ -344,6 +346,16 @@ export default function RunningOrderPage() {
 
   const doneCount = items.filter((i) => i.done).length;
   const active = runningOrders.find((r) => r.id === activeId) ?? null;
+
+  if (!canView) {
+    return (
+      <Section title="Running Order">
+        <p className="text-sm" style={{ color: inkSoft }}>
+          Admins only.
+        </p>
+      </Section>
+    );
+  }
 
   if (editingList) {
     return (

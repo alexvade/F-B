@@ -32,6 +32,8 @@ export default function SopsPage() {
   const isAdmin = profile.role === "admin";
   const sopsEditEnabled = useFeatureFlag("sops_edit");
   const canEdit = isAdmin || sopsEditEnabled;
+  const pageAccessEnabled = useFeatureFlag("page_access_sops");
+  const canView = isAdmin || pageAccessEnabled;
   const supabase = createClient();
 
   const [sops, setSops] = useState<Sop[]>([]);
@@ -123,6 +125,16 @@ export default function SopsPage() {
     setActiveSop(null);
     loadSops();
   };
+
+  if (!canView) {
+    return (
+      <Section title="Standard operating procedures">
+        <p className="text-sm" style={{ color: inkSoft }}>
+          Admins only.
+        </p>
+      </Section>
+    );
+  }
 
   if (form) {
     return (

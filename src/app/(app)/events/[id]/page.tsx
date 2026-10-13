@@ -21,6 +21,21 @@ export default async function EventDetailPage({ params }: PageProps<"/events/[id
     isAdmin = viewerProfile?.role === "admin";
   }
 
+  // Same page-access gate as the Events list — a direct link shouldn't
+  // bypass it.
+  if (!isAdmin) {
+    const { data: flag } = await supabase.from("feature_flags").select("enabled").eq("key", "page_access_events").single();
+    if (!flag?.enabled) {
+      return (
+        <div>
+          <p className="text-sm" style={{ color: inkSoft }}>
+            Admins only.
+          </p>
+        </div>
+      );
+    }
+  }
+
   // Phone numbers and other contact detail live in each contact's `detail`
   // field — admin-only, same redaction pattern as profiles_directory
   // (0019_profiles_email_privacy.sql), just done here rather than via a

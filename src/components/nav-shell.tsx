@@ -33,23 +33,29 @@ import { bg, bgText, bgTextSoft, border, ink, inkSoft, navy, orange, panel, surf
 import { ThemeContext } from "@/lib/theme-context";
 
 const NAV_ITEMS = [
-  { href: "/menus", label: "Drinks", icon: UtensilsCrossed },
-  { href: "/updates", label: "Noticeboard", icon: MessageCircle },
-  { href: "/rota", label: "Rota", icon: CalendarDays },
-  { href: "/checklists", label: "Checklists", icon: CheckSquare },
+  { href: "/menus", label: "Drinks", icon: UtensilsCrossed, adminOnly: true, staffFlag: "page_access_menus" },
+  { href: "/updates", label: "Noticeboard", icon: MessageCircle, adminOnly: true, staffFlag: "page_access_updates" },
+  { href: "/rota", label: "Rota", icon: CalendarDays, adminOnly: true, staffFlag: "page_access_rota" },
+  { href: "/checklists", label: "Checklists", icon: CheckSquare, adminOnly: true, staffFlag: "page_access_checklists" },
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/sops", label: "SOPs", icon: BookOpen },
-  { href: "/colleague-of-the-month", label: "Colleague of the Month", icon: Award },
-  { href: "/function-sheets", label: "Function Sheets", icon: FileStack },
-  { href: "/events", label: "Events", icon: Sparkles },
-  { href: "/running-order", label: "Running Order", icon: ListOrdered },
+  { href: "/sops", label: "SOPs", icon: BookOpen, adminOnly: true, staffFlag: "page_access_sops" },
+  { href: "/colleague-of-the-month", label: "Colleague of the Month", icon: Award, adminOnly: true, staffFlag: "page_access_colleague_of_the_month" },
+  { href: "/function-sheets", label: "Function Sheets", icon: FileStack, adminOnly: true, staffFlag: "page_access_function_sheets" },
+  { href: "/events", label: "Events", icon: Sparkles, adminOnly: true, staffFlag: "page_access_events" },
+  { href: "/running-order", label: "Running Order", icon: ListOrdered, adminOnly: true, staffFlag: "page_access_running_order" },
   { href: "/stock-orders", label: "Stock Orders", icon: ClipboardList, adminOnly: true, staffFlag: "stock_orders_edit" },
   { href: "/birthdays", label: "Birthdays", icon: Cake, adminOnly: true, staffFlag: "birthdays_access" },
-  { href: "/training", label: "Training", icon: GraduationCap },
-  { href: "/settings", label: "Settings", icon: SlidersHorizontal, adminOnly: true },
+  { href: "/training", label: "Training", icon: GraduationCap, adminOnly: true, staffFlag: "page_access_training" },
+  { href: "/settings", label: "Settings", icon: SlidersHorizontal, adminOnly: true, superAdminOnly: true },
 ];
 
-function canSeeNavItem(item: (typeof NAV_ITEMS)[number], isAdmin: boolean, flags: FeatureFlags): boolean {
+function canSeeNavItem(
+  item: (typeof NAV_ITEMS)[number],
+  isAdmin: boolean,
+  isSuperAdmin: boolean,
+  flags: FeatureFlags
+): boolean {
+  if ("superAdminOnly" in item && item.superAdminOnly) return isSuperAdmin;
   if (!item.adminOnly) return true;
   if (isAdmin) return true;
   return Boolean(item.staffFlag && flags[item.staffFlag]);
@@ -63,11 +69,13 @@ const ISLAND_RIGHT = ["/events", "/function-sheets", "/sops"];
 export function NavShell({
   name,
   isAdmin,
+  isSuperAdmin,
   flags,
   children,
 }: {
   name: string;
   isAdmin: boolean;
+  isSuperAdmin: boolean;
   flags: FeatureFlags;
   children: React.ReactNode;
 }) {
@@ -193,7 +201,7 @@ export function NavShell({
           </div>
         </div>
         <nav className="flex flex-col gap-1">
-          {NAV_ITEMS.filter((item) => canSeeNavItem(item, isAdmin, flags)).map(({ href, label, icon: Icon }) => {
+          {NAV_ITEMS.filter((item) => canSeeNavItem(item, isAdmin, isSuperAdmin, flags)).map(({ href, label, icon: Icon }) => {
             const active = isActive(href);
             return (
               <Link
@@ -272,7 +280,7 @@ export function NavShell({
               </button>
             </div>
             <nav className="flex flex-col gap-1">
-              {NAV_ITEMS.filter((item) => item.href !== "/dashboard" && canSeeNavItem(item, isAdmin, flags)).map(({ href, label, icon: Icon }) => {
+              {NAV_ITEMS.filter((item) => item.href !== "/dashboard" && canSeeNavItem(item, isAdmin, isSuperAdmin, flags)).map(({ href, label, icon: Icon }) => {
                 const active = isActive(href);
                 return (
                   <Link

@@ -37,6 +37,8 @@ export default function ChecklistsPage() {
   const profile = useProfile();
   const isAdmin = profile.role === "admin";
   const checklistsEditEnabled = useFeatureFlag("checklists_edit");
+  const pageAccessEnabled = useFeatureFlag("page_access_checklists");
+  const canView = isAdmin || pageAccessEnabled;
   const supabase = createClient();
   const checklistDay = checklistDayISO();
   const weekStart = weekStartOf(checklistDay);
@@ -250,6 +252,16 @@ export default function ChecklistsPage() {
   };
 
   const sectionChecklists = checklists.filter((c) => c.section === section);
+
+  if (!canView) {
+    return (
+      <Section title="Checklists">
+        <p className="text-sm" style={{ color: inkSoft }}>
+          Admins only.
+        </p>
+      </Section>
+    );
+  }
 
   if (form) {
     return (

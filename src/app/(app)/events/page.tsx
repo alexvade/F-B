@@ -22,6 +22,8 @@ export default function EventsPage() {
   const isAdmin = profile.role === "admin";
   const eventsEditEnabled = useFeatureFlag("events_edit");
   const canEdit = isAdmin || eventsEditEnabled;
+  const pageAccessEnabled = useFeatureFlag("page_access_events");
+  const canView = isAdmin || pageAccessEnabled;
   const supabase = createClient();
 
   const [events, setEvents] = useState<EventRow[]>([]);
@@ -101,6 +103,16 @@ export default function EventsPage() {
   };
 
   const inputStyle = { border: `1px solid ${border}`, background: fill, color: ink } as const;
+
+  if (!canView) {
+    return (
+      <Section title="Events">
+        <p className="text-sm" style={{ color: inkSoft }}>
+          Admins only.
+        </p>
+      </Section>
+    );
+  }
 
   if (adding) {
     return (

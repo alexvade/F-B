@@ -16,6 +16,8 @@ export default function FunctionSheetsPage() {
   const isAdmin = profile.role === "admin";
   const uploadEnabled = useFeatureFlag("function_sheets_upload");
   const canEdit = isAdmin || uploadEnabled;
+  const pageAccessEnabled = useFeatureFlag("page_access_function_sheets");
+  const canView = isAdmin || pageAccessEnabled;
   const supabase = createClient();
 
   const [sheets, setSheets] = useState<Sheet[]>([]);
@@ -77,6 +79,16 @@ export default function FunctionSheetsPage() {
     const url = await getAttachmentUrl(fileUrl);
     if (url) window.open(url, "_blank", "noopener,noreferrer");
   };
+
+  if (!canView) {
+    return (
+      <Section title="Function Sheets">
+        <p className="text-sm" style={{ color: inkSoft }}>
+          Admins only.
+        </p>
+      </Section>
+    );
+  }
 
   return (
     <Section title="Function Sheets" subtitle="Tap a sheet to open the original PDF">

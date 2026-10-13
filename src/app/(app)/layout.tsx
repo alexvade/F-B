@@ -28,7 +28,12 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   return (
     <ProfileProvider profile={profile}>
       <FeatureFlagsProvider flags={flags}>
-        <NavShell name={profile.name} isAdmin={profile.role === "admin"} flags={flags}>
+        <NavShell
+          name={profile.name}
+          isAdmin={profile.role === "admin"}
+          isSuperAdmin={profile.is_super_admin}
+          flags={flags}
+        >
           {children}
         </NavShell>
       </FeatureFlagsProvider>

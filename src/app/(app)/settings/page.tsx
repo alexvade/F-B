@@ -13,6 +13,56 @@ const FLAG_GROUPS: { group: string; flags: Flag[] }[] = [
     group: "Page access",
     flags: [
       {
+        key: "page_access_menus",
+        label: "Drinks",
+        description: "Let staff see the Drinks (cocktails/wines) pages.",
+      },
+      {
+        key: "page_access_updates",
+        label: "Noticeboard",
+        description: "Let staff see the Noticeboard.",
+      },
+      {
+        key: "page_access_rota",
+        label: "Rota",
+        description: "Let staff see the Rota.",
+      },
+      {
+        key: "page_access_checklists",
+        label: "Checklists",
+        description: "Let staff see the Checklists page.",
+      },
+      {
+        key: "page_access_sops",
+        label: "SOPs",
+        description: "Let staff see the SOPs page.",
+      },
+      {
+        key: "page_access_colleague_of_the_month",
+        label: "Colleague of the Month",
+        description: "Let staff see the Colleague of the Month page.",
+      },
+      {
+        key: "page_access_function_sheets",
+        label: "Function Sheets",
+        description: "Let staff see the Function Sheets page.",
+      },
+      {
+        key: "page_access_events",
+        label: "Events",
+        description: "Let staff see the Events page.",
+      },
+      {
+        key: "page_access_training",
+        label: "Training",
+        description: "Let staff see the Training page.",
+      },
+      {
+        key: "page_access_running_order",
+        label: "Running Order",
+        description: "Let staff see the Running Order page.",
+      },
+      {
         key: "birthdays_access",
         label: "Birthdays",
         description: "Let staff see the Birthdays page. Adding, editing, and deleting a birthday stays admin-only either way.",
@@ -117,18 +167,18 @@ export default function SettingsPage() {
     }
   };
 
-  if (profile.role !== "admin") {
+  if (!profile.is_super_admin) {
     return (
       <Section title="Settings">
         <p className="text-sm" style={{ color: inkSoft }}>
-          Admins only.
+          Super admins only.
         </p>
       </Section>
     );
   }
 
   return (
-    <Section title="Settings" subtitle="Control which features staff can use, beyond admins">
+    <Section title="Settings" subtitle="Control which pages and features staff can use, beyond admins">
       <div className="flex flex-col gap-6">
         {FLAG_GROUPS.map((g) => (
           <div key={g.group}>

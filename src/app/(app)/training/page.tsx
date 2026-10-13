@@ -65,6 +65,8 @@ export default function TrainingPage() {
   const isAdmin = profile.role === "admin";
   const trainingUploadEnabled = useFeatureFlag("training_upload");
   const canUpload = isAdmin || trainingUploadEnabled;
+  const pageAccessEnabled = useFeatureFlag("page_access_training");
+  const canView = isAdmin || pageAccessEnabled;
   const supabase = createClient();
 
   const [records, setRecords] = useState<TrainingRecord[]>([]);
@@ -194,6 +196,16 @@ export default function TrainingPage() {
 
   const selectedPerson = viewMode === "person" ? personGroups.find((g) => g.key === selectedKey) : undefined;
   const selectedItem = viewMode === "item" ? itemGroups.find((g) => g.key === selectedKey) : undefined;
+
+  if (!canView) {
+    return (
+      <Section title="Training">
+        <p className="text-sm" style={{ color: inkSoft }}>
+          Admins only.
+        </p>
+      </Section>
+    );
+  }
 
   if (selectedPerson) {
     const overdueCount = selectedPerson.records.filter(isOverdue).length;

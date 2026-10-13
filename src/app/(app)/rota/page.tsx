@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Pencil, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useProfile } from "@/lib/profile-context";
+import { useFeatureFlag } from "@/lib/feature-flags-context";
 import { todayISO, weekStartOf, addDaysISO, weekDates, formatTimeHHMM } from "@/lib/dates";
 import type { ShiftStatus } from "@/lib/supabase/types";
 import {
@@ -28,6 +29,8 @@ type EventRow = { id: number; room: string | null; title: string; details: strin
 export default function RotaPage() {
   const profile = useProfile();
   const isAdmin = profile.role === "admin";
+  const pageAccessEnabled = useFeatureFlag("page_access_rota");
+  const canView = isAdmin || pageAccessEnabled;
   const supabase = createClient();
 
   const [weekStart, setWeekStart] = useState(() => weekStartOf(todayISO()));
@@ -164,6 +167,22 @@ export default function RotaPage() {
     color: ink,
     background: fill,
   } as const;
+
+  if (!canView) {
+    return (
+      <div>
+        <h1
+          className="text-lg font-semibold inline-block pb-1 mb-4"
+          style={{ color: navyText, borderBottom: `3px solid ${orange}` }}
+        >
+          Rota
+        </h1>
+        <p className="text-sm" style={{ color: inkSoft }}>
+          Admins only.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div>
