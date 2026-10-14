@@ -1,0 +1,31 @@
+name: Import daily overview
+
+on:
+  push:
+    branches:
+      - daily-overview-sync
+    paths:
+      - "data/daily-overview-inbox/**"
+
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm ci
+      - name: Parse and POST each pushed spreadsheet
+        env:
+          SECRET: ${{ secrets.DAILY_OVERVIEW_SYNC_SECRET }}
+        run: |
+          shopt -s nullglob
+          for f in data/daily-overview-inbox/*.xlsx; do
+            echo "Parsing: $f"
+            node scripts/parse-daily-overview.mjs "$f" > payload.json
+            curl -sS --fail -X POST https://www.team-ops.co.uk/api/daily-overview/import \
+              -H "Content-Type: application/json" \
+              -H "x-daily-overview-sync-secret: $SECRET" \
+              --data @payload.json
+          done
