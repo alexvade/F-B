@@ -9,7 +9,7 @@ import { checklistDayISO, addDaysISO, weekStartOf } from "@/lib/dates";
 import { initials } from "@/lib/shift-status";
 import { Section } from "@/components/section";
 import { ChecklistLogTable } from "@/components/checklist-log-table";
-import { bg, border, fill, iconColors, ink, inkSoft, navy, navyText, orange, orangeSoft } from "@/lib/design-tokens";
+import { bg, border, fill, ink, inkSoft, navy, navyText, orange, orangeSoft } from "@/lib/design-tokens";
 
 const SECTIONS = ["Bar", "Still Room", "Restaurant", "Vav Bar", "Cellars", "Barista"];
 
@@ -370,7 +370,7 @@ export default function ChecklistsPage() {
             className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-2xl"
             style={{ background: orangeSoft, color: navy }}
           >
-            <Plus size={13} style={{ color: iconColors.green }} /> Add checklist to {section}
+            <Plus size={13} /> Add checklist to {section}
           </button>
           {isAdmin && (
             <button
@@ -378,7 +378,7 @@ export default function ChecklistsPage() {
               className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-2xl"
               style={{ background: "#FFFFFF", color: navy, border: `1px solid ${border}` }}
             >
-              <Download size={13} style={{ color: iconColors.indigo }} /> Export report
+              <Download size={13} /> Export report
             </button>
           )}
         </div>
@@ -448,7 +448,7 @@ export default function ChecklistsPage() {
                 background: showEmailForm ? navy : "transparent",
               }}
             >
-              <SendIcon size={14} style={{ color: showEmailForm ? "#FFFFFF" : iconColors.blue }} />
+              <SendIcon size={14} style={{ color: showEmailForm ? "#FFFFFF" : navy }} />
             </button>
           </div>
 
@@ -523,16 +523,16 @@ export default function ChecklistsPage() {
                         title="Export this log"
                         style={{ color: navyText }}
                       >
-                        <Download size={13} style={{ color: iconColors.indigo }} />
+                        <Download size={13} />
                       </button>
                     )}
                     {(isAdmin || checklistsEditEnabled) && (
                       <>
                         <button onClick={() => openEdit(list)} style={{ color: navyText }}>
-                          <Pencil size={13} style={{ color: iconColors.blue }} />
+                          <Pencil size={13} />
                         </button>
                         <button onClick={() => deleteChecklist(list.id)} style={{ color: "#000000" }}>
-                          <Trash2 size={13} style={{ color: iconColors.red }} />
+                          <Trash2 size={13} />
                         </button>
                       </>
                     )}
@@ -631,7 +631,7 @@ export default function ChecklistsPage() {
                             className="shrink-0"
                             style={{ color: navyText }}
                           >
-                            <Pencil size={13} style={{ color: iconColors.blue }} />
+                            <Pencil size={13} />
                           </button>
                         </div>
                         {editingValueId === item.id && (

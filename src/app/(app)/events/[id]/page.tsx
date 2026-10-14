@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { FileText } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { EventGuide } from "@/components/event-guide";
-import { bg, border, iconColors, ink, inkSoft, navyText, orange } from "@/lib/design-tokens";
+import { bg, border, ink, inkSoft, navyText, orange } from "@/lib/design-tokens";
 
 export default async function EventDetailPage({ params }: PageProps<"/events/[id]">) {
   const { id } = await params;
@@ -94,7 +94,7 @@ export default async function EventDetailPage({ params }: PageProps<"/events/[id
               className="flex items-center gap-2 w-fit px-3 py-2 rounded-2xl"
               style={{ background: bg, border: `1px solid ${border}`, color: ink }}
             >
-              <FileText size={15} style={{ color: iconColors.amber }} />
+              <FileText size={15} style={{ color: orange }} />
               <span className="text-sm">Open the original PDF</span>
             </a>
           )}

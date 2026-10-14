@@ -18,7 +18,7 @@ import {
   Gauge,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import { bg, border, iconColors, ink, inkSoft, navyText } from "@/lib/design-tokens";
+import { bg, border, ink, inkSoft, navyText, orange } from "@/lib/design-tokens";
 
 type DayForecast = { date: string; weatherCode: number; high: number; low: number };
 type HourForecast = { time: string; label: string; tempC: number; weatherCode: number };
@@ -33,46 +33,37 @@ type WeatherData = {
   hourly: HourForecast[];
 };
 
-// WMO weather codes → a short label, icon, and colour
-// (https://open-meteo.com/en/docs) — coloured per condition like a typical
-// phone weather app, rather than the app's usual black-and-white-only icons.
-const CONDITIONS: Record<number, { label: string; Icon: LucideIcon; color: string }> = {
-  0: { label: "Clear sky", Icon: Sun, color: iconColors.amber },
-  1: { label: "Mostly clear", Icon: Sun, color: iconColors.amber },
-  2: { label: "Partly cloudy", Icon: CloudSun, color: iconColors.amber },
-  3: { label: "Overcast", Icon: Cloud, color: iconColors.slate },
-  45: { label: "Foggy", Icon: CloudFog, color: iconColors.slate },
-  48: { label: "Foggy", Icon: CloudFog, color: iconColors.slate },
-  51: { label: "Light drizzle", Icon: CloudDrizzle, color: iconColors.sky },
-  53: { label: "Drizzle", Icon: CloudDrizzle, color: iconColors.sky },
-  55: { label: "Heavy drizzle", Icon: CloudDrizzle, color: iconColors.sky },
-  56: { label: "Freezing drizzle", Icon: CloudDrizzle, color: iconColors.sky },
-  57: { label: "Freezing drizzle", Icon: CloudDrizzle, color: iconColors.sky },
-  61: { label: "Light rain", Icon: CloudRain, color: iconColors.blue },
-  63: { label: "Rain", Icon: CloudRain, color: iconColors.blue },
-  65: { label: "Heavy rain", Icon: CloudRain, color: iconColors.blue },
-  66: { label: "Freezing rain", Icon: CloudRain, color: iconColors.blue },
-  67: { label: "Freezing rain", Icon: CloudRain, color: iconColors.blue },
-  71: { label: "Light snow", Icon: CloudSnow, color: iconColors.indigo },
-  73: { label: "Snow", Icon: CloudSnow, color: iconColors.indigo },
-  75: { label: "Heavy snow", Icon: CloudSnow, color: iconColors.indigo },
-  77: { label: "Snow grains", Icon: CloudSnow, color: iconColors.indigo },
-  80: { label: "Rain showers", Icon: CloudRain, color: iconColors.blue },
-  81: { label: "Rain showers", Icon: CloudRain, color: iconColors.blue },
-  82: { label: "Heavy showers", Icon: CloudRain, color: iconColors.blue },
-  85: { label: "Snow showers", Icon: CloudSnow, color: iconColors.indigo },
-  86: { label: "Snow showers", Icon: CloudSnow, color: iconColors.indigo },
-  95: { label: "Thunderstorm", Icon: CloudLightning, color: iconColors.purple },
-  96: { label: "Thunderstorm", Icon: CloudLightning, color: iconColors.purple },
-  99: { label: "Thunderstorm", Icon: CloudLightning, color: iconColors.purple },
+// WMO weather codes → a short label and icon (https://open-meteo.com/en/docs).
+const CONDITIONS: Record<number, { label: string; Icon: LucideIcon }> = {
+  0: { label: "Clear sky", Icon: Sun },
+  1: { label: "Mostly clear", Icon: Sun },
+  2: { label: "Partly cloudy", Icon: CloudSun },
+  3: { label: "Overcast", Icon: Cloud },
+  45: { label: "Foggy", Icon: CloudFog },
+  48: { label: "Foggy", Icon: CloudFog },
+  51: { label: "Light drizzle", Icon: CloudDrizzle },
+  53: { label: "Drizzle", Icon: CloudDrizzle },
+  55: { label: "Heavy drizzle", Icon: CloudDrizzle },
+  56: { label: "Freezing drizzle", Icon: CloudDrizzle },
+  57: { label: "Freezing drizzle", Icon: CloudDrizzle },
+  61: { label: "Light rain", Icon: CloudRain },
+  63: { label: "Rain", Icon: CloudRain },
+  65: { label: "Heavy rain", Icon: CloudRain },
+  66: { label: "Freezing rain", Icon: CloudRain },
+  67: { label: "Freezing rain", Icon: CloudRain },
+  71: { label: "Light snow", Icon: CloudSnow },
+  73: { label: "Snow", Icon: CloudSnow },
+  75: { label: "Heavy snow", Icon: CloudSnow },
+  77: { label: "Snow grains", Icon: CloudSnow },
+  80: { label: "Rain showers", Icon: CloudRain },
+  81: { label: "Rain showers", Icon: CloudRain },
+  82: { label: "Heavy showers", Icon: CloudRain },
+  85: { label: "Snow showers", Icon: CloudSnow },
+  86: { label: "Snow showers", Icon: CloudSnow },
+  95: { label: "Thunderstorm", Icon: CloudLightning },
+  96: { label: "Thunderstorm", Icon: CloudLightning },
+  99: { label: "Thunderstorm", Icon: CloudLightning },
 };
-
-function uvColor(uvIndex: number): string {
-  if (uvIndex <= 2) return iconColors.green;
-  if (uvIndex <= 5) return iconColors.amber;
-  if (uvIndex <= 7) return iconColors.orange;
-  return iconColors.red;
-}
 
 const REFRESH_MS = 10 * 60 * 1000;
 
@@ -174,7 +165,7 @@ export function WeatherWidget() {
         <div className="relative flex items-center justify-between">
           <div>
             <div className="flex items-center gap-1 text-xs mb-1" style={{ color: inkSoft }}>
-              <MapPin size={11} style={{ color: iconColors.rose }} /> Wetherby, LS22
+              <MapPin size={11} /> Wetherby, LS22
             </div>
             {weather ? (
               <>
@@ -197,7 +188,7 @@ export function WeatherWidget() {
             )}
           </div>
           <div className="flex flex-col items-center gap-1 shrink-0">
-            <TodayIcon size={30} style={{ color: todayCondition?.color ?? iconColors.slate }} />
+            <TodayIcon size={30} style={{ color: orange, opacity: 0.8 }} />
             {weather && (
               <button
                 onClick={() => setExpanded((e) => !e)}
@@ -220,7 +211,7 @@ export function WeatherWidget() {
               day is picked below (there's no per-day humidity/UV forecast). */}
           <div className="grid grid-cols-3 gap-2 mb-3 pb-3" style={{ borderBottom: `1px solid ${border}` }}>
             <div className="flex flex-col items-center gap-0.5 text-center">
-              <Droplets size={15} style={{ color: iconColors.blue }} />
+              <Droplets size={15} style={{ color: inkSoft }} />
               <span className="text-sm font-semibold" style={{ color: navyText }}>
                 {weather.humidity}%
               </span>
@@ -229,7 +220,7 @@ export function WeatherWidget() {
               </span>
             </div>
             <div className="flex flex-col items-center gap-0.5 text-center">
-              <Eye size={15} style={{ color: iconColors.teal }} />
+              <Eye size={15} style={{ color: inkSoft }} />
               <span className="text-sm font-semibold" style={{ color: navyText }}>
                 {weather.visibilityMi}mi
               </span>
@@ -238,7 +229,7 @@ export function WeatherWidget() {
               </span>
             </div>
             <div className="flex flex-col items-center gap-0.5 text-center">
-              <Gauge size={15} style={{ color: uvColor(weather.uvIndex) }} />
+              <Gauge size={15} style={{ color: inkSoft }} />
               <span className="text-sm font-semibold" style={{ color: navyText }}>
                 {weather.uvIndex <= 2 ? "Low" : weather.uvIndex <= 5 ? "Moderate" : weather.uvIndex <= 7 ? "High" : "Very high"}{" "}
                 {weather.uvIndex}
@@ -273,7 +264,7 @@ export function WeatherWidget() {
           </div>
           {selected && (
             <div className="flex items-center gap-3">
-              <SelectedIcon size={28} style={{ color: selectedCondition?.color ?? iconColors.slate }} />
+              <SelectedIcon size={28} style={{ color: orange, opacity: 0.8 }} />
               <div>
                 <div className="text-sm font-medium" style={{ color: navyText }}>
                   {selectedCondition?.label ?? "—"}

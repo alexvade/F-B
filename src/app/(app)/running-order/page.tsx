@@ -8,7 +8,7 @@ import { useFeatureFlag } from "@/lib/feature-flags-context";
 import { uploadAttachment, getAttachmentUrl, deleteAttachment } from "@/lib/storage";
 import { initials } from "@/lib/shift-status";
 import { Section } from "@/components/section";
-import { bg, border, fill, iconColors, ink, inkSoft, navy, navyText, orange, orangeSoft } from "@/lib/design-tokens";
+import { bg, border, fill, ink, inkSoft, navy, navyText, orange, orangeSoft } from "@/lib/design-tokens";
 
 type Comment = {
   id: number;
@@ -421,7 +421,7 @@ export default function RunningOrderPage() {
             className="flex items-center justify-center shrink-0 rounded-2xl"
             style={{ width: 30, height: 30, border: "1px solid #000000" }}
           >
-            <Plus size={15} style={{ color: iconColors.green }} />
+            <Plus size={15} />
           </button>
         )}
         {active && (isAdmin || editEnabled) && (
@@ -432,7 +432,7 @@ export default function RunningOrderPage() {
             className="flex items-center justify-center shrink-0 rounded-2xl"
             style={{ width: 30, height: 30, border: "1px solid #000000" }}
           >
-            <Pencil size={14} style={{ color: iconColors.blue }} />
+            <Pencil size={14} />
           </button>
         )}
         {active && isAdmin && (
@@ -443,7 +443,7 @@ export default function RunningOrderPage() {
             className="flex items-center justify-center shrink-0 rounded-2xl"
             style={{ width: 30, height: 30, border: "1px solid #000000" }}
           >
-            <Trash2 size={14} style={{ color: iconColors.red }} />
+            <Trash2 size={14} />
           </button>
         )}
       </div>
@@ -532,7 +532,7 @@ export default function RunningOrderPage() {
             className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-2xl"
             style={{ background: "#FFFFFF", color: navy, border: `1px solid ${border}` }}
           >
-            <Pencil size={13} style={{ color: iconColors.blue }} /> Edit moments
+            <Pencil size={13} /> Edit moments
           </button>
           {isAdmin && (
             <button
@@ -540,7 +540,7 @@ export default function RunningOrderPage() {
               className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-2xl"
               style={{ background: "#FFFFFF", color: navy, border: `1px solid ${border}` }}
             >
-              <Download size={13} style={{ color: iconColors.indigo }} /> Export report
+              <Download size={13} /> Export report
             </button>
           )}
         </div>
@@ -584,7 +584,7 @@ export default function RunningOrderPage() {
                 background: showEmailForm ? navy : "transparent",
               }}
             >
-              <SendIcon size={14} style={{ color: showEmailForm ? "#FFFFFF" : iconColors.blue }} />
+              <SendIcon size={14} style={{ color: showEmailForm ? "#FFFFFF" : navy }} />
             </button>
           </div>
 
@@ -744,7 +744,7 @@ export default function RunningOrderPage() {
                             border: `1.5px dashed ${item.done ? "rgba(255,255,255,0.6)" : inkSoft}`,
                           }}
                         >
-                          <Plus size={12} style={{ color: item.done ? "#FFFFFF" : iconColors.green }} />
+                          <Plus size={12} style={{ color: item.done ? "#FFFFFF" : inkSoft }} />
                         </span>
                         <span className="text-xs ml-2" style={{ color: item.done ? "rgba(255,255,255,0.75)" : inkSoft }}>
                           {item.comments.length > 0
@@ -775,7 +775,7 @@ export default function RunningOrderPage() {
                               </span>
                               {(c.authorId === profile.id || isAdmin) && (
                                 <button onClick={() => deleteComment(c)} className="ml-auto" style={{ color: inkSoft }} aria-label="Delete comment">
-                                  <X size={12} style={{ color: iconColors.slate }} />
+                                  <X size={12} />
                                 </button>
                               )}
                             </div>
@@ -814,7 +814,7 @@ export default function RunningOrderPage() {
                                   className="flex items-center gap-1.5 mt-1 px-2 py-1 rounded-2xl w-fit"
                                   style={{ background: orangeSoft }}
                                 >
-                                  <FileText size={12} style={{ color: iconColors.amber }} />
+                                  <FileText size={12} style={{ color: navyText }} />
                                   <span className="text-xs" style={{ color: navyText }}>
                                     {c.fileName}
                                   </span>
@@ -834,7 +834,7 @@ export default function RunningOrderPage() {
                           style={{ border: `1px solid ${border}`, background: fill, color: ink }}
                         />
                         <label className="shrink-0 cursor-pointer" style={{ color: navyText }} title="Take a photo" aria-label="Add photo">
-                          <Camera size={17} style={{ color: iconColors.purple }} />
+                          <Camera size={17} />
                           <input
                             type="file"
                             accept="image/*"
@@ -844,7 +844,7 @@ export default function RunningOrderPage() {
                           />
                         </label>
                         <label className="shrink-0 cursor-pointer" style={{ color: navyText }} title="Attach a file (PDF, photo from library, etc.)" aria-label="Add file">
-                          <Paperclip size={17} style={{ color: iconColors.slate }} />
+                          <Paperclip size={17} />
                           <input
                             type="file"
                             onChange={(e) => setFileDraft(e.target.files?.[0] ?? null)}

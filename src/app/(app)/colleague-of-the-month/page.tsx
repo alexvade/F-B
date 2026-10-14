@@ -8,7 +8,7 @@ import { useFeatureFlag } from "@/lib/feature-flags-context";
 import { initials } from "@/lib/shift-status";
 import { relativeTime, timestamp } from "@/lib/relative-time";
 import { Section } from "@/components/section";
-import { bg, border, fill, iconColors, ink, inkSoft, navy, navyText, orange, orangeSoft } from "@/lib/design-tokens";
+import { bg, border, fill, ink, inkSoft, navy, navyText, orange, orangeSoft } from "@/lib/design-tokens";
 
 type Nomination = {
   id: number;
@@ -156,7 +156,7 @@ export default function ColleagueOfTheMonthPage() {
             <div key={nom.id} className="p-4 rounded-2xl" style={{ background: bg, border: `1px solid ${border}` }}>
               <div className="flex items-start justify-between gap-3">
                 <div className="flex items-center gap-2">
-                  {i === 0 && nom.votes.length > 0 && <Award size={16} style={{ color: iconColors.gold }} />}
+                  {i === 0 && nom.votes.length > 0 && <Award size={16} style={{ color: orange }} />}
                   <span className="text-sm font-semibold" style={{ color: navyText }}>
                     {nom.nominee_name}
                   </span>
@@ -182,7 +182,7 @@ export default function ColleagueOfTheMonthPage() {
                 </span>
                 {(nom.nominatedById === profile.id || profile.role === "admin") && (
                   <button onClick={() => deleteNomination(nom)} style={{ color: inkSoft }} title="Delete nomination">
-                    <Trash2 size={13} style={{ color: iconColors.red }} />
+                    <Trash2 size={13} />
                   </button>
                 )}
               </div>
@@ -192,7 +192,7 @@ export default function ColleagueOfTheMonthPage() {
                   className="flex items-center gap-1.5 text-xs font-medium px-3.5 py-2 rounded-full"
                   style={{ background: hasVoted ? navy : orangeSoft, color: hasVoted ? "#FFFFFF" : orange }}
                 >
-                  <ThumbsUp size={13} style={{ color: iconColors.pink }} />
+                  <ThumbsUp size={13} />
                   {hasVoted ? "Voted" : "Vote"}
                 </button>
                 <span className="text-xs" style={{ color: inkSoft }}>

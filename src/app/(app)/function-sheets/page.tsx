@@ -7,7 +7,7 @@ import { useProfile } from "@/lib/profile-context";
 import { useFeatureFlag } from "@/lib/feature-flags-context";
 import { uploadAttachment, getAttachmentUrl, deleteAttachment } from "@/lib/storage";
 import { Section } from "@/components/section";
-import { bg, border, iconColors, ink, inkSoft, navy, orangeSoft, orange } from "@/lib/design-tokens";
+import { bg, border, ink, inkSoft, navy, orangeSoft, orange } from "@/lib/design-tokens";
 
 type Sheet = { id: number; title: string; file_url: string; file_name: string | null };
 
@@ -97,7 +97,7 @@ export default function FunctionSheetsPage() {
           className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-2xl mb-4 cursor-pointer w-fit"
           style={{ background: orangeSoft, color: navy }}
         >
-          <Upload size={13} style={{ color: iconColors.teal }} />
+          <Upload size={13} />
           {uploading ? "Uploading…" : "Upload function sheet"}
           <input
             ref={fileInputRef}
@@ -119,7 +119,7 @@ export default function FunctionSheetsPage() {
             style={{ background: bg, border: `1px solid ${border}` }}
           >
             <button onClick={() => openSheet(sheet.file_url)} className="flex items-center gap-3 flex-1 text-left">
-              <FileStack size={18} style={{ color: iconColors.amber }} />
+              <FileStack size={18} style={{ color: orange }} />
               <div>
                 <div className="text-sm font-medium" style={{ color: ink }}>
                   {sheet.title}
@@ -132,10 +132,10 @@ export default function FunctionSheetsPage() {
             <div className="flex items-center gap-2 shrink-0">
               {canEdit && (
                 <button onClick={() => deleteSheet(sheet.id, sheet.file_url)} style={{ color: "#000000" }}>
-                  <Trash2 size={15} style={{ color: iconColors.red }} />
+                  <Trash2 size={15} />
                 </button>
               )}
-              <ChevronRight size={16} style={{ color: iconColors.slate }} />
+              <ChevronRight size={16} style={{ color: inkSoft }} />
             </div>
           </div>
         ))}

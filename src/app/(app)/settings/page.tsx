@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 import { useProfile } from "@/lib/profile-context";
 import { useFeatureFlag } from "@/lib/feature-flags-context";
 import { Section } from "@/components/section";
-import { bg, border, iconColors, ink, inkSoft, navy } from "@/lib/design-tokens";
+import { bg, border, ink, inkSoft, navy } from "@/lib/design-tokens";
 import { uploadAttachment, getAttachmentUrl } from "@/lib/storage";
 import { NAV_ITEMS, DEFAULT_ISLAND_LEFT, DEFAULT_ISLAND_RIGHT } from "@/components/nav-shell";
 import { User } from "lucide-react";
@@ -289,7 +289,7 @@ export default function SettingsPage() {
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={avatarUrl} alt={profile.name} className="w-full h-full object-cover" />
                 ) : (
-                  <User size={28} style={{ color: iconColors.slate }} />
+                  <User size={28} style={{ color: inkSoft }} />
                 )}
               </div>
               <div className="flex flex-col gap-1.5">

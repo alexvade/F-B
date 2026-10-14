@@ -10,7 +10,7 @@ import { relativeTime, timestamp } from "@/lib/relative-time";
 import { initials } from "@/lib/shift-status";
 import { Section } from "@/components/section";
 import { EmojiText } from "@/components/emoji-text";
-import { bg, border, fill, iconColors, ink, inkSoft, navy, navyText, orange, orangeSoft } from "@/lib/design-tokens";
+import { bg, border, fill, ink, inkSoft, navy, navyText, orange, orangeSoft } from "@/lib/design-tokens";
 
 // A grab-bag of composer placeholders — picked once per page load so it
 // doesn't say the exact same thing every time (see Dashboard's GREETINGS).
@@ -82,12 +82,12 @@ function AttachmentPreview({
       className="flex items-center gap-2 mt-2 px-2.5 py-1.5 rounded-2xl"
       style={{ background: orangeSoft, width: "fit-content" }}
     >
-      <FileText size={14} style={{ color: iconColors.amber }} />
+      <FileText size={14} style={{ color: navyText }} />
       <span className="text-xs" style={{ color: navyText }}>
         {name}
       </span>
       <button onClick={onRemove}>
-        <X size={12} style={{ color: iconColors.slate }} />
+        <X size={12} style={{ color: navyText }} />
       </button>
     </div>
   );
@@ -343,7 +343,7 @@ export default function UpdatesPage() {
                 />
                 {pollOptions.length > 2 && (
                   <button onClick={() => removePollOption(i)} aria-label="Remove option" style={{ color: navyText }}>
-                    <X size={14} style={{ color: iconColors.slate }} />
+                    <X size={14} />
                   </button>
                 )}
               </div>
@@ -354,7 +354,7 @@ export default function UpdatesPage() {
                 className="flex items-center gap-1 text-xs w-fit"
                 style={{ color: navyText }}
               >
-                <Plus size={13} style={{ color: iconColors.green }} /> Add option
+                <Plus size={13} /> Add option
               </button>
             )}
           </div>
@@ -367,7 +367,7 @@ export default function UpdatesPage() {
         <div className="flex items-center justify-between mt-2">
           <div className="flex items-center gap-4">
             <label className="flex items-center gap-1.5 text-xs cursor-pointer" style={{ color: navyText }}>
-              <Camera size={15} style={{ color: iconColors.purple }} />
+              <Camera size={15} />
               Add photo
               <input
                 ref={photoInputRef}
@@ -379,7 +379,7 @@ export default function UpdatesPage() {
               />
             </label>
             <label className="flex items-center gap-1.5 text-xs cursor-pointer" style={{ color: navyText }}>
-              <Paperclip size={15} style={{ color: iconColors.slate }} />
+              <Paperclip size={15} />
               Add file
               <input
                 ref={fileInputRef}
@@ -393,7 +393,7 @@ export default function UpdatesPage() {
               className="flex items-center gap-1.5 text-xs"
               style={{ color: showPoll ? navy : navyText, fontWeight: showPoll ? 700 : 400 }}
             >
-              <ChartColumn size={15} style={{ color: iconColors.blue }} />
+              <ChartColumn size={15} />
               Add poll
             </button>
           </div>
@@ -413,7 +413,7 @@ export default function UpdatesPage() {
           <div key={p.id} className="pb-4" style={{ borderBottom: `1px solid ${border}` }}>
             {p.pinned && (
               <span className="flex items-center gap-1 text-xs font-medium mb-1.5" style={{ color: orange }}>
-                <Pin size={12} fill={iconColors.rose} style={{ color: iconColors.rose }} /> Pinned
+                <Pin size={12} fill={orange} /> Pinned
               </span>
             )}
             <div className="flex items-baseline justify-between">
@@ -433,14 +433,14 @@ export default function UpdatesPage() {
                 {canPin && (
                   <button
                     onClick={() => togglePin(p)}
-                    style={{ color: p.pinned ? iconColors.rose : iconColors.slate }}
+                    style={{ color: p.pinned ? orange : inkSoft }}
                     title={p.pinned ? "Unpin post" : "Pin post to top"}
                   >
                     {p.pinned ? <PinOff size={13} /> : <Pin size={13} />}
                   </button>
                 )}
                 {(p.authorId === profile.id || profile.role === "admin") && (
-                  <button onClick={() => deletePost(p)} style={{ color: iconColors.red }} title="Delete post">
+                  <button onClick={() => deletePost(p)} style={{ color: inkSoft }} title="Delete post">
                     <Trash2 size={13} />
                   </button>
                 )}
@@ -465,7 +465,7 @@ export default function UpdatesPage() {
                   className="flex items-center gap-2 mt-2 px-2.5 py-1.5 rounded-2xl"
                   style={{ background: orangeSoft, width: "fit-content" }}
                 >
-                  <FileText size={14} style={{ color: iconColors.amber }} />
+                  <FileText size={14} style={{ color: navyText }} />
                   <span className="text-xs" style={{ color: navyText }}>
                     {p.file_name}
                   </span>
@@ -537,7 +537,7 @@ export default function UpdatesPage() {
                           className="flex items-center gap-1.5 mt-1 px-2 py-1 rounded-2xl"
                           style={{ background: orangeSoft, width: "fit-content" }}
                         >
-                          <FileText size={12} style={{ color: iconColors.amber }} />
+                          <FileText size={12} style={{ color: navyText }} />
                           <span className="text-xs" style={{ color: navyText }}>
                             {c.file_name}
                           </span>
@@ -578,7 +578,7 @@ export default function UpdatesPage() {
                   style={{ color: navyText, width: 26, height: 26 }}
                   title="Add photo"
                 >
-                  <Camera size={16} style={{ color: iconColors.purple }} />
+                  <Camera size={16} />
                   <input
                     type="file"
                     accept="image/*"
@@ -592,7 +592,7 @@ export default function UpdatesPage() {
                   style={{ color: navyText, width: 26, height: 26 }}
                   title="Add file"
                 >
-                  <Paperclip size={16} style={{ color: iconColors.slate }} />
+                  <Paperclip size={16} />
                   <input
                     type="file"
                     onChange={(e) => setCommentFile((prev) => ({ ...prev, [p.id]: e.target.files?.[0] ?? null }))}

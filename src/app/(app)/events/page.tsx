@@ -8,7 +8,7 @@ import { useProfile } from "@/lib/profile-context";
 import { useFeatureFlag } from "@/lib/feature-flags-context";
 import { uploadAttachment } from "@/lib/storage";
 import { Section } from "@/components/section";
-import { bg, border, fill, iconColors, ink, inkSoft, navy, navyText, orange, orangeSoft } from "@/lib/design-tokens";
+import { bg, border, fill, ink, inkSoft, navy, navyText, orange, orangeSoft } from "@/lib/design-tokens";
 
 type EventRow = {
   id: number;
@@ -181,7 +181,7 @@ export default function EventsPage() {
           className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-2xl mb-4"
           style={{ background: orangeSoft, color: navy }}
         >
-          <Plus size={13} style={{ color: iconColors.green }} /> Add event
+          <Plus size={13} /> Add event
         </button>
       )}
 
@@ -198,7 +198,7 @@ export default function EventsPage() {
               style={{ background: bg, border: `1px solid ${border}` }}
             >
               <Link href={`/events/${e.id}`} className="flex items-center gap-3 flex-1 min-w-0">
-                <FileStack size={18} style={{ color: iconColors.amber }} />
+                <FileStack size={18} style={{ color: orange }} />
                 <div>
                   <div className="text-sm font-medium" style={{ color: ink }}>
                     {e.title}
@@ -218,11 +218,11 @@ export default function EventsPage() {
               <div className="flex items-center gap-3 shrink-0 ml-3">
                 {canEdit && (
                   <button onClick={() => deleteEvent(e.id)} aria-label="Remove event">
-                    <Trash2 size={14} style={{ color: iconColors.red }} />
+                    <Trash2 size={14} style={{ color: inkSoft }} />
                   </button>
                 )}
                 <Link href={`/events/${e.id}`}>
-                  <ChevronRight size={16} style={{ color: iconColors.slate }} />
+                  <ChevronRight size={16} style={{ color: inkSoft }} />
                 </Link>
               </div>
             </div>

@@ -24,24 +24,3 @@ export const bgTextSoft = "#000000";
 
 export const FONT_STACK =
   '"Avenir Light", ui-sans-serif, system-ui, -apple-system, sans-serif';
-
-// Icon accent colours — text, panels, and borders stay strictly black/white
-// per the tokens above, but icons get colour so they're easier to tell
-// apart at a glance. One colour per semantic area, reused everywhere that
-// area's icon shows up (nav, page headers, stat cards, etc).
-export const iconColors = {
-  blue: "#2563EB",
-  sky: "#0284C7",
-  teal: "#0D9488",
-  green: "#16A34A",
-  lime: "#65A30D",
-  amber: "#D97706",
-  orange: "#EA580C",
-  red: "#DC2626",
-  rose: "#E11D48",
-  pink: "#DB2777",
-  purple: "#7C3AED",
-  indigo: "#4F46E5",
-  slate: "#475569",
-  gold: "#CA8A04",
-} as const;
