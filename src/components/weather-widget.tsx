@@ -13,16 +13,24 @@ import {
   MapPin,
   ChevronDown,
   ChevronUp,
+  Droplets,
+  Eye,
+  Gauge,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { bg, border, ink, inkSoft, navyText, orange } from "@/lib/design-tokens";
 
 type DayForecast = { date: string; weatherCode: number; high: number; low: number };
+type HourForecast = { time: string; label: string; tempC: number; weatherCode: number };
 type WeatherData = {
   tempC: number;
   feelsLikeC: number;
   weatherCode: number;
+  humidity: number;
+  visibilityMi: number;
+  uvIndex: number;
   daily: DayForecast[];
+  hourly: HourForecast[];
 };
 
 // WMO weather codes → a short label and icon (https://open-meteo.com/en/docs).
@@ -65,6 +73,44 @@ function dayLabel(dateStr: string, index: number): string {
   return new Date(dateStr + "T00:00:00").toLocaleDateString(undefined, { weekday: "short" });
 }
 
+// A small sparkline for the next few hours — plain black/white to match the
+// app's theme, styled after a typical weather app's hourly strip.
+function HourlyChart({ hours }: { hours: HourForecast[] }) {
+  if (hours.length < 2) return null;
+  const width = 280;
+  const height = 48;
+  const pad = 8;
+  const temps = hours.map((h) => h.tempC);
+  const min = Math.min(...temps);
+  const max = Math.max(...temps);
+  const span = Math.max(max - min, 1);
+  const stepX = (width - pad * 2) / (hours.length - 1);
+  const points = temps.map((t, i) => {
+    const x = pad + i * stepX;
+    const y = pad + (1 - (t - min) / span) * (height - pad * 2);
+    return { x, y };
+  });
+  const path = points.map((p, i) => `${i === 0 ? "M" : "L"}${p.x},${p.y}`).join(" ");
+
+  return (
+    <div>
+      <svg width="100%" viewBox={`0 0 ${width} ${height}`} style={{ display: "block" }}>
+        <path d={path} fill="none" stroke={ink} strokeWidth={1.5} />
+        {points.map((p, i) => (
+          <circle key={i} cx={p.x} cy={p.y} r={2.5} fill={i === 0 ? ink : bg} stroke={ink} strokeWidth={1.2} />
+        ))}
+      </svg>
+      <div className="flex justify-between mt-1">
+        {hours.map((h, i) => (
+          <span key={i} className="text-[10px] tabular-nums" style={{ color: inkSoft, fontWeight: i === 0 ? 600 : 400 }}>
+            {h.label}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export function WeatherWidget() {
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [error, setError] = useState(false);
@@ -105,39 +151,54 @@ export function WeatherWidget() {
   return (
     <>
       <div
-        className="flex items-center justify-between p-4 rounded-2xl"
+        className="relative overflow-hidden p-4 rounded-2xl"
         style={{ background: bg, border: `1px solid ${border}`, minHeight: 76 }}
       >
-        <div>
-          <div className="flex items-center gap-1 text-xs mb-1" style={{ color: inkSoft }}>
-            <MapPin size={11} /> Wetherby, LS22
+        {/* A soft decorative glow behind the reading, echoing a phone weather
+            app's background art — kept to greyscale circles to match the
+            app's black-and-white theme instead of a colour per condition. */}
+        <div
+          aria-hidden
+          className="absolute rounded-full pointer-events-none"
+          style={{ width: 160, height: 160, top: -70, right: -70, background: "radial-gradient(circle, #00000014, #00000000 70%)" }}
+        />
+        <div className="relative flex items-center justify-between">
+          <div>
+            <div className="flex items-center gap-1 text-xs mb-1" style={{ color: inkSoft }}>
+              <MapPin size={11} /> Wetherby, LS22
+            </div>
+            {weather ? (
+              <>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-4xl font-semibold tabular-nums leading-none" style={{ color: navyText }}>
+                    {weather.tempC}°
+                  </span>
+                  <span className="text-sm" style={{ color: ink }}>
+                    {todayCondition?.label ?? "—"}
+                  </span>
+                </div>
+                <div className="text-xs mt-1" style={{ color: inkSoft }}>
+                  H{today?.high}° L{today?.low}°
+                </div>
+              </>
+            ) : (
+              <p className="text-sm" style={{ color: inkSoft }}>
+                {error ? "Couldn't load weather" : "Loading weather…"}
+              </p>
+            )}
           </div>
-          {weather ? (
-            <>
-              <div className="text-2xl font-semibold tabular-nums" style={{ color: navyText }}>
-                {weather.tempC}°C
-              </div>
-              <div className="text-xs" style={{ color: ink }}>
-                {todayCondition?.label ?? "—"} · H{today?.high}° L{today?.low}°
-              </div>
-            </>
-          ) : (
-            <p className="text-sm" style={{ color: inkSoft }}>
-              {error ? "Couldn't load weather" : "Loading weather…"}
-            </p>
-          )}
-        </div>
-        <div className="flex flex-col items-center gap-1 shrink-0">
-          <TodayIcon size={32} style={{ color: orange, opacity: 0.8 }} />
-          {weather && (
-            <button
-              onClick={() => setExpanded((e) => !e)}
-              aria-label={expanded ? "Hide forecast" : "Show 7-day forecast"}
-              style={{ color: inkSoft }}
-            >
-              {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-            </button>
-          )}
+          <div className="flex flex-col items-center gap-1 shrink-0">
+            <TodayIcon size={30} style={{ color: orange, opacity: 0.8 }} />
+            {weather && (
+              <button
+                onClick={() => setExpanded((e) => !e)}
+                aria-label={expanded ? "Hide forecast" : "Show 7-day forecast"}
+                style={{ color: inkSoft }}
+              >
+                {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
@@ -146,7 +207,42 @@ export function WeatherWidget() {
           className="p-3 rounded-2xl"
           style={{ gridColumn: "1 / -1", background: bg, border: `1px solid ${border}` }}
         >
-          <div className="flex gap-1.5 overflow-x-auto pb-1 mb-3" style={{ scrollbarWidth: "thin" }}>
+          {/* Current conditions — always "right now", regardless of which
+              day is picked below (there's no per-day humidity/UV forecast). */}
+          <div className="grid grid-cols-3 gap-2 mb-3 pb-3" style={{ borderBottom: `1px solid ${border}` }}>
+            <div className="flex flex-col items-center gap-0.5 text-center">
+              <Droplets size={15} style={{ color: inkSoft }} />
+              <span className="text-sm font-semibold" style={{ color: navyText }}>
+                {weather.humidity}%
+              </span>
+              <span className="text-[10px]" style={{ color: inkSoft }}>
+                Humidity
+              </span>
+            </div>
+            <div className="flex flex-col items-center gap-0.5 text-center">
+              <Eye size={15} style={{ color: inkSoft }} />
+              <span className="text-sm font-semibold" style={{ color: navyText }}>
+                {weather.visibilityMi}mi
+              </span>
+              <span className="text-[10px]" style={{ color: inkSoft }}>
+                Visibility
+              </span>
+            </div>
+            <div className="flex flex-col items-center gap-0.5 text-center">
+              <Gauge size={15} style={{ color: inkSoft }} />
+              <span className="text-sm font-semibold" style={{ color: navyText }}>
+                {weather.uvIndex <= 2 ? "Low" : weather.uvIndex <= 5 ? "Moderate" : weather.uvIndex <= 7 ? "High" : "Very high"}{" "}
+                {weather.uvIndex}
+              </span>
+              <span className="text-[10px]" style={{ color: inkSoft }}>
+                UV Index
+              </span>
+            </div>
+          </div>
+
+          <HourlyChart hours={weather.hourly} />
+
+          <div className="flex gap-1.5 overflow-x-auto pb-1 mt-3 mb-3" style={{ scrollbarWidth: "thin" }}>
             {weather.daily.map((d, i) => {
               const active = i === selectedDay;
               return (
