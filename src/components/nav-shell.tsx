@@ -186,12 +186,12 @@ export function NavShell({
   return (
     <ThemeContext.Provider value={{ dark }}>
     <div
-      className="flex w-full h-screen"
+      className="flex w-full h-screen overflow-hidden"
       style={{ background: dark ? "#000000" : bg, color: bgText }}
     >
       {/* Sidebar (desktop) */}
       <div
-        className={`hidden sm:flex flex-col w-56 shrink-0 p-4${dark ? " dark-mode" : ""}`}
+        className={`hidden sm:flex flex-col w-56 shrink-0 p-4 overflow-y-auto${dark ? " dark-mode" : ""}`}
         style={{ borderRight: `1px solid rgba(0,0,0,0.15)` }}
       >
         <div className="mb-6 px-2">
