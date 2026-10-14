@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { useProfile } from "@/lib/profile-context";
 import { useFeatureFlag } from "@/lib/feature-flags-context";
 import { Section } from "@/components/section";
-import { bg, border, ink, inkSoft } from "@/lib/design-tokens";
+import { bg, border, iconColors, ink, inkSoft } from "@/lib/design-tokens";
 
 type Answer = { question: string; answer: string | null };
 type Survey = {
@@ -180,7 +180,7 @@ export default function GuestSurveysPage() {
                       </div>
                     )}
                   </div>
-                  {expanded ? <ChevronUp size={16} style={{ color: inkSoft }} /> : <ChevronDown size={16} style={{ color: inkSoft }} />}
+                  {expanded ? <ChevronUp size={16} style={{ color: iconColors.slate }} /> : <ChevronDown size={16} style={{ color: iconColors.slate }} />}
                 </button>
 
                 {expanded && (
@@ -206,7 +206,7 @@ export default function GuestSurveysPage() {
                           className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-2xl"
                           style={{ background: "#FFFFFF", color: ink, border: `1px solid ${border}` }}
                         >
-                          <ExternalLink size={13} /> View in ReviewPro
+                          <ExternalLink size={13} style={{ color: iconColors.blue }} /> View in ReviewPro
                         </a>
                       )}
                       {isAdmin && (
@@ -215,7 +215,7 @@ export default function GuestSurveysPage() {
                           className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-2xl"
                           style={{ background: "#FFFFFF", color: ink, border: `1px solid ${border}` }}
                         >
-                          <Trash2 size={13} /> Delete
+                          <Trash2 size={13} style={{ color: iconColors.red }} /> Delete
                         </button>
                       )}
                     </div>

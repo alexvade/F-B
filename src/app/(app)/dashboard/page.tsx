@@ -29,6 +29,7 @@ import {
   border,
   fill,
   good,
+  iconColors,
   ink,
   inkSoft,
   navy,
@@ -397,7 +398,7 @@ export default function DashboardPage() {
               {timeLabel}
             </div>
           </div>
-          <Clock size={32} style={{ color: orange, opacity: 0.8 }} />
+          <Clock size={32} style={{ color: iconColors.indigo, opacity: 0.8 }} />
         </div>
 
         <WeatherWidget />
@@ -407,7 +408,7 @@ export default function DashboardPage() {
       {todaysBirthdays.length > 0 && (
         <div className="p-4 rounded-2xl mb-4" style={{ background: bg, border: `1px solid ${border}` }}>
           <div className="flex items-center gap-2 mb-3">
-            <Cake size={15} style={{ color: orange }} />
+            <Cake size={15} style={{ color: iconColors.rose }} />
             <span className="text-sm font-medium" style={{ color: navyText }}>
               Birthdays today
             </span>
@@ -434,7 +435,7 @@ export default function DashboardPage() {
         >
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
-              <BedDouble size={15} style={{ color: orange }} />
+              <BedDouble size={15} style={{ color: iconColors.sky }} />
               <span className="text-sm font-medium" style={{ color: navyText }}>
                 Guests {guestsDateLabel}
               </span>
@@ -447,7 +448,7 @@ export default function DashboardPage() {
                 className="flex items-center justify-center rounded-full disabled:opacity-30"
                 style={{ width: 20, height: 20, border: `1px solid ${border}` }}
               >
-                <ChevronLeft size={12} />
+                <ChevronLeft size={12} style={{ color: iconColors.slate }} />
               </button>
               <button
                 onClick={() => setGuestsDayOffset((d) => Math.min(GUESTS_CARD_DAYS_AHEAD, d + 1))}
@@ -456,7 +457,7 @@ export default function DashboardPage() {
                 className="flex items-center justify-center rounded-full disabled:opacity-30"
                 style={{ width: 20, height: 20, border: `1px solid ${border}` }}
               >
-                <ChevronRight size={12} />
+                <ChevronRight size={12} style={{ color: iconColors.slate }} />
               </button>
             </div>
           </div>
@@ -510,7 +511,7 @@ export default function DashboardPage() {
           }}
         >
           <div className="flex items-center gap-2 mb-3">
-            <Users size={15} style={{ color: orange }} />
+            <Users size={15} style={{ color: iconColors.teal }} />
             <span className="text-sm font-medium" style={{ color: navyText }}>
               Working today
             </span>
@@ -593,7 +594,7 @@ export default function DashboardPage() {
       <div className="p-4 rounded-2xl mb-4" style={{ background: bg, border: `1px solid ${border}` }}>
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
-            <Sparkles size={15} style={{ color: orange }} />
+            <Sparkles size={15} style={{ color: iconColors.pink }} />
             <span className="text-sm font-medium" style={{ color: navyText }}>
               Events today
             </span>
@@ -604,7 +605,7 @@ export default function DashboardPage() {
               className="flex items-center gap-1 text-xs"
               style={{ color: showEventHistory ? navy : inkSoft, fontWeight: showEventHistory ? 700 : 400 }}
             >
-              <History size={13} />
+              <History size={13} style={{ color: iconColors.slate }} />
               History
             </button>
           )}
@@ -756,7 +757,7 @@ export default function DashboardPage() {
                               className="shrink-0 self-start p-1"
                               aria-label="Edit"
                             >
-                              <Pencil size={12} style={{ color: inkSoft }} />
+                              <Pencil size={12} style={{ color: iconColors.blue }} />
                             </button>
                           </div>
                         )}
@@ -777,7 +778,7 @@ export default function DashboardPage() {
       >
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
-            <CheckSquare size={15} style={{ color: orange }} />
+            <CheckSquare size={15} style={{ color: iconColors.green }} />
             <span className="text-sm font-medium" style={{ color: navyText }}>
               To do today
             </span>
@@ -841,7 +842,7 @@ export default function DashboardPage() {
                 </button>
                 {profile.role === "admin" && (
                   <button onClick={() => deleteTask(task)} className="shrink-0 p-1" aria-label="Delete task">
-                    <Trash2 size={14} style={{ color: inkSoft }} />
+                    <Trash2 size={14} style={{ color: iconColors.red }} />
                   </button>
                 )}
               </div>
@@ -876,7 +877,7 @@ export default function DashboardPage() {
         >
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
-              <CheckSquare size={15} style={{ color: orange }} />
+              <CheckSquare size={15} style={{ color: iconColors.red }} />
               <span className="text-sm font-medium" style={{ color: orange }}>
                 Outstanding
               </span>
@@ -917,7 +918,7 @@ export default function DashboardPage() {
                 </button>
                 {profile.role === "admin" && (
                   <button onClick={() => deleteTask(task)} className="shrink-0 p-1" aria-label="Delete task">
-                    <Trash2 size={14} style={{ color: inkSoft }} />
+                    <Trash2 size={14} style={{ color: iconColors.red }} />
                   </button>
                 )}
               </div>

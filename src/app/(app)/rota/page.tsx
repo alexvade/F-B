@@ -10,6 +10,7 @@ import type { ShiftStatus } from "@/lib/supabase/types";
 import {
   border,
   fill,
+  iconColors,
   ink,
   inkSoft,
   navy,
@@ -165,7 +166,7 @@ export default function RotaPage() {
               color: editing ? "#FFFFFF" : navy,
             }}
           >
-            <Pencil size={13} />
+            <Pencil size={13} style={{ color: iconColors.blue }} />
             {editing ? "Done editing" : "Edit rota"}
           </button>
         )}

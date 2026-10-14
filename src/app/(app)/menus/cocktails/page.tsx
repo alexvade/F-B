@@ -8,7 +8,7 @@ import { useProfile } from "@/lib/profile-context";
 import { useFeatureFlag } from "@/lib/feature-flags-context";
 import { CocktailGlass } from "@/components/cocktail-glass";
 import { buildHaystack, cocktailInStock, type StockHaystack } from "@/lib/cocktail-stock-match";
-import { bg, border, fill, ink, inkSoft, navy, navyText, orange, orangeSoft } from "@/lib/design-tokens";
+import { bg, border, fill, iconColors, ink, inkSoft, navy, navyText, orange, orangeSoft } from "@/lib/design-tokens";
 
 type Cocktail = {
   id: number;
@@ -217,13 +217,13 @@ export default function CocktailsPage() {
                 title={active.pinned ? "Unpin from Most Popular" : "Pin to Most Popular"}
                 style={{ color: "#000000" }}
               >
-                <Star size={15} fill={active.pinned ? "#000000" : "none"} />
+                <Star size={15} fill={active.pinned ? iconColors.gold : "none"} style={{ color: iconColors.gold }} />
               </button>
               <button onClick={() => openEdit(active)} style={{ color: navyText }}>
-                <Pencil size={15} />
+                <Pencil size={15} style={{ color: iconColors.blue }} />
               </button>
               <button onClick={() => deleteCocktail(active.id)} style={{ color: "#000000" }}>
-                <Trash2 size={15} />
+                <Trash2 size={15} style={{ color: iconColors.red }} />
               </button>
             </div>
           )}
@@ -344,7 +344,7 @@ export default function CocktailsPage() {
             className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-2xl"
             style={{ background: orangeSoft, color: navy }}
           >
-            <Plus size={13} /> Add
+            <Plus size={13} style={{ color: iconColors.green }} /> Add
           </button>
         )}
       </div>
@@ -353,7 +353,7 @@ export default function CocktailsPage() {
       </p>
 
       <div className="relative mb-6">
-        <Search size={16} style={{ color: inkSoft, position: "absolute", left: 16, top: "50%", transform: "translateY(-50%)" }} />
+        <Search size={16} style={{ color: iconColors.slate, position: "absolute", left: 16, top: "50%", transform: "translateY(-50%)" }} />
         <input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
@@ -372,7 +372,7 @@ export default function CocktailsPage() {
       {pinnedMatches.length > 0 && (
         <div className="mb-6">
           <div className="flex items-center gap-1.5 text-xs font-semibold mb-3" style={{ color: orange }}>
-            <Star size={12} fill={orange} /> MOST POPULAR
+            <Star size={12} fill={iconColors.gold} style={{ color: iconColors.gold }} /> MOST POPULAR
           </div>
           <div className="grid grid-cols-3 gap-3">{pinnedMatches.map(renderTile)}</div>
         </div>

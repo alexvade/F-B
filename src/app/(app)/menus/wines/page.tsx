@@ -6,7 +6,7 @@ import { Search, ChevronRight, Pencil, Plus, Trash2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useProfile } from "@/lib/profile-context";
 import { useFeatureFlag } from "@/lib/feature-flags-context";
-import { bg, border, fill, ink, inkSoft, navy, navyText, orange } from "@/lib/design-tokens";
+import { bg, border, fill, iconColors, ink, inkSoft, navy, navyText, orange } from "@/lib/design-tokens";
 
 type Wine = {
   id: number;
@@ -180,10 +180,10 @@ export default function WinesPage() {
           {canEdit && (
             <div className="flex gap-2">
               <button onClick={() => openEdit(active)} style={{ color: navyText }}>
-                <Pencil size={15} />
+                <Pencil size={15} style={{ color: iconColors.blue }} />
               </button>
               <button onClick={() => deleteWine(active.id)} style={{ color: "#000000" }}>
-                <Trash2 size={15} />
+                <Trash2 size={15} style={{ color: iconColors.red }} />
               </button>
             </div>
           )}
@@ -236,7 +236,7 @@ export default function WinesPage() {
             className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-2xl"
             style={{ background: "#FFFFFF", color: navy }}
           >
-            <Plus size={13} /> Add
+            <Plus size={13} style={{ color: iconColors.green }} /> Add
           </button>
         )}
       </div>
@@ -245,7 +245,7 @@ export default function WinesPage() {
       </p>
 
       <div className="relative mb-6">
-        <Search size={16} style={{ color: inkSoft, position: "absolute", left: 16, top: "50%", transform: "translateY(-50%)" }} />
+        <Search size={16} style={{ color: iconColors.slate, position: "absolute", left: 16, top: "50%", transform: "translateY(-50%)" }} />
         <input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
@@ -291,7 +291,7 @@ export default function WinesPage() {
                       {w.vintage ? ` · ${w.vintage}` : ""}
                     </div>
                   </div>
-                  <ChevronRight size={16} style={{ color: inkSoft }} />
+                  <ChevronRight size={16} style={{ color: iconColors.slate }} />
                 </button>
               ))}
             </div>

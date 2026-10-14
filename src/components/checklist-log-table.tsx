@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { todayISO, weekStartOf, weekDates } from "@/lib/dates";
-import { bg, border, ink, inkSoft, navy, navyText, orange } from "@/lib/design-tokens";
+import { bg, border, iconColors, ink, inkSoft, navy, navyText, orange } from "@/lib/design-tokens";
 
 type LogItem = { id: number; text: string; sort_order: number };
 
@@ -117,7 +117,7 @@ export function ChecklistLogTable({
             className="flex items-center justify-center shrink-0 rounded-full"
             style={{ width: 22, height: 22, border: `1px solid ${border}` }}
           >
-            <ChevronLeft size={13} />
+            <ChevronLeft size={13} style={{ color: iconColors.slate }} />
           </button>
           <button
             onClick={() => setWeekStart(weekStartOf(todayISO(), TABLE_WEEK_START_DAY))}
@@ -132,7 +132,7 @@ export function ChecklistLogTable({
             className="flex items-center justify-center shrink-0 rounded-full"
             style={{ width: 22, height: 22, border: `1px solid ${border}` }}
           >
-            <ChevronRight size={13} />
+            <ChevronRight size={13} style={{ color: iconColors.slate }} />
           </button>
         </div>
       </div>

@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { useProfile } from "@/lib/profile-context";
 import { usePresenceViewer } from "@/lib/presence";
 import { Section } from "@/components/section";
-import { border, fill, ink, inkSoft, navy, orangeSoft } from "@/lib/design-tokens";
+import { border, fill, iconColors, ink, inkSoft, navy, orangeSoft } from "@/lib/design-tokens";
 import type { Role } from "@/lib/supabase/types";
 
 type StaffRow = { id: string; name: string; email: string | null; role: Role; contract_hours: number | null };
@@ -196,7 +196,7 @@ export default function StaffAdminPage() {
               </select>
               {s.id !== profile.id && (
                 <button onClick={() => deleteStaff(s)} aria-label={`Delete ${s.name}`} style={{ color: "#000000" }}>
-                  <Trash2 size={15} />
+                  <Trash2 size={15} style={{ color: iconColors.red }} />
                 </button>
               )}
             </div>

@@ -19,7 +19,7 @@ import { useProfile } from "@/lib/profile-context";
 import { useFeatureFlag } from "@/lib/feature-flags-context";
 import { Section } from "@/components/section";
 import type { EventContent } from "@/lib/event-content";
-import { bg, border, fill, ink, inkSoft, navy, navyText, orange } from "@/lib/design-tokens";
+import { bg, border, fill, iconColors, ink, inkSoft, navy, navyText, orange } from "@/lib/design-tokens";
 
 // Synthetic tab id for the collated drink-pre-orders view — not a real
 // stock_products.tab_label, so it can't collide with a synced sheet tab.
@@ -484,7 +484,7 @@ export default function StockOrdersPage() {
                     className="flex items-center justify-center shrink-0 rounded-full disabled:opacity-25"
                     style={{ width: 20, height: 20, border: "1px solid #000000" }}
                   >
-                    <ChevronLeft size={12} />
+                    <ChevronLeft size={12} style={{ color: iconColors.slate }} />
                   </button>
                 )}
                 <button
@@ -507,7 +507,7 @@ export default function StockOrdersPage() {
                     className="flex items-center justify-center shrink-0 rounded-full disabled:opacity-25"
                     style={{ width: 20, height: 20, border: "1px solid #000000" }}
                   >
-                    <ChevronRight size={12} />
+                    <ChevronRight size={12} style={{ color: iconColors.slate }} />
                   </button>
                 )}
               </div>
@@ -704,9 +704,9 @@ export default function StockOrdersPage() {
                   >
                     <span className="flex items-center gap-2 min-w-0">
                       {open ? (
-                        <ChevronDown size={14} style={{ color: inkSoft }} />
+                        <ChevronDown size={14} style={{ color: iconColors.slate }} />
                       ) : (
-                        <ChevronRight size={14} style={{ color: inkSoft }} />
+                        <ChevronRight size={14} style={{ color: iconColors.slate }} />
                       )}
                       <span className="text-sm font-medium truncate" style={{ color: ink }}>
                         {g.product}
@@ -759,7 +759,7 @@ export default function StockOrdersPage() {
                   className="flex items-center justify-center shrink-0 rounded-full"
                   style={{ width: 20, height: 20, border: "1px solid #000000" }}
                 >
-                  <Pencil size={10} style={{ color: "#000000" }} />
+                  <Pencil size={10} style={{ color: iconColors.blue }} />
                 </button>
                 <button
                   onClick={() => {
@@ -771,7 +771,7 @@ export default function StockOrdersPage() {
                   className="flex items-center justify-center shrink-0 rounded-full"
                   style={{ width: 20, height: 20, border: "1px solid #000000" }}
                 >
-                  <Plus size={11} style={{ color: "#000000" }} />
+                  <Plus size={11} style={{ color: iconColors.green }} />
                 </button>
               </div>
               {i === 0 && (
@@ -782,7 +782,7 @@ export default function StockOrdersPage() {
                     className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-2xl disabled:opacity-60"
                     style={{ background: "#FFFFFF", color: "#000000", border: "1px solid #000000" }}
                   >
-                    <RotateCcw size={13} /> {resetting ? "Resetting…" : "Reset all to 0"}
+                    <RotateCcw size={13} style={{ color: iconColors.amber }} /> {resetting ? "Resetting…" : "Reset all to 0"}
                   </button>
                   <button
                     onClick={() => {
@@ -794,7 +794,7 @@ export default function StockOrdersPage() {
                     className="flex items-center justify-center shrink-0 rounded-2xl"
                     style={{ width: 28, height: 28, border: "1px solid #000000", color: "#000000" }}
                   >
-                    <Download size={14} />
+                    <Download size={14} style={{ color: iconColors.indigo }} />
                   </button>
                   <button
                     onClick={() => {
@@ -813,7 +813,7 @@ export default function StockOrdersPage() {
                       background: showEmailForm ? navy : "transparent",
                     }}
                   >
-                    <SendIcon size={14} style={{ color: showEmailForm ? "#FFFFFF" : "#000000" }} />
+                    <SendIcon size={14} style={{ color: showEmailForm ? "#FFFFFF" : iconColors.blue }} />
                   </button>
                   <button
                     onClick={() => setReorderingTabs((v) => !v)}
@@ -827,7 +827,7 @@ export default function StockOrdersPage() {
                       background: reorderingTabs ? navy : "transparent",
                     }}
                   >
-                    <ArrowLeftRight size={13} style={{ color: reorderingTabs ? "#FFFFFF" : "#000000" }} />
+                    <ArrowLeftRight size={13} style={{ color: reorderingTabs ? "#FFFFFF" : iconColors.teal }} />
                   </button>
                   <button
                     onClick={createTab}
@@ -837,7 +837,7 @@ export default function StockOrdersPage() {
                     className="flex items-center justify-center shrink-0 rounded-2xl disabled:opacity-60"
                     style={{ width: 28, height: 28, border: "1px solid #000000", color: "#000000" }}
                   >
-                    <Plus size={14} />
+                    <Plus size={14} style={{ color: iconColors.green }} />
                   </button>
                 </div>
               )}
@@ -905,7 +905,7 @@ export default function StockOrdersPage() {
                           aria-label="Remove item"
                           className="shrink-0 disabled:opacity-40"
                         >
-                          <Trash2 size={14} style={{ color: inkSoft }} />
+                          <Trash2 size={14} style={{ color: iconColors.red }} />
                         </button>
                       </div>
 

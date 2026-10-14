@@ -8,7 +8,7 @@ import { useFeatureFlag } from "@/lib/feature-flags-context";
 import { parseTrainingSheet } from "@/lib/training-sheet";
 import { Section } from "@/components/section";
 import { timestamp } from "@/lib/relative-time";
-import { bg, border, fill, ink, inkSoft, navy, navyText, orangeSoft } from "@/lib/design-tokens";
+import { bg, border, fill, iconColors, ink, inkSoft, navy, navyText, orangeSoft } from "@/lib/design-tokens";
 
 type TrainingRecord = {
   id: number;
@@ -224,7 +224,7 @@ export default function TrainingPage() {
               className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-2xl shrink-0"
               style={{ background: orangeSoft, color: navy }}
             >
-              <Share2 size={13} /> Share reminder
+              <Share2 size={13} style={{ color: iconColors.blue }} /> Share reminder
             </button>
           )}
         </div>
@@ -310,7 +310,7 @@ export default function TrainingPage() {
           className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-2xl mb-2 cursor-pointer w-fit"
           style={{ background: orangeSoft, color: navy }}
         >
-          <Upload size={13} />
+          <Upload size={13} style={{ color: iconColors.teal }} />
           {uploading ? "Uploading…" : "Upload this week's export (.csv)"}
           <input
             ref={fileInputRef}
@@ -414,7 +414,7 @@ export default function TrainingPage() {
                             {overdueCount} overdue
                           </span>
                         )}
-                        <ChevronRight size={16} style={{ color: inkSoft }} />
+                        <ChevronRight size={16} style={{ color: iconColors.slate }} />
                       </div>
                     </button>
                   );
@@ -445,7 +445,7 @@ export default function TrainingPage() {
                             {overdueCount} overdue
                           </span>
                         )}
-                        <ChevronRight size={16} style={{ color: inkSoft }} />
+                        <ChevronRight size={16} style={{ color: iconColors.slate }} />
                       </div>
                     </button>
                   );

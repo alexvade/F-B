@@ -7,7 +7,7 @@ import { useProfile } from "@/lib/profile-context";
 import { useFeatureFlag } from "@/lib/feature-flags-context";
 import { uploadAttachment, getAttachmentUrl, deleteAttachment } from "@/lib/storage";
 import { Section } from "@/components/section";
-import { bg, border, fill, ink, inkSoft, navy, navyText, orange, orangeSoft } from "@/lib/design-tokens";
+import { bg, border, fill, iconColors, ink, inkSoft, navy, navyText, orange, orangeSoft } from "@/lib/design-tokens";
 
 type Sop = {
   id: number;
@@ -209,10 +209,10 @@ export default function SopsPage() {
           {canEdit && (
             <div className="flex gap-2">
               <button onClick={() => openEdit(activeSop)} style={{ color: navyText }}>
-                <Pencil size={15} />
+                <Pencil size={15} style={{ color: iconColors.blue }} />
               </button>
               <button onClick={() => deleteSop(activeSop.id, activeSop.photo_url)} style={{ color: "#000000" }}>
-                <Trash2 size={15} />
+                <Trash2 size={15} style={{ color: iconColors.red }} />
               </button>
             </div>
           )}
@@ -290,7 +290,7 @@ export default function SopsPage() {
           className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-2xl mb-4"
           style={{ background: orangeSoft, color: navy }}
         >
-          <Plus size={13} /> Add SOP{category ? ` to ${category}` : ""}
+          <Plus size={13} style={{ color: iconColors.green }} /> Add SOP{category ? ` to ${category}` : ""}
         </button>
       )}
 
@@ -308,7 +308,7 @@ export default function SopsPage() {
               style={{ background: bg, border: `1px solid ${border}` }}
             >
               <span className="text-sm font-medium" style={{ color: ink }}>{sop.title}</span>
-              <ChevronRight size={16} style={{ color: inkSoft }} />
+              <ChevronRight size={16} style={{ color: iconColors.slate }} />
             </button>
           ))}
         </div>

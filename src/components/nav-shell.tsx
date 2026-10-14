@@ -30,25 +30,25 @@ import { createClient } from "@/lib/supabase/client";
 import { useProfile } from "@/lib/profile-context";
 import { usePresenceTracking } from "@/lib/presence";
 import type { FeatureFlags } from "@/lib/feature-flags-context";
-import { bg, bgText, bgTextSoft, border, ink, inkSoft, navy, orange, panel, surface } from "@/lib/design-tokens";
+import { bg, bgText, bgTextSoft, border, ink, iconColors, inkSoft, navy, orange, panel, surface } from "@/lib/design-tokens";
 import { ThemeContext } from "@/lib/theme-context";
 
 export const NAV_ITEMS = [
-  { href: "/menus", label: "Drinks", icon: Martini, adminOnly: true, staffFlag: "page_access_menus" },
-  { href: "/updates", label: "Noticeboard", icon: MessageCircle, adminOnly: true, staffFlag: "page_access_updates" },
-  { href: "/rota", label: "Rota", icon: CalendarDays, adminOnly: true, staffFlag: "page_access_rota" },
-  { href: "/checklists", label: "Checklists", icon: CheckSquare, adminOnly: true, staffFlag: "page_access_checklists" },
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/sops", label: "SOPs", icon: BookOpen, adminOnly: true, staffFlag: "page_access_sops" },
-  { href: "/colleague-of-the-month", label: "Colleague of the Month", icon: Award, adminOnly: true, staffFlag: "page_access_colleague_of_the_month" },
-  { href: "/function-sheets", label: "Function Sheets", icon: FileStack, adminOnly: true, staffFlag: "page_access_function_sheets" },
-  { href: "/events", label: "Events", icon: Sparkles, adminOnly: true, staffFlag: "page_access_events" },
-  { href: "/running-order", label: "Running Order", icon: ListOrdered, adminOnly: true, staffFlag: "page_access_running_order" },
-  { href: "/guest-surveys", label: "Guest Surveys", icon: Star, adminOnly: true, staffFlag: "page_access_guest_surveys" },
-  { href: "/stock-orders", label: "Stock Orders", icon: ClipboardList, adminOnly: true, staffFlag: "stock_orders_edit" },
-  { href: "/birthdays", label: "Birthdays", icon: Cake, adminOnly: true, staffFlag: "birthdays_access" },
-  { href: "/training", label: "Training", icon: GraduationCap, adminOnly: true, staffFlag: "page_access_training" },
-  { href: "/settings", label: "Settings", icon: SlidersHorizontal },
+  { href: "/menus", label: "Drinks", icon: Martini, color: iconColors.purple, adminOnly: true, staffFlag: "page_access_menus" },
+  { href: "/updates", label: "Noticeboard", icon: MessageCircle, color: iconColors.blue, adminOnly: true, staffFlag: "page_access_updates" },
+  { href: "/rota", label: "Rota", icon: CalendarDays, color: iconColors.teal, adminOnly: true, staffFlag: "page_access_rota" },
+  { href: "/checklists", label: "Checklists", icon: CheckSquare, color: iconColors.green, adminOnly: true, staffFlag: "page_access_checklists" },
+  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard, color: iconColors.indigo },
+  { href: "/sops", label: "SOPs", icon: BookOpen, color: iconColors.slate, adminOnly: true, staffFlag: "page_access_sops" },
+  { href: "/colleague-of-the-month", label: "Colleague of the Month", icon: Award, color: iconColors.gold, adminOnly: true, staffFlag: "page_access_colleague_of_the_month" },
+  { href: "/function-sheets", label: "Function Sheets", icon: FileStack, color: iconColors.amber, adminOnly: true, staffFlag: "page_access_function_sheets" },
+  { href: "/events", label: "Events", icon: Sparkles, color: iconColors.pink, adminOnly: true, staffFlag: "page_access_events" },
+  { href: "/running-order", label: "Running Order", icon: ListOrdered, color: iconColors.sky, adminOnly: true, staffFlag: "page_access_running_order" },
+  { href: "/guest-surveys", label: "Guest Surveys", icon: Star, color: iconColors.gold, adminOnly: true, staffFlag: "page_access_guest_surveys" },
+  { href: "/stock-orders", label: "Stock Orders", icon: ClipboardList, color: iconColors.orange, adminOnly: true, staffFlag: "stock_orders_edit" },
+  { href: "/birthdays", label: "Birthdays", icon: Cake, color: iconColors.rose, adminOnly: true, staffFlag: "birthdays_access" },
+  { href: "/training", label: "Training", icon: GraduationCap, color: iconColors.red, adminOnly: true, staffFlag: "page_access_training" },
+  { href: "/settings", label: "Settings", icon: SlidersHorizontal, color: iconColors.slate },
 ];
 
 export function canSeeNavItem(
@@ -223,7 +223,7 @@ export function NavShell({
           </div>
         </div>
         <nav className="flex flex-col gap-1">
-          {NAV_ITEMS.filter((item) => canSeeNavItem(item, isAdmin, isSuperAdmin, flags)).map(({ href, label, icon: Icon }) => {
+          {NAV_ITEMS.filter((item) => canSeeNavItem(item, isAdmin, isSuperAdmin, flags)).map(({ href, label, icon: Icon, color }) => {
             const active = isActive(href);
             return (
               <Link
@@ -236,7 +236,7 @@ export function NavShell({
                   fontWeight: active ? 600 : 400,
                 }}
               >
-                <Icon size={16} style={{ color: active ? bg : bgTextSoft }} />
+                <Icon size={16} style={{ color }} />
                 {label}
               </Link>
             );
@@ -252,7 +252,7 @@ export function NavShell({
               className="flex items-center gap-2 px-2 py-1.5 text-xs"
               style={{ color: isActive("/admin/staff") ? orange : bgTextSoft }}
             >
-              <Users size={14} /> Manage staff
+              <Users size={14} style={{ color: iconColors.slate }} /> Manage staff
             </Link>
           )}
           <button
@@ -260,14 +260,14 @@ export function NavShell({
             className="flex items-center gap-2 px-2 py-1.5 text-xs w-full text-left"
             style={{ color: bgTextSoft }}
           >
-            {dark ? <Sun size={14} /> : <Moon size={14} />} {dark ? "Light mode" : "Dark mode"}
+            {dark ? <Sun size={14} style={{ color: iconColors.amber }} /> : <Moon size={14} style={{ color: iconColors.indigo }} />} {dark ? "Light mode" : "Dark mode"}
           </button>
           <button
             onClick={handleSignOut}
             className="flex items-center gap-2 px-2 py-1.5 text-xs"
             style={{ color: bgTextSoft }}
           >
-            <LogOut size={14} /> Sign out
+            <LogOut size={14} style={{ color: iconColors.red }} /> Sign out
           </button>
         </div>
       </div>
@@ -279,7 +279,7 @@ export function NavShell({
         style={{ background: bg, border: `1px solid ${border}`, boxShadow: "0 2px 10px rgba(0,0,0,0.10)" }}
         aria-label="Open menu"
       >
-        <MenuIcon size={20} style={{ color: orange }} />
+        <MenuIcon size={20} style={{ color: iconColors.indigo }} />
       </button>
 
       {/* All-tabs menu (mobile) */}
@@ -298,11 +298,11 @@ export function NavShell({
             <div className="flex items-center justify-between mb-3 px-2">
               <div className="text-sm font-semibold">All tabs</div>
               <button onClick={() => setMenuOpen(false)} className="p-1.5 rounded-full" style={{ color: inkSoft }} aria-label="Close menu">
-                <X size={18} />
+                <X size={18} style={{ color: iconColors.slate }} />
               </button>
             </div>
             <nav className="flex flex-col gap-1">
-              {NAV_ITEMS.filter((item) => item.href !== "/dashboard" && canSeeNavItem(item, isAdmin, isSuperAdmin, flags)).map(({ href, label, icon: Icon }) => {
+              {NAV_ITEMS.filter((item) => item.href !== "/dashboard" && canSeeNavItem(item, isAdmin, isSuperAdmin, flags)).map(({ href, label, icon: Icon, color }) => {
                 const active = isActive(href);
                 return (
                   <Link
@@ -316,7 +316,7 @@ export function NavShell({
                       fontWeight: active ? 600 : 400,
                     }}
                   >
-                    <Icon size={18} style={{ color: active ? bg : ink }} />
+                    <Icon size={18} style={{ color }} />
                     {label}
                   </Link>
                 );
@@ -328,7 +328,7 @@ export function NavShell({
                   className="flex items-center gap-3 px-4 py-3 rounded-2xl text-sm"
                   style={{ color: ink }}
                 >
-                  <Users size={18} style={{ color: orange }} /> Manage staff
+                  <Users size={18} style={{ color: iconColors.slate }} /> Manage staff
                 </Link>
               )}
               <button
@@ -336,7 +336,7 @@ export function NavShell({
                 className="flex items-center gap-3 px-4 py-3 rounded-2xl text-sm text-left"
                 style={{ color: ink }}
               >
-                {dark ? <Sun size={18} /> : <Moon size={18} />} {dark ? "Light mode" : "Dark mode"}
+                {dark ? <Sun size={18} style={{ color: iconColors.amber }} /> : <Moon size={18} style={{ color: iconColors.indigo }} />} {dark ? "Light mode" : "Dark mode"}
               </button>
               <button
                 onClick={() => {
@@ -346,7 +346,7 @@ export function NavShell({
                 className="flex items-center gap-3 px-4 py-3 rounded-2xl text-sm text-left"
                 style={{ color: inkSoft }}
               >
-                <LogOut size={18} /> Sign out
+                <LogOut size={18} style={{ color: iconColors.red }} /> Sign out
               </button>
             </nav>
           </div>
@@ -360,16 +360,16 @@ export function NavShell({
       >
         <div className="flex items-center gap-1">
           {islandLeft.map((href) => {
-            const { icon: Icon } = findItem(href);
+            const { icon: Icon, color } = findItem(href);
             const active = isActive(href);
             return (
               <Link
                 key={href}
                 href={href}
                 className="p-2.5 rounded-full"
-                style={{ background: active ? navy : "transparent", color: active ? "#FFFFFF" : inkSoft }}
+                style={{ background: active ? navy : "transparent" }}
               >
-                <Icon size={20} />
+                <Icon size={20} style={{ color }} />
               </Link>
             );
           })}
@@ -378,23 +378,23 @@ export function NavShell({
         <Link
           href="/dashboard"
           className="p-3 rounded-full -mt-6"
-          style={{ background: navy, color: "#FFFFFF", border: `4px solid ${surface}`, boxShadow: "0 4px 12px rgba(0,0,0,0.2)" }}
+          style={{ background: navy, color: iconColors.indigo, border: `4px solid ${surface}`, boxShadow: "0 4px 12px rgba(0,0,0,0.2)" }}
         >
           <LayoutDashboard size={22} />
         </Link>
 
         <div className="flex items-center gap-1">
           {islandRight.map((href) => {
-            const { icon: Icon } = findItem(href);
+            const { icon: Icon, color } = findItem(href);
             const active = isActive(href);
             return (
               <Link
                 key={href}
                 href={href}
                 className="p-2.5 rounded-full"
-                style={{ background: active ? navy : "transparent", color: active ? "#FFFFFF" : inkSoft }}
+                style={{ background: active ? navy : "transparent" }}
               >
-                <Icon size={20} />
+                <Icon size={20} style={{ color }} />
               </Link>
             );
           })}

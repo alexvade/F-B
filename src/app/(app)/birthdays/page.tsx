@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { useProfile } from "@/lib/profile-context";
 import { useFeatureFlag } from "@/lib/feature-flags-context";
 import { Section } from "@/components/section";
-import { bg, border, fill, ink, inkSoft, navy, navyText, orange } from "@/lib/design-tokens";
+import { bg, border, fill, iconColors, ink, inkSoft, navy, navyText, orange } from "@/lib/design-tokens";
 
 const MONTH_NAMES = [
   "January", "February", "March", "April", "May", "June",
@@ -154,7 +154,7 @@ export default function BirthdaysPage() {
           className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-2xl mb-4"
           style={{ background: "#FFFFFF", color: navy, border: `1px solid ${border}` }}
         >
-          <Plus size={13} /> Add birthday
+          <Plus size={13} style={{ color: iconColors.green }} /> Add birthday
         </button>
       )}
 
@@ -171,12 +171,12 @@ export default function BirthdaysPage() {
               style={{ background: bg, border: `1px solid ${border}` }}
             >
               <div className="flex items-center gap-2">
-                <Cake size={18} style={{ color: orange }} />
+                <Cake size={18} style={{ color: iconColors.rose }} />
                 <div className="text-sm font-medium" style={{ color: ink }}>
                   {b.name}
                 </div>
                 {hasPassedThisYear(b, today) && (
-                  <Check size={14} strokeWidth={3} style={{ color: ink }} aria-label="Already happened this year" />
+                  <Check size={14} strokeWidth={3} style={{ color: iconColors.green }} aria-label="Already happened this year" />
                 )}
               </div>
               <div className="flex items-center gap-3 shrink-0">
@@ -186,10 +186,10 @@ export default function BirthdaysPage() {
                 {isAdmin && (
                   <>
                     <button onClick={() => openEdit(b)} style={{ color: navyText }}>
-                      <Pencil size={14} />
+                      <Pencil size={14} style={{ color: iconColors.blue }} />
                     </button>
                     <button onClick={() => deleteBirthday(b.id)} style={{ color: ink }}>
-                      <Trash2 size={14} />
+                      <Trash2 size={14} style={{ color: iconColors.red }} />
                     </button>
                   </>
                 )}

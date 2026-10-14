@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Martini, Wine } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
-import { bg, border, inkSoft, navyText, orange } from "@/lib/design-tokens";
+import { bg, border, iconColors, inkSoft, navyText, orange } from "@/lib/design-tokens";
 
 export default async function MenusPage() {
   const supabase = await createClient();
@@ -33,8 +33,8 @@ export default async function MenusPage() {
   }
 
   const tiles = [
-    { href: "/menus/cocktails", label: "Cocktails", icon: Martini, subtitle: `${cocktailCount ?? 0} drinks` },
-    { href: "/menus/wines", label: "Wines", icon: Wine, subtitle: `${wineCount ?? 0} wines` },
+    { href: "/menus/cocktails", label: "Cocktails", icon: Martini, color: iconColors.purple, subtitle: `${cocktailCount ?? 0} drinks` },
+    { href: "/menus/wines", label: "Wines", icon: Wine, color: iconColors.rose, subtitle: `${wineCount ?? 0} wines` },
   ];
 
   return (
@@ -49,14 +49,14 @@ export default async function MenusPage() {
         Choose a menu to browse
       </p>
       <div className="grid grid-cols-2 gap-4">
-        {tiles.map(({ href, label, icon: Icon, subtitle }) => (
+        {tiles.map(({ href, label, icon: Icon, color, subtitle }) => (
           <Link
             key={href}
             href={href}
             className="flex flex-col items-center justify-center gap-3 rounded-3xl p-8"
             style={{ background: bg, border: `1px solid ${border}` }}
           >
-            <Icon size={36} style={{ color: orange }} />
+            <Icon size={36} style={{ color }} />
             <span className="text-sm font-semibold text-center" style={{ color: navyText }}>
               {label}
             </span>
