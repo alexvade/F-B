@@ -1,0 +1,22 @@
+name: Import guest surveys
+
+on:
+  push:
+    branches:
+      - guest-survey-sync
+    paths:
+      - "data/guest-surveys-inbox.json"
+
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: POST surveys to Team Ops
+        env:
+          SECRET: ${{ secrets.GUEST_SURVEY_SYNC_SECRET }}
+        run: |
+          curl -sS --fail -X POST https://www.team-ops.co.uk/api/guest-surveys/import \
+            -H "Content-Type: application/json" \
+            -H "x-guest-survey-sync-secret: $SECRET" \
+            --data @data/guest-surveys-inbox.json
