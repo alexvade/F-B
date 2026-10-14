@@ -63,6 +63,11 @@ const FLAG_GROUPS: { group: string; flags: Flag[] }[] = [
         description: "Let staff see the Running Order page.",
       },
       {
+        key: "page_access_guest_surveys",
+        label: "Guest Surveys",
+        description: "Let staff see the Guest Surveys page.",
+      },
+      {
         key: "birthdays_access",
         label: "Birthdays",
         description: "Let staff see the Birthdays page. Adding, editing, and deleting a birthday stays admin-only either way.",

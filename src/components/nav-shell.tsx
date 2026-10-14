@@ -24,6 +24,7 @@ import {
   X,
   GraduationCap,
   SlidersHorizontal,
+  Star,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useProfile } from "@/lib/profile-context";
@@ -43,6 +44,7 @@ const NAV_ITEMS = [
   { href: "/function-sheets", label: "Function Sheets", icon: FileStack, adminOnly: true, staffFlag: "page_access_function_sheets" },
   { href: "/events", label: "Events", icon: Sparkles, adminOnly: true, staffFlag: "page_access_events" },
   { href: "/running-order", label: "Running Order", icon: ListOrdered, adminOnly: true, staffFlag: "page_access_running_order" },
+  { href: "/guest-surveys", label: "Guest Surveys", icon: Star, adminOnly: true, staffFlag: "page_access_guest_surveys" },
   { href: "/stock-orders", label: "Stock Orders", icon: ClipboardList, adminOnly: true, staffFlag: "stock_orders_edit" },
   { href: "/birthdays", label: "Birthdays", icon: Cake, adminOnly: true, staffFlag: "birthdays_access" },
   { href: "/training", label: "Training", icon: GraduationCap, adminOnly: true, staffFlag: "page_access_training" },

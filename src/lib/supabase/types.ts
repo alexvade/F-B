@@ -529,6 +529,44 @@ export interface Database {
           uploaded_at?: string;
         }
       >;
+      guest_surveys: Table<
+        {
+          id: number;
+          gmail_message_id: string;
+          survey_name: string | null;
+          guest_name: string;
+          response_url: string | null;
+          language: string | null;
+          response_date: string | null;
+          overall_score: number | null;
+          nps_category: string | null;
+          establishment: string | null;
+          room: string | null;
+          check_in: string | null;
+          check_out: string | null;
+          answers: { question: string; answer: string | null }[];
+          received_at: string | null;
+          created_at: string;
+        },
+        {
+          id?: number;
+          gmail_message_id: string;
+          survey_name?: string | null;
+          guest_name: string;
+          response_url?: string | null;
+          language?: string | null;
+          response_date?: string | null;
+          overall_score?: number | null;
+          nps_category?: string | null;
+          establishment?: string | null;
+          room?: string | null;
+          check_in?: string | null;
+          check_out?: string | null;
+          answers?: { question: string; answer: string | null }[];
+          received_at?: string | null;
+          created_at?: string;
+        }
+      >;
       stock_products: Table<
         {
           id: number;
