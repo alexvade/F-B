@@ -1,14 +1,13 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Pencil, X } from "lucide-react";
+import { Pencil } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useProfile } from "@/lib/profile-context";
 import { useFeatureFlag } from "@/lib/feature-flags-context";
 import { todayISO, weekStartOf, addDaysISO, weekDates, formatTimeHHMM } from "@/lib/dates";
 import type { ShiftStatus } from "@/lib/supabase/types";
 import {
-  bg,
   border,
   fill,
   ink,
@@ -21,10 +20,12 @@ import {
   warn,
 } from "@/lib/design-tokens";
 
+// These never belong on the rota — a stray name imported from an old sheet,
+// and the app owner's own personal account (he's not rota-able staff).
+const EXCLUDED_STAFF_NAMES = new Set(["Nicola Smith", "alexandru.vadeanu@gmail.com"]);
+
 type Staff = { name: string; id: string | null };
 type Shift = { status: ShiftStatus; start_time: string | null; end_time: string | null };
-type Covers = { gih_count: number | null; breakfast_count: number | null };
-type EventRow = { id: number; room: string | null; title: string; details: string | null };
 
 export default function RotaPage() {
   const profile = useProfile();
@@ -38,9 +39,6 @@ export default function RotaPage() {
   const [editing, setEditing] = useState(false);
   const [staff, setStaff] = useState<Staff[]>([]);
   const [shifts, setShifts] = useState<Record<string, Record<string, Shift>>>({});
-  const [covers, setCovers] = useState<Record<string, Covers>>({});
-  const [events, setEvents] = useState<Record<string, EventRow[]>>({});
-  const [newEventDraft, setNewEventDraft] = useState<Record<string, { room: string; title: string; details: string }>>({});
 
   const days = useMemo(() => weekDates(weekStart), [weekStart]);
   const today = todayISO();
@@ -66,26 +64,20 @@ export default function RotaPage() {
   }, [supabase]);
 
   const loadData = useCallback(async () => {
-    const [staffRes, shiftsRes, coversRes, eventsRes, orderRes] = await Promise.all([
+    const [staffRes, shiftsRes, orderRes] = await Promise.all([
       supabase.from("profiles").select("id, name").order("name"),
       supabase
         .from("rota_shifts")
         .select("staff_id, staff_name, date, status, start_time, end_time")
         .gte("date", weekStart)
         .lte("date", weekEnd),
-      supabase.from("daily_covers").select("*").gte("date", weekStart).lte("date", weekEnd),
-      supabase
-        .from("daily_events")
-        .select("*")
-        .gte("date", weekStart)
-        .lte("date", weekEnd)
-        .order("id"),
       supabase.from("rota_staff_order").select("staff_name, sort_order"),
     ]);
 
     const idByName = new Map((staffRes.data ?? []).map((p) => [p.name, p.id]));
     const names = new Set((staffRes.data ?? []).map((p) => p.name));
     for (const s of shiftsRes.data ?? []) names.add(s.staff_name);
+    for (const excluded of EXCLUDED_STAFF_NAMES) names.delete(excluded);
 
     // Order matches the sheet's own row order; anyone the sheet's never
     // mentioned (e.g. a brand-new invite) sorts alphabetically after that.
@@ -113,17 +105,6 @@ export default function RotaPage() {
       };
     }
     setShifts(shiftMap);
-
-    const coversMap: Record<string, Covers> = {};
-    for (const c of coversRes.data ?? []) coversMap[c.date] = c;
-    setCovers(coversMap);
-
-    const eventsMap: Record<string, EventRow[]> = {};
-    for (const e of eventsRes.data ?? []) {
-      eventsMap[e.date] ??= [];
-      eventsMap[e.date].push(e);
-    }
-    setEvents(eventsMap);
   }, [supabase, weekStart, weekEnd]);
 
   useEffect(() => {
@@ -142,24 +123,6 @@ export default function RotaPage() {
         { staff_id: person.id, staff_name: person.name, date, ...shift },
         { onConflict: "staff_name,date" }
       );
-  };
-
-  const addEvent = async (date: string) => {
-    const draft = newEventDraft[date];
-    if (!draft?.title.trim()) return;
-    await supabase.from("daily_events").insert({
-      date,
-      room: draft.room.trim() || null,
-      title: draft.title.trim(),
-      details: draft.details.trim() || null,
-    });
-    setNewEventDraft((prev) => ({ ...prev, [date]: { room: "", title: "", details: "" } }));
-    loadData();
-  };
-
-  const removeEvent = async (id: number) => {
-    await supabase.from("daily_events").delete().eq("id", id);
-    loadData();
   };
 
   const inputStyle = {
@@ -377,96 +340,6 @@ export default function RotaPage() {
             ))}
           </tbody>
         </table>
-      </div>
-
-      <div className="flex flex-col gap-2 mb-6">
-        {days.map((d) => {
-          const dayCovers = covers[d.date] ?? { gih_count: null, breakfast_count: null };
-          const dayEvents = events[d.date] ?? [];
-          const draft = newEventDraft[d.date] ?? { room: "", title: "", details: "" };
-          return (
-            <div
-              key={d.date}
-              className="p-3 rounded-2xl"
-              style={{ background: bg, border: `1px solid ${border}` }}
-            >
-              <div className="flex items-baseline justify-between mb-1.5">
-                <span className="text-sm font-medium">
-                  {d.day} {d.label}
-                </span>
-                {/* Read-only: these come solely from the Daily Overview spreadsheet import now, not editable here. */}
-                <span className="text-xs" style={{ color: inkSoft }}>
-                  GIH {dayCovers.gih_count ?? "–"} · Breakfast {dayCovers.breakfast_count ?? "–"}
-                </span>
-              </div>
-              {dayEvents.length === 0 ? (
-                <p className="text-xs" style={{ color: inkSoft }}>
-                  No functions booked
-                </p>
-              ) : (
-                <div className="flex flex-col gap-1.5">
-                  {dayEvents.map((e) => (
-                    <div key={e.id} className="flex items-start justify-between gap-2">
-                      <div>
-                        <div className="text-xs font-medium" style={{ color: navyText }}>
-                          {e.room} · {e.title}
-                        </div>
-                        <div className="text-xs" style={{ color: inkSoft }}>
-                          {e.details}
-                        </div>
-                      </div>
-                      {editing && (
-                        <button onClick={() => removeEvent(e.id)} style={{ color: inkSoft }}>
-                          <X size={13} />
-                        </button>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-              {editing && (
-                <div className="flex flex-col gap-1 mt-2 pt-2" style={{ borderTop: `1px solid ${border}` }}>
-                  <div className="flex gap-1">
-                    <input
-                      placeholder="Room"
-                      value={draft.room}
-                      onChange={(e) =>
-                        setNewEventDraft((prev) => ({ ...prev, [d.date]: { ...draft, room: e.target.value } }))
-                      }
-                      className="text-xs rounded px-2 py-1 w-20"
-                      style={inputStyle}
-                    />
-                    <input
-                      placeholder="Event title"
-                      value={draft.title}
-                      onChange={(e) =>
-                        setNewEventDraft((prev) => ({ ...prev, [d.date]: { ...draft, title: e.target.value } }))
-                      }
-                      className="text-xs rounded px-2 py-1 flex-1"
-                      style={inputStyle}
-                    />
-                  </div>
-                  <input
-                    placeholder="Details"
-                    value={draft.details}
-                    onChange={(e) =>
-                      setNewEventDraft((prev) => ({ ...prev, [d.date]: { ...draft, details: e.target.value } }))
-                    }
-                    className="text-xs rounded px-2 py-1"
-                    style={inputStyle}
-                  />
-                  <button
-                    onClick={() => addEvent(d.date)}
-                    className="text-xs font-medium px-3 py-1 rounded-2xl self-start"
-                    style={{ background: navy, color: "#FFFFFF" }}
-                  >
-                    Add event
-                  </button>
-                </div>
-              )}
-            </div>
-          );
-        })}
       </div>
     </div>
   );

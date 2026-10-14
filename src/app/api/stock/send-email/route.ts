@@ -19,15 +19,13 @@ export async function POST(request: Request) {
   }
   // profiles itself no longer grants column-level access to email (see
   // 0019_profiles_email_privacy.sql) — profiles_directory returns it for
-  // the viewer's own row, which this always is.
+  // the viewer's own row, which this always is. Sending the stock report
+  // by email is open to any signed-in user, not just admins.
   const { data: callerProfile } = await supabase
     .from("profiles_directory")
-    .select("role, name, email")
+    .select("name, email")
     .eq("id", user.id)
     .single();
-  if (callerProfile?.role !== "admin") {
-    return NextResponse.json({ error: "Admins only" }, { status: 403 });
-  }
 
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) {
@@ -48,13 +46,13 @@ export async function POST(request: Request) {
   }
 
   const resend = new Resend(apiKey);
-  const adminName = callerProfile.name || "Team Ops";
+  const senderName = callerProfile?.name || "Team Ops";
   const { error: sendError } = await resend.emails.send({
-    from: `${adminName} (Team Ops) <stockorders@team-ops.co.uk>`,
+    from: `${senderName} (Team Ops) <stockorders@team-ops.co.uk>`,
     to: to.trim(),
-    replyTo: callerProfile.email || undefined,
+    replyTo: callerProfile?.email || undefined,
     subject: `Stock Order — ${new Date().toISOString().slice(0, 10)}`,
-    text: `Attached is the stock order${tabLabels ? ` for: ${tabLabels.join(", ")}` : ""}.\n\nSent from Team Ops by ${adminName}.`,
+    text: `Attached is the stock order${tabLabels ? ` for: ${tabLabels.join(", ")}` : ""}.\n\nSent from Team Ops by ${senderName}.`,
     attachments: [{ filename: report.filename, content: report.buffer }],
   });
   if (sendError) {

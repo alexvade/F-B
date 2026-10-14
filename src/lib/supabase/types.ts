@@ -35,6 +35,7 @@ export interface Database {
           contract_hours: number | null;
           created_at: string;
           is_super_admin: boolean;
+          task_bar: string[] | null;
         },
         {
           id: string;
@@ -45,6 +46,7 @@ export interface Database {
           contract_hours?: number | null;
           created_at?: string;
           is_super_admin?: boolean;
+          task_bar?: string[] | null;
         }
       >;
       // Read-only view — returns `email` only for a viewer's own row or for
@@ -62,6 +64,7 @@ export interface Database {
           contract_hours: number | null;
           created_at: string;
           is_super_admin: boolean;
+          task_bar: string[] | null;
         },
         {
           id: string;
@@ -72,6 +75,7 @@ export interface Database {
           contract_hours?: number | null;
           created_at?: string;
           is_super_admin?: boolean;
+          task_bar?: string[] | null;
         }
       >;
       rota_shifts: Table<

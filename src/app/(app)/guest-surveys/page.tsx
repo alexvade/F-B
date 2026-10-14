@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { useProfile } from "@/lib/profile-context";
 import { useFeatureFlag } from "@/lib/feature-flags-context";
 import { Section } from "@/components/section";
-import { bg, border, fill, ink, inkSoft, navy, navyText, orangeSoft } from "@/lib/design-tokens";
+import { bg, border, ink, inkSoft } from "@/lib/design-tokens";
 
 type Answer = { question: string; answer: string | null };
 type Survey = {
@@ -25,11 +25,12 @@ type Survey = {
   answers: Answer[];
 };
 
-function scoreColors(score: number | null): { bg: string; fg: string } {
-  if (score == null) return { bg: fill, fg: inkSoft };
-  if (score >= 9) return { bg: "#E6F4EA", fg: "#1E7A34" };
-  if (score >= 7) return { bg: "#FFF4D6", fg: "#9A6B00" };
-  return { bg: "#FBE7E7", fg: "#B3261E" };
+// Black/white only, to match the app's theme — a detractor still stands
+// out (inverted, like a highlighted "today" cell elsewhere in the app),
+// everything else is a plain bordered badge.
+function scoreColors(score: number | null, npsCategory: string | null): { bg: string; fg: string; border: string } {
+  if (npsCategory === "Detractor") return { bg: ink, fg: bg, border: ink };
+  return { bg, fg: ink, border };
 }
 
 function formatDate(iso: string | null): string {
@@ -95,34 +96,34 @@ export default function GuestSurveysPage() {
       {!loading && surveys.length > 0 && (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
           <div className="p-3 rounded-2xl text-center" style={{ background: bg, border: `1px solid ${border}` }}>
-            <div className="text-xl font-semibold" style={{ color: navyText }}>
+            <div className="text-xl font-semibold" style={{ color: ink }}>
               {avgScore != null ? avgScore.toFixed(1) : "–"}
             </div>
             <div className="text-xs" style={{ color: inkSoft }}>
               Avg score
             </div>
           </div>
-          <div className="p-3 rounded-2xl text-center" style={{ background: "#E6F4EA", border: `1px solid ${border}` }}>
-            <div className="text-xl font-semibold" style={{ color: "#1E7A34" }}>
+          <div className="p-3 rounded-2xl text-center" style={{ background: bg, border: `1px solid ${border}` }}>
+            <div className="text-xl font-semibold" style={{ color: ink }}>
               {counts.Promoter}
             </div>
-            <div className="text-xs" style={{ color: "#1E7A34" }}>
+            <div className="text-xs" style={{ color: inkSoft }}>
               Promoters
             </div>
           </div>
-          <div className="p-3 rounded-2xl text-center" style={{ background: "#FFF4D6", border: `1px solid ${border}` }}>
-            <div className="text-xl font-semibold" style={{ color: "#9A6B00" }}>
+          <div className="p-3 rounded-2xl text-center" style={{ background: bg, border: `1px solid ${border}` }}>
+            <div className="text-xl font-semibold" style={{ color: ink }}>
               {counts.Passive}
             </div>
-            <div className="text-xs" style={{ color: "#9A6B00" }}>
+            <div className="text-xs" style={{ color: inkSoft }}>
               Passives
             </div>
           </div>
-          <div className="p-3 rounded-2xl text-center" style={{ background: "#FBE7E7", border: `1px solid ${border}` }}>
-            <div className="text-xl font-semibold" style={{ color: "#B3261E" }}>
+          <div className="p-3 rounded-2xl text-center" style={{ background: ink, border: `1px solid ${border}` }}>
+            <div className="text-xl font-semibold" style={{ color: bg }}>
               {counts.Detractor}
             </div>
-            <div className="text-xs" style={{ color: "#B3261E" }}>
+            <div className="text-xs" style={{ color: bg }}>
               Detractors
             </div>
           </div>
@@ -141,7 +142,7 @@ export default function GuestSurveysPage() {
         <div className="flex flex-col gap-3">
           {surveys.map((s) => {
             const expanded = expandedId === s.id;
-            const colors = scoreColors(s.overall_score);
+            const colors = scoreColors(s.overall_score, s.nps_category);
             return (
               <div key={s.id} className="rounded-2xl overflow-hidden" style={{ border: `1px solid ${border}` }}>
                 <button
@@ -151,7 +152,7 @@ export default function GuestSurveysPage() {
                 >
                   <div
                     className="flex items-center justify-center shrink-0 rounded-full font-semibold"
-                    style={{ width: 44, height: 44, background: colors.bg, color: colors.fg, fontSize: 15 }}
+                    style={{ width: 44, height: 44, background: colors.bg, color: colors.fg, border: `1px solid ${colors.border}`, fontSize: 15 }}
                   >
                     {s.overall_score != null ? s.overall_score : "–"}
                   </div>
@@ -163,7 +164,7 @@ export default function GuestSurveysPage() {
                       {s.nps_category && (
                         <span
                           className="text-xs font-medium px-2 py-0.5 rounded-full shrink-0"
-                          style={{ background: colors.bg, color: colors.fg }}
+                          style={{ background: colors.bg, color: colors.fg, border: `1px solid ${colors.border}` }}
                         >
                           {s.nps_category}
                         </span>
@@ -203,7 +204,7 @@ export default function GuestSurveysPage() {
                           target="_blank"
                           rel="noreferrer"
                           className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-2xl"
-                          style={{ background: orangeSoft, color: navy }}
+                          style={{ background: "#FFFFFF", color: ink, border: `1px solid ${border}` }}
                         >
                           <ExternalLink size={13} /> View in ReviewPro
                         </a>
@@ -212,7 +213,7 @@ export default function GuestSurveysPage() {
                         <button
                           onClick={() => deleteSurvey(s)}
                           className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-2xl"
-                          style={{ background: "#FFFFFF", color: "#B3261E", border: `1px solid ${border}` }}
+                          style={{ background: "#FFFFFF", color: ink, border: `1px solid ${border}` }}
                         >
                           <Trash2 size={13} /> Delete
                         </button>

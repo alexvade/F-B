@@ -2,10 +2,10 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { buildStockReportBuffer } from "@/lib/stock-report";
 
-// Admin-gated export of the current stock order — everything with a
-// quantity actually set (> 0), across every tab, as a .xlsx or .pdf. Not
-// date-ranged like the checklist report, since this is a snapshot of what
-// needs ordering right now rather than a history.
+// Export of the current stock order — everything with a quantity actually
+// set (> 0), across every tab, as a .xlsx or .pdf. Open to any signed-in
+// user, not just admins. Not date-ranged like the checklist report, since
+// this is a snapshot of what needs ordering right now rather than a history.
 export async function GET(request: Request) {
   const supabase = await createClient();
   const {
@@ -13,10 +13,6 @@ export async function GET(request: Request) {
   } = await supabase.auth.getUser();
   if (!user) {
     return NextResponse.json({ error: "Not signed in" }, { status: 401 });
-  }
-  const { data: callerProfile } = await supabase.from("profiles").select("role").eq("id", user.id).single();
-  if (callerProfile?.role !== "admin") {
-    return NextResponse.json({ error: "Admins only" }, { status: 403 });
   }
 
   const { searchParams } = new URL(request.url);

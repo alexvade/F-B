@@ -17,6 +17,7 @@ export async function buildStockReportBuffer(
     .select("tab_label, category, product, code, cellar_code, supplier, quantity, delisted, sort_order")
     .not("quantity", "is", null)
     .gt("quantity", 0)
+    .eq("delisted", false)
     .order("tab_label")
     .order("sort_order");
   if (tabLabels && tabLabels.length > 0) {
@@ -27,6 +28,10 @@ export async function buildStockReportBuffer(
     throw new Error(error.message);
   }
 
+  // Delisted is filtered in the query above; "(don't order)" is only ever
+  // in the product's own name, so it's filtered here instead.
+  const filtered = (products ?? []).filter((p) => !/\(don.t order\)/i.test(p.product));
+
   type ReportRow = {
     tab: string;
     category: string;
@@ -36,10 +41,10 @@ export async function buildStockReportBuffer(
     supplier: string;
     quantity: string;
   };
-  const rows: ReportRow[] = (products ?? []).map((p) => ({
+  const rows: ReportRow[] = filtered.map((p) => ({
     tab: p.tab_label,
     category: p.category,
-    product: p.product + (p.delisted ? " (DELISTED)" : ""),
+    product: p.product,
     code: p.code ?? "",
     cellarCode: p.cellar_code ?? "",
     supplier: p.supplier ?? "",

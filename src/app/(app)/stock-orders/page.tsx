@@ -140,7 +140,11 @@ export default function StockOrdersPage() {
       supabase.from("stock_products").select("*").order("tab_label").order("sort_order"),
       supabase.from("stock_tab_order").select("tab_label, sort_order"),
     ]);
-    const all = data ?? [];
+    // Delisted items, and anything marked "(don't order)" in its own name,
+    // never belong in the ordering list — filtered here rather than
+    // deleted, since the sheet sync (onConflict tab_gid,row_number) would
+    // just re-insert a deleted row the next time that tab is edited.
+    const all = (data ?? []).filter((p) => !p.delisted && !/\(don.t order\)/i.test(p.product));
     const order = new Map((orderData ?? []).map((o) => [o.tab_label, o.sort_order]));
     const tabLabels = sortTabs(Array.from(new Set(all.map((p) => p.tab_label))), order);
     setTabs(tabLabels);
@@ -523,7 +527,7 @@ export default function StockOrdersPage() {
           </button>
       </div>
 
-      {showExport && isAdmin && (
+      {showExport && (
         <div
           className="flex flex-col gap-3 p-3 rounded-2xl mb-6"
           style={{ background: bg, border: `1px solid ${border}` }}
@@ -559,7 +563,7 @@ export default function StockOrdersPage() {
         </div>
       )}
 
-      {showEmailForm && isAdmin && (
+      {showEmailForm && (
         <div
           className="flex flex-col gap-3 p-3 rounded-2xl mb-6"
           style={{ background: bg, border: `1px solid ${border}` }}
@@ -780,41 +784,37 @@ export default function StockOrdersPage() {
                   >
                     <RotateCcw size={13} /> {resetting ? "Resetting…" : "Reset all to 0"}
                   </button>
-                  {isAdmin && (
-                    <button
-                      onClick={() => {
-                        setShowExport((v) => !v);
-                        setExportTabs((prev) => (prev.length === 0 ? tabs : prev));
-                      }}
-                      aria-label="Export"
-                      title="Export"
-                      className="flex items-center justify-center shrink-0 rounded-2xl"
-                      style={{ width: 28, height: 28, border: "1px solid #000000", color: "#000000" }}
-                    >
-                      <Download size={14} />
-                    </button>
-                  )}
-                  {isAdmin && (
-                    <button
-                      onClick={() => {
-                        const opening = !showEmailForm;
-                        setShowEmailForm(opening);
-                        if (opening) setExportTabs(tab && tab !== EVENTS_TAB ? [tab] : tabs);
-                        setEmailStatus(null);
-                      }}
-                      aria-label="Send by email"
-                      title="Send by email"
-                      className="flex items-center justify-center shrink-0 rounded-2xl"
-                      style={{
-                        width: 28,
-                        height: 28,
-                        border: `1px solid ${showEmailForm ? navy : "#000000"}`,
-                        background: showEmailForm ? navy : "transparent",
-                      }}
-                    >
-                      <SendIcon size={14} style={{ color: showEmailForm ? "#FFFFFF" : "#000000" }} />
-                    </button>
-                  )}
+                  <button
+                    onClick={() => {
+                      setShowExport((v) => !v);
+                      setExportTabs((prev) => (prev.length === 0 ? tabs : prev));
+                    }}
+                    aria-label="Export"
+                    title="Export"
+                    className="flex items-center justify-center shrink-0 rounded-2xl"
+                    style={{ width: 28, height: 28, border: "1px solid #000000", color: "#000000" }}
+                  >
+                    <Download size={14} />
+                  </button>
+                  <button
+                    onClick={() => {
+                      const opening = !showEmailForm;
+                      setShowEmailForm(opening);
+                      if (opening) setExportTabs(tab && tab !== EVENTS_TAB ? [tab] : tabs);
+                      setEmailStatus(null);
+                    }}
+                    aria-label="Send by email"
+                    title="Send by email"
+                    className="flex items-center justify-center shrink-0 rounded-2xl"
+                    style={{
+                      width: 28,
+                      height: 28,
+                      border: `1px solid ${showEmailForm ? navy : "#000000"}`,
+                      background: showEmailForm ? navy : "transparent",
+                    }}
+                  >
+                    <SendIcon size={14} style={{ color: showEmailForm ? "#FFFFFF" : "#000000" }} />
+                  </button>
                   <button
                     onClick={() => setReorderingTabs((v) => !v)}
                     aria-label="Reorder tabs"
@@ -879,11 +879,6 @@ export default function StockOrdersPage() {
                           <div className="text-sm font-medium truncate" style={{ color: ink }}>
                             {p.product}
                           </div>
-                          {p.delisted && (
-                            <div className="text-xs font-bold truncate dark-mode-invert" style={{ color: "#E4002B" }}>
-                              DELISTED
-                            </div>
-                          )}
                           <div className="text-xs truncate" style={{ color: inkSoft }}>
                             {[p.code, p.supplier].filter(Boolean).join(" · ")}
                           </div>
@@ -974,7 +969,7 @@ export default function StockOrdersPage() {
                               checked={editDraft.delisted}
                               onChange={(e) => setEditDraft({ ...editDraft, delisted: e.target.checked })}
                             />
-                            Delisted
+                            Delisted (hides it from the ordering list)
                           </label>
                           {editError && (
                             <p className="text-xs" style={{ color: "#E4002B" }}>
