@@ -223,24 +223,31 @@ export function NavShell({
           </div>
         </div>
         <nav className="flex flex-col gap-1">
-          {NAV_ITEMS.filter((item) => canSeeNavItem(item, isAdmin, isSuperAdmin, flags)).map(({ href, label, icon: Icon }) => {
-            const active = isActive(href);
-            return (
-              <Link
-                key={href}
-                href={href}
-                className="flex items-center gap-2 px-4 py-2.5 rounded-full text-sm text-left"
-                style={{
-                  background: active ? navy : "transparent",
-                  color: active ? bg : bgTextSoft,
-                  fontWeight: active ? 600 : 400,
-                }}
-              >
-                <Icon size={16} style={{ color: active ? bg : bgTextSoft }} />
-                {label}
-              </Link>
-            );
-          })}
+          {(() => {
+            const visible = NAV_ITEMS.filter((item) => canSeeNavItem(item, isAdmin, isSuperAdmin, flags));
+            const dashboardItem = visible.find((item) => item.href === "/dashboard");
+            const rest = visible.filter((item) => item.href !== "/dashboard");
+            const ordered = dashboardItem ? [dashboardItem, ...rest] : rest;
+            return ordered.map(({ href, label, icon: Icon }, i) => {
+              const active = isActive(href);
+              return (
+                <Link
+                  key={href}
+                  href={href}
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-full text-sm text-left"
+                  style={{
+                    background: active ? navy : "transparent",
+                    color: active ? bg : bgTextSoft,
+                    fontWeight: active ? 600 : 400,
+                    marginBottom: i === 0 && dashboardItem ? 12 : 0,
+                  }}
+                >
+                  <Icon size={16} style={{ color: active ? bg : bgTextSoft }} />
+                  {label}
+                </Link>
+              );
+            });
+          })()}
         </nav>
         <div className="mt-auto pt-4" style={{ borderTop: `1px solid rgba(0,0,0,0.15)` }}>
           <div className="px-2 py-2 text-sm" style={{ color: bgText }}>
