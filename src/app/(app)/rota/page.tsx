@@ -257,6 +257,7 @@ export default function RotaPage() {
                     background: d.date === today ? orange : navySoft,
                     color: d.date === today ? "#FFFFFF" : ink,
                     minWidth: editing ? 150 : 84,
+                    borderLeft: `1px solid ${border}`,
                   }}
                 >
                   <div>{d.day}</div>
@@ -296,6 +297,7 @@ export default function RotaPage() {
                         background: isToday ? "#000000" : cellColor ?? fill,
                         color: isToday ? "#FFFFFF" : cellColor ? readableTextColor(cellColor) : undefined,
                         borderBottom: `1px solid ${border}`,
+                        borderLeft: `1px solid ${border}`,
                       }}
                     >
                       {editing ? (
