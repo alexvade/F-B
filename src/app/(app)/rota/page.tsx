@@ -286,18 +286,22 @@ export default function RotaPage() {
                   const shift = shifts[person.name]?.[d.date];
                   const isToday = d.date === today;
                   // The sheet's own colour-coding — not shown in edit mode
-                  // (where the select/time inputs take over the cell) or on
-                  // today's column (which keeps its own black highlight).
-                  const cellColor = !editing && !isToday ? shift?.color ?? null : null;
+                  // (where the select/time inputs take over the cell).
+                  // Today used to be a solid black fill, which hid it — now
+                  // today is marked with a coloured outline instead, so the
+                  // shift colour stays visible underneath.
+                  const cellColor = !editing ? shift?.color ?? null : null;
                   return (
                     <td
                       key={d.date}
                       className="text-center p-2"
                       style={{
-                        background: isToday ? "#000000" : cellColor ?? fill,
-                        color: isToday ? "#FFFFFF" : cellColor ? readableTextColor(cellColor) : undefined,
-                        borderBottom: `1px solid ${border}`,
-                        borderLeft: `1px solid ${border}`,
+                        background: cellColor ?? fill,
+                        color: cellColor ? readableTextColor(cellColor) : undefined,
+                        borderBottom: isToday ? `2px solid ${orange}` : `1px solid ${border}`,
+                        borderTop: isToday ? `2px solid ${orange}` : undefined,
+                        borderLeft: isToday ? `2px solid ${orange}` : `1px solid ${border}`,
+                        borderRight: isToday ? `2px solid ${orange}` : undefined,
                       }}
                     >
                       {editing ? (
@@ -347,11 +351,11 @@ export default function RotaPage() {
                           {formatTimeHHMM(shift.start_time)}–{formatTimeHHMM(shift.end_time)}
                         </span>
                       ) : shift?.status === "holiday" ? (
-                        <span style={{ color: isToday ? "#FFFFFF" : cellColor ? readableTextColor(cellColor) : warn }}>HOL</span>
+                        <span style={{ color: cellColor ? readableTextColor(cellColor) : warn }}>HOL</span>
                       ) : shift?.status === "off" ? (
-                        <span style={{ color: isToday ? "#FFFFFF" : cellColor ? readableTextColor(cellColor) : inkSoft }}>OFF</span>
+                        <span style={{ color: cellColor ? readableTextColor(cellColor) : inkSoft }}>OFF</span>
                       ) : (
-                        <span style={{ color: isToday ? "#FFFFFF" : cellColor ? readableTextColor(cellColor) : inkSoft }}>–</span>
+                        <span style={{ color: cellColor ? readableTextColor(cellColor) : inkSoft }}>–</span>
                       )}
                     </td>
                   );
