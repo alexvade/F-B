@@ -3,6 +3,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { parseRotaSheet } from "@/lib/rota-sheet";
 import { fetchRotaColorGrid } from "@/lib/google-sheet-colors";
 import { sendPushToStaff } from "@/lib/push";
+import { formatTimeHHMM } from "@/lib/dates";
 
 // Called by the Apps Script bound to the F&B Rota Google Sheet whenever it's
 // edited (see docs/rota-sheet-sync.md for the script + setup steps). Fetches
@@ -99,11 +100,15 @@ export async function POST(request: Request) {
     for (const row of shiftRows) {
       if (!row.staff_id) continue;
       const existing = existingByKey.get(`${row.staff_name}|${row.date}`);
+      // Postgres returns a `time` column as "HH:MM:SS", but the sheet only
+      // ever produces "HH:MM" — comparing those directly made every timed
+      // shift look "changed" on every single sync (including the hourly
+      // syncAllSheets catch-up), flooding people with false-positive pushes.
       const changed =
         !existing ||
         existing.status !== row.status ||
-        existing.start_time !== row.start_time ||
-        existing.end_time !== row.end_time;
+        formatTimeHHMM(existing.start_time) !== formatTimeHHMM(row.start_time) ||
+        formatTimeHHMM(existing.end_time) !== formatTimeHHMM(row.end_time);
       if (changed) changedStaffIds.add(row.staff_id);
     }
   }
