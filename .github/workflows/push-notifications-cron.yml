@@ -1,0 +1,22 @@
+name: Push notifications cron
+
+# Vercel's own Cron Jobs don't support a 15-minute schedule on this
+# project's plan (see docs/push-notifications.md), so this calls the same
+# endpoint on a schedule instead — same shared-secret pattern as the other
+# webhook workflows in this repo (guest-survey-import.yml etc.), just
+# schedule-triggered instead of push-triggered.
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch: {}
+
+jobs:
+  tick:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call the cron tick endpoint
+        env:
+          SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          curl -sS --fail https://www.team-ops.co.uk/api/cron/tick \
+            -H "Authorization: Bearer $SECRET"

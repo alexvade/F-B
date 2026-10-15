@@ -3,9 +3,11 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { sendPushToAll, sendPushToStaff } from "@/lib/push";
 import { todayISO, checklistDayISO, londonWallClock } from "@/lib/dates";
 
-// Runs every 15 minutes (see vercel.json) — Vercel sends
-// `Authorization: Bearer <CRON_SECRET>` automatically for an env var of
-// that exact name, which is what this checks.
+// Runs every 15 minutes, called by a GitHub Actions schedule rather than
+// Vercel's own Cron Jobs (see .github/workflows/push-notifications-cron.yml
+// and docs/push-notifications.md — a 15-minute Vercel cron isn't supported
+// on this project's plan). Either way, this just checks a shared secret
+// sent as a bearer token — it doesn't care who's calling it.
 function isAuthorized(request: Request): boolean {
   const expected = process.env.CRON_SECRET;
   if (!expected) return false;

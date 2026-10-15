@@ -19,7 +19,7 @@ Sending itself always goes through `src/lib/push.ts` (`sendPushToStaff` / `sendP
    - `NEXT_PUBLIC_VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` — a keypair identifying this app to the push services. Generate once with `npx web-push generate-vapid-keys` (or ask Claude to — no third-party account needed, it's just a local keypair).
    - `CRON_SECRET` — any random string. Vercel automatically sends it back as the cron job's own auth header, so nothing else needs to reference it.
    - `PUSH_CONTACT_EMAIL` (optional) — an address push services can contact if your server ever misbehaves. Defaults to alexandru.vadeanu@gmail.com.
-3. **Cron job**: `vercel.json` already defines it (`/api/cron/tick`, every 15 minutes) — Vercel picks this up automatically on deploy, nothing to configure in the dashboard.
+3. **Cron job**: `/api/cron/tick` needs calling every 15 minutes. Vercel's own Cron Jobs don't support that frequency on this project's plan (a 15-minute schedule made the whole deployment fail outright — see "usage and pricing" in Vercel's cron docs), so `.github/workflows/push-notifications-cron.yml` does it instead, the same way the guest-survey and daily-overview imports already call their own webhooks from a GitHub Actions workflow. Add `CRON_SECRET` (the same value you put in Vercel) as a **GitHub** repository secret too — Settings → Secrets and variables → Actions → New repository secret — or the workflow has nothing to send.
 4. **Each person opts in themselves**, once, per device: Settings → Notifications → "Enable notifications". The browser will ask for permission; saying yes registers that device.
 
 ## The iPhone/Safari catch
@@ -30,4 +30,4 @@ iOS only allows push notifications for a site that's been **Added to Home Screen
 
 - Check the person actually tapped "Enable notifications" in Settings and allowed the browser's permission prompt.
 - `push_subscriptions` holds one row per device — if someone reinstalled the app or cleared site data, their old subscription is probably dead; sending to it will 404/410, and `sendPushToStaff` deletes it automatically on that response, so the fix is just enabling notifications again on that device.
-- For the cron-driven ones (birthdays, checklist reminders), check Vercel's Cron Jobs log (Project → Settings → Cron Jobs) for the run's response — it returns `{ ok: true, birthdays: {...}, checklists: {...} }` so you can see whether it actually evaluated anything that tick.
+- For the cron-driven ones (birthdays, checklist reminders), check the **Actions** tab on GitHub for "Push notifications cron" — each run's log shows the endpoint's response, `{ ok: true, birthdays: {...}, checklists: {...} }`, so you can see whether it actually evaluated anything that tick.
