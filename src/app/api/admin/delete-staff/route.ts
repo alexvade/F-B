@@ -13,11 +13,11 @@ export async function POST(request: Request) {
 
   const { data: callerProfile } = await supabase
     .from("profiles")
-    .select("role")
+    .select("is_super_admin")
     .eq("id", user.id)
     .single();
-  if (callerProfile?.role !== "admin") {
-    return NextResponse.json({ error: "Admins only" }, { status: 403 });
+  if (!callerProfile?.is_super_admin) {
+    return NextResponse.json({ error: "Super admins only" }, { status: 403 });
   }
 
   const { id } = await request.json();

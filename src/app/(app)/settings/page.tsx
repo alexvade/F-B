@@ -180,9 +180,10 @@ export default function SettingsPage() {
     birthdays_access: birthdaysFlag,
     page_access_training: trainingFlag,
   };
-  const availableShortcutPages = SHORTCUT_PAGES.filter(
-    (item) => isAdmin || !item.adminOnly || (item.staffFlag && resolvedFlags[item.staffFlag])
-  );
+  const availableShortcutPages = SHORTCUT_PAGES.filter((item) => {
+    if ("requiresCasual" in item && item.requiresCasual) return isAdmin || profile.is_casual;
+    return isAdmin || !item.adminOnly || (item.staffFlag && resolvedFlags[item.staffFlag]);
+  });
 
   const [flags, setFlags] = useState<Record<string, boolean>>({});
   const [savingKey, setSavingKey] = useState<string | null>(null);

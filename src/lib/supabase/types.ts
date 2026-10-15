@@ -36,6 +36,7 @@ export interface Database {
           created_at: string;
           is_super_admin: boolean;
           task_bar: string[] | null;
+          is_casual: boolean;
         },
         {
           id: string;
@@ -47,6 +48,7 @@ export interface Database {
           created_at?: string;
           is_super_admin?: boolean;
           task_bar?: string[] | null;
+          is_casual?: boolean;
         }
       >;
       // Read-only view — returns `email` only for a viewer's own row or for
@@ -65,6 +67,7 @@ export interface Database {
           created_at: string;
           is_super_admin: boolean;
           task_bar: string[] | null;
+          is_casual: boolean;
         },
         {
           id: string;
@@ -76,6 +79,7 @@ export interface Database {
           created_at?: string;
           is_super_admin?: boolean;
           task_bar?: string[] | null;
+          is_casual?: boolean;
         }
       >;
       rota_shifts: Table<
@@ -98,6 +102,28 @@ export interface Database {
           start_time?: string | null;
           end_time?: string | null;
           color?: string | null;
+        }
+      >;
+      // Casual staff's self-declared "can't work" dates — see
+      // 0046_casual_availability.sql and src/app/(app)/availability.
+      casual_unavailability: Table<
+        {
+          id: number;
+          staff_id: string;
+          date: string;
+          start_time: string | null;
+          end_time: string | null;
+          note: string | null;
+          created_at: string;
+        },
+        {
+          id?: number;
+          staff_id: string;
+          date: string;
+          start_time?: string | null;
+          end_time?: string | null;
+          note?: string | null;
+          created_at?: string;
         }
       >;
       daily_covers: Table<

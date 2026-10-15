@@ -9,7 +9,14 @@ import { Section } from "@/components/section";
 import { border, fill, ink, inkSoft, navy, orangeSoft } from "@/lib/design-tokens";
 import type { Role } from "@/lib/supabase/types";
 
-type StaffRow = { id: string; name: string; email: string | null; role: Role; contract_hours: number | null };
+type StaffRow = {
+  id: string;
+  name: string;
+  email: string | null;
+  role: Role;
+  contract_hours: number | null;
+  is_casual: boolean;
+};
 
 export default function StaffAdminPage() {
   const profile = useProfile();
@@ -68,9 +75,19 @@ export default function StaffAdminPage() {
     }
   };
 
-  const changeRole = async (id: string, newRole: Role) => {
-    await supabase.from("profiles").update({ role: newRole }).eq("id", id);
-    loadStaff();
+  // One status covers both the role column and the separate is_casual flag
+  // — "Casual" is role=staff + is_casual=true, "Staff" is role=staff +
+  // is_casual=false, "Admin" is role=admin (never casual).
+  type Status = "casual" | "staff" | "admin";
+  const statusOf = (s: StaffRow): Status => (s.role === "admin" ? "admin" : s.is_casual ? "casual" : "staff");
+
+  const changeStatus = async (member: StaffRow, status: Status) => {
+    const newRole: Role = status === "admin" ? "admin" : "staff";
+    const newCasual = status === "casual";
+    setStaff((prev) =>
+      prev.map((s) => (s.id === member.id ? { ...s, role: newRole, is_casual: newCasual } : s))
+    );
+    await supabase.from("profiles").update({ role: newRole, is_casual: newCasual }).eq("id", member.id);
   };
 
   const deleteStaff = async (member: StaffRow) => {
@@ -91,11 +108,11 @@ export default function StaffAdminPage() {
 
   const inputStyle = { border: `1px solid ${border}`, background: fill, color: ink } as const;
 
-  if (profile.role !== "admin") {
+  if (!profile.is_super_admin) {
     return (
       <Section title="Manage staff">
         <p className="text-sm" style={{ color: inkSoft }}>
-          Admins only.
+          Super admins only.
         </p>
       </Section>
     );
@@ -186,11 +203,13 @@ export default function StaffAdminPage() {
             </div>
             <div className="flex items-center gap-2 shrink-0">
               <select
-                value={s.role}
-                onChange={(e) => changeRole(s.id, e.target.value as Role)}
+                value={statusOf(s)}
+                onChange={(e) => changeStatus(s, e.target.value as Status)}
+                title="Casual staff see the Availability page to mark days they can't work"
                 className="text-xs px-2 py-1 rounded-full outline-none"
                 style={inputStyle}
               >
+                <option value="casual">Casual</option>
                 <option value="staff">Staff</option>
                 <option value="admin">Admin</option>
               </select>

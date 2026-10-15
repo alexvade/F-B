@@ -25,6 +25,7 @@ import {
   GraduationCap,
   SlidersHorizontal,
   Star,
+  CalendarOff,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useProfile } from "@/lib/profile-context";
@@ -48,6 +49,10 @@ export const NAV_ITEMS = [
   { href: "/stock-orders", label: "Stock Orders", icon: ClipboardList, adminOnly: true, staffFlag: "stock_orders_edit" },
   { href: "/birthdays", label: "Birthdays", icon: Cake, adminOnly: true, staffFlag: "birthdays_access" },
   { href: "/training", label: "Training", icon: GraduationCap, adminOnly: true, staffFlag: "page_access_training" },
+  // Shown to casual staff (to submit) and admins (to see the compiled
+  // view) — a distinct gate from the adminOnly+staffFlag pattern above,
+  // since it's keyed off a per-person tag rather than a global toggle.
+  { href: "/availability", label: "Availability", icon: CalendarOff, requiresCasual: true },
   { href: "/settings", label: "Settings", icon: SlidersHorizontal },
 ];
 
@@ -55,9 +60,11 @@ export function canSeeNavItem(
   item: (typeof NAV_ITEMS)[number],
   isAdmin: boolean,
   isSuperAdmin: boolean,
-  flags: FeatureFlags
+  flags: FeatureFlags,
+  isCasual: boolean = false
 ): boolean {
   if ("superAdminOnly" in item && item.superAdminOnly) return isSuperAdmin;
+  if ("requiresCasual" in item && item.requiresCasual) return isAdmin || isCasual;
   if (!item.adminOnly) return true;
   if (isAdmin) return true;
   return Boolean(item.staffFlag && flags[item.staffFlag]);
@@ -224,7 +231,7 @@ export function NavShell({
         </div>
         <nav className="flex flex-col gap-1">
           {(() => {
-            const visible = NAV_ITEMS.filter((item) => canSeeNavItem(item, isAdmin, isSuperAdmin, flags));
+            const visible = NAV_ITEMS.filter((item) => canSeeNavItem(item, isAdmin, isSuperAdmin, flags, profile.is_casual));
             const dashboardItem = visible.find((item) => item.href === "/dashboard");
             const rest = visible.filter((item) => item.href !== "/dashboard");
             const ordered = dashboardItem ? [dashboardItem, ...rest] : rest;
@@ -253,7 +260,7 @@ export function NavShell({
           <div className="px-2 py-2 text-sm" style={{ color: bgText }}>
             {name}
           </div>
-          {isAdmin && (
+          {isSuperAdmin && (
             <Link
               href="/admin/staff"
               className="flex items-center gap-2 px-2 py-1.5 text-xs"
@@ -309,7 +316,7 @@ export function NavShell({
               </button>
             </div>
             <nav className="flex flex-col gap-1">
-              {NAV_ITEMS.filter((item) => item.href !== "/dashboard" && canSeeNavItem(item, isAdmin, isSuperAdmin, flags)).map(({ href, label, icon: Icon }) => {
+              {NAV_ITEMS.filter((item) => item.href !== "/dashboard" && canSeeNavItem(item, isAdmin, isSuperAdmin, flags, profile.is_casual)).map(({ href, label, icon: Icon }) => {
                 const active = isActive(href);
                 return (
                   <Link
@@ -328,7 +335,7 @@ export function NavShell({
                   </Link>
                 );
               })}
-              {isAdmin && (
+              {isSuperAdmin && (
                 <Link
                   href="/admin/staff"
                   onClick={() => setMenuOpen(false)}
