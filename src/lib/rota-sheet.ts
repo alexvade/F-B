@@ -7,6 +7,8 @@ export type ParsedShift = {
   status: ShiftStatus;
   start_time: string | null;
   end_time: string | null;
+  /** Hex colour of the shift's cell in the sheet (e.g. '#FFD966'), or null for an uncoloured cell. */
+  color: string | null;
 };
 export type ParsedEvent = { date: string; room: string; title: string; details: string | null };
 
@@ -27,8 +29,13 @@ function toIsoDate(ddmmyyyy: string): string | null {
 
 const STAFF_NAME_RE = /^(.+?)\s*\(([^)]*)\)\s*$/;
 
-/** Parses one week-tab of the F&B Rota sheet's CSV export into structured rows. */
-export function parseRotaSheet(csvText: string): ParsedRotaSheet {
+/**
+ * Parses one week-tab of the F&B Rota sheet's CSV export into structured
+ * rows. `colorGrid[row][col]`, if given, is the hex background colour of
+ * that same cell (see `fetchRotaColorGrid` in the sync route) — row/column
+ * indices line up with the CSV's own, since both come from the same tab.
+ */
+export function parseRotaSheet(csvText: string, colorGrid?: (string | null)[][]): ParsedRotaSheet {
   const rows = parseCsv(csvText).map((r) => r.map((c) => c.trim()));
 
   const dateRowIdx = rows.findIndex((r) => r[0]?.toLowerCase() === "date");
@@ -114,10 +121,11 @@ export function parseRotaSheet(csvText: string): ParsedRotaSheet {
       const v1 = (row[d.col] ?? "").trim();
       const v2 = (row[d.col + 1] ?? "").trim();
       if (!v1) continue;
+      const color = colorGrid?.[r]?.[d.col] ?? null;
       if (v1.toUpperCase() === "OFF") {
-        shifts.push({ staffName, date: d.date, status: "off", start_time: null, end_time: null });
+        shifts.push({ staffName, date: d.date, status: "off", start_time: null, end_time: null, color });
       } else if (v1.toUpperCase() === "HOL") {
-        shifts.push({ staffName, date: d.date, status: "holiday", start_time: null, end_time: null });
+        shifts.push({ staffName, date: d.date, status: "holiday", start_time: null, end_time: null, color });
       } else if (/^\d{1,2}:\d{2}$/.test(v1)) {
         shifts.push({
           staffName,
@@ -125,6 +133,7 @@ export function parseRotaSheet(csvText: string): ParsedRotaSheet {
           status: "work",
           start_time: v1,
           end_time: v2 || null,
+          color,
         });
       }
     }

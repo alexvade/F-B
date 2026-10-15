@@ -25,7 +25,19 @@ import {
 const EXCLUDED_STAFF_NAMES = new Set(["Nicola Smith", "alexandru.vadeanu@gmail.com"]);
 
 type Staff = { name: string; id: string | null };
-type Shift = { status: ShiftStatus; start_time: string | null; end_time: string | null };
+type Shift = { status: ShiftStatus; start_time: string | null; end_time: string | null; color: string | null };
+
+// Picks black or white text so it stays readable over whatever pastel the
+// sheet's cell was painted — same idea as the sheet itself, where the fill
+// is usually pale enough that black text just always works, but better to
+// check than assume.
+function readableTextColor(hex: string): string {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  return luminance > 0.6 ? "#000000" : "#FFFFFF";
+}
 
 export default function RotaPage() {
   const profile = useProfile();
@@ -68,7 +80,7 @@ export default function RotaPage() {
       supabase.from("profiles").select("id, name").order("name"),
       supabase
         .from("rota_shifts")
-        .select("staff_id, staff_name, date, status, start_time, end_time")
+        .select("staff_id, staff_name, date, status, start_time, end_time, color")
         .gte("date", weekStart)
         .lte("date", weekEnd),
       supabase.from("rota_staff_order").select("staff_name, sort_order"),
@@ -102,6 +114,7 @@ export default function RotaPage() {
         status: s.status,
         start_time: s.start_time,
         end_time: s.end_time,
+        color: s.color,
       };
     }
     setShifts(shiftMap);
@@ -271,13 +284,17 @@ export default function RotaPage() {
                 {days.map((d) => {
                   const shift = shifts[person.name]?.[d.date];
                   const isToday = d.date === today;
+                  // The sheet's own colour-coding — not shown in edit mode
+                  // (where the select/time inputs take over the cell) or on
+                  // today's column (which keeps its own black highlight).
+                  const cellColor = !editing && !isToday ? shift?.color ?? null : null;
                   return (
                     <td
                       key={d.date}
                       className="text-center p-2"
                       style={{
-                        background: isToday ? "#000000" : fill,
-                        color: isToday ? "#FFFFFF" : undefined,
+                        background: isToday ? "#000000" : cellColor ?? fill,
+                        color: isToday ? "#FFFFFF" : cellColor ? readableTextColor(cellColor) : undefined,
                         borderBottom: `1px solid ${border}`,
                       }}
                     >
@@ -290,6 +307,7 @@ export default function RotaPage() {
                                 status: e.target.value as ShiftStatus,
                                 start_time: shift?.start_time ?? "09:00",
                                 end_time: shift?.end_time ?? "17:00",
+                                color: shift?.color ?? null,
                               })
                             }
                             className="text-xs rounded px-1 py-0.5"
@@ -327,11 +345,11 @@ export default function RotaPage() {
                           {formatTimeHHMM(shift.start_time)}–{formatTimeHHMM(shift.end_time)}
                         </span>
                       ) : shift?.status === "holiday" ? (
-                        <span style={{ color: isToday ? "#FFFFFF" : warn }}>HOL</span>
+                        <span style={{ color: isToday ? "#FFFFFF" : cellColor ? readableTextColor(cellColor) : warn }}>HOL</span>
                       ) : shift?.status === "off" ? (
-                        <span style={{ color: isToday ? "#FFFFFF" : inkSoft }}>OFF</span>
+                        <span style={{ color: isToday ? "#FFFFFF" : cellColor ? readableTextColor(cellColor) : inkSoft }}>OFF</span>
                       ) : (
-                        <span style={{ color: isToday ? "#FFFFFF" : inkSoft }}>–</span>
+                        <span style={{ color: isToday ? "#FFFFFF" : cellColor ? readableTextColor(cellColor) : inkSoft }}>–</span>
                       )}
                     </td>
                   );

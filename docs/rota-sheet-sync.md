@@ -86,6 +86,37 @@ function syncSheet(sheet) {
 }
 ```
 
+## Colour-coded shifts
+
+If shifts in the sheet are colour-coded (e.g. for different shift types —
+early/late/split), the app can match it: the Rota screen reads each shift's
+`rota_shifts.color` column (a hex string, or null for an uncoloured cell)
+and tints that cell's background to match, picking black or white text so
+it stays readable.
+
+The CSV export used for the rest of the sync carries no formatting at all,
+so this needs one extra, optional piece of setup — a Google Cloud API key
+with the **Google Sheets API** enabled:
+
+1. Go to [console.cloud.google.com](https://console.cloud.google.com/) →
+   create a project (or pick an existing one).
+2. **APIs & Services → Library** → search **Google Sheets API** → **Enable**.
+3. **APIs & Services → Credentials** → **+ Create Credentials → API key**.
+4. Click the new key → **Restrict key** → under **API restrictions**, choose
+   **Restrict key** and select only **Google Sheets API** (keeps the key
+   from being usable for anything else if it ever leaked).
+5. Copy the key and add it as `GOOGLE_SHEETS_API_KEY` in the app's
+   environment variables (Vercel → Settings → Environment Variables), then
+   redeploy.
+6. Re-run `syncAllSheets` once (same Apps Script function as the backfill
+   step above) to pull colours into every already-synced week.
+
+The sheet itself needs no extra sharing changes — same "anyone with the
+link can view" access already used for the CSV export covers this too. If
+the key is missing or the call fails for any reason, the sync just carries
+on without colours (nothing breaks) — check the webhook's response body
+(`coloursSynced: false`) or the Vercel function logs to debug.
+
 ## If the sheet's layout ever changes
 
 `src/lib/rota-sheet.ts` expects, per week tab:

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { parseRotaSheet } from "@/lib/rota-sheet";
+import { fetchRotaColorGrid } from "@/lib/google-sheet-colors";
 
 // Called by the Apps Script bound to the F&B Rota Google Sheet whenever it's
 // edited (see docs/rota-sheet-sync.md for the script + setup steps). Fetches
@@ -38,9 +39,14 @@ export async function POST(request: Request) {
   }
   const csvText = await csvRes.text();
 
+  // Colour-coded shifts — best-effort; the plain shift/event sync below
+  // still runs even if this comes back null (no API key configured, or the
+  // Sheets API call failed for some other reason).
+  const colorGrid = await fetchRotaColorGrid(sheetId, gid);
+
   let parsed;
   try {
-    parsed = parseRotaSheet(csvText);
+    parsed = parseRotaSheet(csvText, colorGrid ?? undefined);
   } catch (err) {
     return NextResponse.json({ error: (err as Error).message }, { status: 422 });
   }
@@ -65,6 +71,7 @@ export async function POST(request: Request) {
       status: s.status,
       start_time: s.start_time,
       end_time: s.end_time,
+      color: s.color,
     };
   });
 
@@ -104,5 +111,6 @@ export async function POST(request: Request) {
     shiftsWritten: shiftRows.length,
     eventsWritten: parsed.events.length,
     unmatched: Array.from(unmatched),
+    coloursSynced: colorGrid !== null,
   });
 }

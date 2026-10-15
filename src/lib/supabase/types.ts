@@ -87,6 +87,7 @@ export interface Database {
           status: ShiftStatus;
           start_time: string | null;
           end_time: string | null;
+          color: string | null;
         },
         {
           id?: number;
@@ -96,6 +97,7 @@ export interface Database {
           status: ShiftStatus;
           start_time?: string | null;
           end_time?: string | null;
+          color?: string | null;
         }
       >;
       daily_covers: Table<
