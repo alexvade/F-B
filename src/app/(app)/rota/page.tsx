@@ -245,7 +245,7 @@ export default function RotaPage() {
             <tr>
               <th
                 className="text-left p-2 sticky left-0"
-                style={{ background: navySoft, color: ink, minWidth: 160 }}
+                style={{ background: navySoft, color: ink, minWidth: 160, borderBottom: `1px solid ${border}` }}
               >
                 Name
               </th>
@@ -258,6 +258,7 @@ export default function RotaPage() {
                     color: d.date === today ? "#FFFFFF" : ink,
                     minWidth: editing ? 150 : 84,
                     borderLeft: `1px solid ${border}`,
+                    borderBottom: `1px solid ${border}`,
                   }}
                 >
                   <div>{d.day}</div>
