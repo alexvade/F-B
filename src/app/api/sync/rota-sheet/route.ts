@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { parseRotaSheet } from "@/lib/rota-sheet";
 import { fetchRotaColorGrid } from "@/lib/google-sheet-colors";
+import { sendPushToStaff } from "@/lib/push";
 
 // Called by the Apps Script bound to the F&B Rota Google Sheet whenever it's
 // edited (see docs/rota-sheet-sync.md for the script + setup steps). Fetches
@@ -75,11 +76,36 @@ export async function POST(request: Request) {
     };
   });
 
+  // Fetched before the upsert, so a change notification only goes out for
+  // what this sync actually altered — not for every row the sheet contains
+  // (the hourly syncAllSheets catch-up re-sends every tab regardless of
+  // whether anyone touched it).
+  const changedStaffIds = new Set<string>();
   if (shiftRows.length) {
+    const dates = Array.from(new Set(shiftRows.map((r) => r.date)));
+    const { data: existingRows } = await supabase
+      .from("rota_shifts")
+      .select("staff_name, date, status, start_time, end_time")
+      .in("date", dates);
+    const existingByKey = new Map(
+      (existingRows ?? []).map((r) => [`${r.staff_name}|${r.date}`, r])
+    );
+
     const { error } = await supabase
       .from("rota_shifts")
       .upsert(shiftRows, { onConflict: "staff_name,date" });
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+    for (const row of shiftRows) {
+      if (!row.staff_id) continue;
+      const existing = existingByKey.get(`${row.staff_name}|${row.date}`);
+      const changed =
+        !existing ||
+        existing.status !== row.status ||
+        existing.start_time !== row.start_time ||
+        existing.end_time !== row.end_time;
+      if (changed) changedStaffIds.add(row.staff_id);
+    }
   }
 
   if (parsed.dates.length) {
@@ -105,6 +131,16 @@ export async function POST(request: Request) {
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
+  await Promise.all(
+    Array.from(changedStaffIds).map((staffId) =>
+      sendPushToStaff([staffId], {
+        title: "Your rota has changed",
+        body: "Check the Rota page for your updated shifts.",
+        url: "/rota",
+      })
+    )
+  );
+
   return NextResponse.json({
     ok: true,
     datesSynced: parsed.dates,
@@ -112,5 +148,6 @@ export async function POST(request: Request) {
     eventsWritten: parsed.events.length,
     unmatched: Array.from(unmatched),
     coloursSynced: colorGrid !== null,
+    staffNotified: changedStaffIds.size,
   });
 }

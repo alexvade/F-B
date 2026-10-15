@@ -214,15 +214,28 @@ export default function UpdatesPage() {
     try {
       const photoUrl = newPhoto ? await uploadAttachment(newPhoto, "posts") : null;
       const fileUrl = newFile ? await uploadAttachment(newFile, "posts") : null;
-      const { error } = await supabase.from("posts").insert({
-        author_id: profile.id,
-        text: newPost.trim() || null,
-        photo_url: photoUrl,
-        file_url: fileUrl,
-        file_name: newFile?.name ?? null,
-        poll_options: hasPoll ? validOptions : null,
-      });
+      const { data: inserted, error } = await supabase
+        .from("posts")
+        .insert({
+          author_id: profile.id,
+          text: newPost.trim() || null,
+          photo_url: photoUrl,
+          file_url: fileUrl,
+          file_name: newFile?.name ?? null,
+          poll_options: hasPoll ? validOptions : null,
+        })
+        .select("id")
+        .single();
       if (error) throw error;
+      if (inserted) {
+        // Fire-and-forget — a slow/failed push send shouldn't block the post
+        // itself from going through.
+        fetch("/api/push/notify-post", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ postId: inserted.id }),
+        }).catch(() => {});
+      }
       setNewPost("");
       setNewPhoto(null);
       setNewFile(null);

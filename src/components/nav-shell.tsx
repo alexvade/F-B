@@ -134,34 +134,9 @@ export function NavShell({
     };
   }, [menuOpen]);
 
-  // Once per app load: if it's someone's birthday today, post it to the
-  // Noticeboard — unless a post for them already went out today.
-  useEffect(() => {
-    const supabase = createClient();
-    const checkBirthdays = async () => {
-      const now = new Date();
-      const day = now.getDate();
-      const month = now.getMonth() + 1;
-      const { data: todays } = await supabase.from("birthdays").select("*").eq("day", day).eq("month", month);
-      if (!todays || todays.length === 0) return;
-
-      const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
-      for (const b of todays) {
-        const marker = `🎂 Happy birthday, ${b.name}`;
-        const { data: existing } = await supabase
-          .from("posts")
-          .select("id")
-          .ilike("text", `${marker}%`)
-          .gte("created_at", startOfDay)
-          .limit(1);
-        if (existing && existing.length > 0) continue;
-        await supabase.from("posts").insert({ author_id: profile.id, text: `${marker}! 🎉🎈` });
-      }
-    };
-    checkBirthdays();
-    // Deliberately once per mount — profile.id is stable for the session.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  // Birthdays post to the Noticeboard (and push) from the server-side cron
+  // job now (src/app/api/cron/tick), not from whoever happens to have the
+  // app open that day — see docs/push-notifications.md.
 
   // If an admin deletes this account, its refresh token is invalidated
   // immediately — but a tab already sitting open here doesn't touch the

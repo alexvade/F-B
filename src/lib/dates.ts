@@ -3,7 +3,7 @@
 // day" rule so every client and the database agree on the same boundary.
 const VENUE_TIMEZONE = "Europe/London";
 
-function londonWallClock(date: Date) {
+export function londonWallClock(date: Date) {
   const parts = new Intl.DateTimeFormat("en-GB", {
     timeZone: VENUE_TIMEZONE,
     year: "numeric",

@@ -145,6 +145,17 @@ const FLAG_GROUPS: { group: string; flags: Flag[] }[] = [
 const SHORTCUT_PAGES = NAV_ITEMS.filter((item) => item.href !== "/dashboard");
 const SLOT_LABELS = ["Left 1", "Left 2", "Left 3", "Right 1", "Right 2", "Right 3"];
 
+// The Push API needs the VAPID public key as a raw byte array, not the
+// base64url string it's stored/shared as everywhere else.
+function urlBase64ToUint8Array(base64: string): Uint8Array {
+  const padding = "=".repeat((4 - (base64.length % 4)) % 4);
+  const base64Safe = (base64 + padding).replace(/-/g, "+").replace(/_/g, "/");
+  const raw = atob(base64Safe);
+  const bytes = new Uint8Array(raw.length);
+  for (let i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i);
+  return bytes;
+}
+
 export default function SettingsPage() {
   const profile = useProfile();
   const supabase = createClient();
@@ -201,6 +212,80 @@ export default function SettingsPage() {
   useEffect(() => {
     getAttachmentUrl(profile.avatar_url).then(setAvatarUrl);
   }, [profile.avatar_url]);
+
+  // --- Push notifications ---
+  const [pushSupported, setPushSupported] = useState(false);
+  const [pushEnabled, setPushEnabled] = useState(false);
+  const [pushBusy, setPushBusy] = useState(false);
+  const [pushError, setPushError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const supported = typeof window !== "undefined" && "serviceWorker" in navigator && "PushManager" in window;
+    setPushSupported(supported);
+    if (!supported) return;
+    navigator.serviceWorker
+      .getRegistration()
+      .then((reg) => reg?.pushManager.getSubscription())
+      .then((sub) => setPushEnabled(!!sub))
+      .catch(() => {});
+  }, []);
+
+  const enablePush = async () => {
+    setPushBusy(true);
+    setPushError(null);
+    try {
+      const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+      if (!publicKey) {
+        setPushError("Notifications aren't set up for this app yet.");
+        return;
+      }
+      const permission = await Notification.requestPermission();
+      if (permission !== "granted") {
+        setPushError("Notifications were blocked — check your browser's site settings.");
+        return;
+      }
+      const reg = await navigator.serviceWorker.register("/sw.js");
+      await navigator.serviceWorker.ready;
+      const sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(publicKey) as BufferSource,
+      });
+      const json = sub.toJSON();
+      const res = await fetch("/api/push/subscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ endpoint: json.endpoint, keys: json.keys }),
+      });
+      if (!res.ok) throw new Error("Couldn't save that subscription.");
+      setPushEnabled(true);
+    } catch (err) {
+      setPushError((err as Error).message || "Couldn't enable notifications.");
+    } finally {
+      setPushBusy(false);
+    }
+  };
+
+  const disablePush = async () => {
+    setPushBusy(true);
+    setPushError(null);
+    try {
+      const reg = await navigator.serviceWorker.getRegistration();
+      const sub = await reg?.pushManager.getSubscription();
+      if (sub) {
+        await fetch("/api/push/unsubscribe", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ endpoint: sub.endpoint }),
+        });
+        await sub.unsubscribe();
+      }
+      setPushEnabled(false);
+    } catch (err) {
+      setPushError((err as Error).message || "Couldn't disable notifications.");
+    } finally {
+      setPushBusy(false);
+    }
+  };
 
   const loadData = useCallback(async () => {
     const { data } = await supabase.from("feature_flags").select("key, enabled");
@@ -318,6 +403,44 @@ export default function SettingsPage() {
                   </p>
                 )}
               </div>
+            </div>
+          </div>
+
+          <div>
+            <div className="text-xs font-semibold uppercase tracking-wide mb-2" style={{ color: inkSoft }}>
+              Notifications
+            </div>
+            <div className="p-4 rounded-2xl" style={{ background: bg, border: `1px solid ${border}` }}>
+              {!pushSupported ? (
+                <p className="text-xs" style={{ color: inkSoft }}>
+                  Your browser doesn&apos;t support push notifications. On iPhone, add the app to your Home Screen
+                  first (iOS 16.4+), then try again from there.
+                </p>
+              ) : (
+                <>
+                  <p className="text-xs mb-3" style={{ color: inkSoft }}>
+                    Get notified for new Noticeboard posts, guest surveys, rota changes, birthdays, and a reminder
+                    to finish your checklist near the end of your shift.
+                  </p>
+                  <button
+                    onClick={pushEnabled ? disablePush : enablePush}
+                    disabled={pushBusy}
+                    className="text-xs font-medium px-4 py-2 rounded-full disabled:opacity-60"
+                    style={{
+                      background: pushEnabled ? "#FFFFFF" : navy,
+                      color: pushEnabled ? "#000000" : "#FFFFFF",
+                      border: `1px solid ${border}`,
+                    }}
+                  >
+                    {pushBusy ? "Working…" : pushEnabled ? "Disable notifications" : "Enable notifications"}
+                  </button>
+                  {pushError && (
+                    <p className="text-xs mt-2" style={{ color: "#B3261E" }}>
+                      {pushError}
+                    </p>
+                  )}
+                </>
+              )}
             </div>
           </div>
 

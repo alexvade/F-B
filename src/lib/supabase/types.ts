@@ -92,6 +92,7 @@ export interface Database {
           start_time: string | null;
           end_time: string | null;
           color: string | null;
+          checklist_reminder_sent_at: string | null;
         },
         {
           id?: number;
@@ -102,6 +103,7 @@ export interface Database {
           start_time?: string | null;
           end_time?: string | null;
           color?: string | null;
+          checklist_reminder_sent_at?: string | null;
         }
       >;
       // Casual staff's self-declared "can't work" dates — see
@@ -123,6 +125,26 @@ export interface Database {
           start_time?: string | null;
           end_time?: string | null;
           note?: string | null;
+          created_at?: string;
+        }
+      >;
+      // One row per browser/device a person has enabled notifications on —
+      // see 0048_push_notifications.sql and src/lib/push.ts.
+      push_subscriptions: Table<
+        {
+          id: number;
+          staff_id: string;
+          endpoint: string;
+          p256dh: string;
+          auth: string;
+          created_at: string;
+        },
+        {
+          id?: number;
+          staff_id: string;
+          endpoint: string;
+          p256dh: string;
+          auth: string;
           created_at?: string;
         }
       >;
