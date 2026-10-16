@@ -3,7 +3,17 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { parseRotaSheet } from "@/lib/rota-sheet";
 import { fetchRotaColorGrid } from "@/lib/google-sheet-colors";
 import { sendPushToStaff } from "@/lib/push";
-import { formatTimeHHMM } from "@/lib/dates";
+import { formatTimeHHMM, formatDDMM } from "@/lib/dates";
+import type { ShiftStatus } from "@/lib/supabase/types";
+
+type ChangedShift = { date: string; status: ShiftStatus; start_time: string | null; end_time: string | null };
+
+function describeShift(s: ChangedShift): string {
+  if (s.status === "off") return "OFF";
+  if (s.status === "holiday") return "Holiday";
+  if (s.start_time && s.end_time) return `${formatTimeHHMM(s.start_time)}–${formatTimeHHMM(s.end_time)}`;
+  return s.status;
+}
 
 // Called by the Apps Script bound to the F&B Rota Google Sheet whenever it's
 // edited (see docs/rota-sheet-sync.md for the script + setup steps). Fetches
@@ -81,7 +91,7 @@ export async function POST(request: Request) {
   // what this sync actually altered — not for every row the sheet contains
   // (the hourly syncAllSheets catch-up re-sends every tab regardless of
   // whether anyone touched it).
-  const changedStaffIds = new Set<string>();
+  const changedByStaff = new Map<string, ChangedShift[]>();
   if (shiftRows.length) {
     const dates = Array.from(new Set(shiftRows.map((r) => r.date)));
     const { data: existingRows } = await supabase
@@ -109,7 +119,11 @@ export async function POST(request: Request) {
         existing.status !== row.status ||
         formatTimeHHMM(existing.start_time) !== formatTimeHHMM(row.start_time) ||
         formatTimeHHMM(existing.end_time) !== formatTimeHHMM(row.end_time);
-      if (changed) changedStaffIds.add(row.staff_id);
+      if (changed) {
+        const list = changedByStaff.get(row.staff_id) ?? [];
+        list.push({ date: row.date, status: row.status, start_time: row.start_time, end_time: row.end_time });
+        changedByStaff.set(row.staff_id, list);
+      }
     }
   }
 
@@ -137,13 +151,15 @@ export async function POST(request: Request) {
   }
 
   await Promise.all(
-    Array.from(changedStaffIds).map((staffId) =>
-      sendPushToStaff([staffId], {
-        title: "Your rota has changed",
-        body: "Check the Rota page for your updated shifts.",
+    Array.from(changedByStaff.entries()).map(([staffId, shifts]) => {
+      const sorted = [...shifts].sort((a, b) => a.date.localeCompare(b.date));
+      const body = sorted.map((s) => `${formatDDMM(s.date)}: ${describeShift(s)}`).join(", ");
+      return sendPushToStaff([staffId], {
+        title: "Your shift has changed",
+        body,
         url: "/rota",
-      })
-    )
+      });
+    })
   );
 
   return NextResponse.json({
@@ -153,6 +169,6 @@ export async function POST(request: Request) {
     eventsWritten: parsed.events.length,
     unmatched: Array.from(unmatched),
     coloursSynced: colorGrid !== null,
-    staffNotified: changedStaffIds.size,
+    staffNotified: changedByStaff.size,
   });
 }

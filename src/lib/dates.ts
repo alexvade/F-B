@@ -64,6 +64,12 @@ export function formatTimeHHMM(t: string | null | undefined): string | null {
   return t ? t.slice(0, 5) : t ?? null;
 }
 
+/** "2026-10-16" -> "16/10" — short day/month for things like push notifications. */
+export function formatDDMM(iso: string): string {
+  const [, mm, dd] = iso.split("-");
+  return `${dd}/${mm}`;
+}
+
 /** The 7 dates of the rota week starting at `weekStartIso` (a Friday). */
 export function weekDates(weekStartIso: string) {
   return Array.from({ length: 7 }, (_, i) => {
