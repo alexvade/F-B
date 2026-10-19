@@ -15,7 +15,7 @@ import { createClient } from "@/lib/supabase/client";
 import { bg, border, ink, inkSoft } from "@/lib/design-tokens";
 import {
   QS, QL, QSH, MONTH_COLS, DIMS,
-  buildRows, buildRoster, applyManualRosterOverrides, vals, mean, stats, npsOf, share, pearson, staffAgg, themeAgg, otherNameAgg,
+  buildRows, buildRoster, applyManualRosterOverrides, vals, mean, stats, npsOf, share, pearson, staffAgg, themeAgg,
   type Row, type SurveyInput, type RosterPerson,
 } from "@/lib/guest-survey-dashboard";
 
@@ -839,15 +839,9 @@ function TeamTab({ rows, person, setPerson, onOpen }: { rows: Row[]; person: str
   const p = ppl.find((x) => x.name === activePerson);
   const maxBar = Math.max(...ppl.map((x) => x.praise + x.crit), 1);
 
-  const dm = new Map<string, Set<number>>();
-  for (const r of rows) for (const s of r.staff) if (s.tone !== "critical") { const dn = s.dept ?? "Not clear"; if (!dm.has(dn)) dm.set(dn, new Set()); dm.get(dn)!.add(r.id); }
-  const dl = Array.from(dm.entries()).map(([k, v]) => [k, v.size] as [string, number]).sort((a, b) => (a[0] === "Not clear" ? 1 : 0) - (b[0] === "Not clear" ? 1 : 0) || b[1] - a[1]);
-
   const cq: { r: Row; s: Row["staff"][number] }[] = [];
   for (const r of rows) for (const s of r.staff) if (s.tone === "critical") cq.push({ r, s });
   cq.sort((a, b) => (pd(b.r.date)?.getTime() ?? 0) - (pd(a.r.date)?.getTime() ?? 0));
-
-  const others = otherNameAgg(rows);
 
   return (
     <div>
@@ -861,7 +855,7 @@ function TeamTab({ rows, person, setPerson, onOpen }: { rows: Row[]; person: str
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-0 sm:gap-4">
         <Panel title="Most nominated" subtitle="Guests who named each person on your rota. Click a name for their quotes.">
           <HBars max={maxBar} empty="No one on your rota was named in this view." color={CHART.good} color2={CHART.bad} items={ppl.map((x) => ({
-            label: x.name + (x.dept ? " · " + x.dept : ""), value: x.praise + (x.crit ? ` · ${x.crit}!` : ""), v: x.praise, v2: x.crit, active: x.name === activePerson,
+            label: x.name, value: x.praise + (x.crit ? ` · ${x.crit}!` : ""), v: x.praise, v2: x.crit, active: x.name === activePerson,
             title: `${x.praise} praised${x.crit ? `, ${x.crit} possible criticism` : ""}`, onClick: () => setPerson(x.name),
           }))} />
         </Panel>
@@ -873,19 +867,8 @@ function TeamTab({ rows, person, setPerson, onOpen }: { rows: Row[]; person: str
         </Panel>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-0 sm:gap-4">
-        <Panel title="Praise by department" subtitle="Where the named person's department could be guessed from nearby words in the comment">
-          <HBars color={CHART.good} items={dl.map(([label, n]) => ({ label, value: int(n), v: n, title: `${n} guests praised someone in ${label.toLowerCase()}` }))} />
-        </Panel>
-        <Panel title="Possible criticism of named staff" subtitle={'Picked out by a name re-appearing in an improvement, issue or "anything else" comment, near negative wording. Read each one before acting on it.'}>
-          <div>{cq.length ? cq.map((q, i) => <QuoteCard key={i} r={q.r} text={q.s.quote} tag={q.s.name} onClick={() => onOpen(q.r)} />) : <p className="text-xs" style={{ color: inkSoft }}>No critical mentions of named staff in this view.</p>}</div>
-        </Panel>
-      </div>
-
-      <Panel title="Other names mentioned" subtitle="Guessed from comment text, but not a match for anyone on your rota — could be a new starter not synced yet, a guest's own name, or a false match. Low confidence: read before acting on any of these.">
-        <HBars color={CHART.muted} empty="No other names picked up in this view." items={others.map((o) => ({
-          label: o.name, value: String(o.n), v: o.n, title: o.row.standout.slice(0, 160),
-        }))} />
+      <Panel title="Possible criticism of named staff" subtitle={'Picked out by a name re-appearing in an improvement, issue or "anything else" comment, near negative wording. Read each one before acting on it.'}>
+        <div>{cq.length ? cq.map((q, i) => <QuoteCard key={i} r={q.r} text={q.s.quote} tag={q.s.name} onClick={() => onOpen(q.r)} />) : <p className="text-xs" style={{ color: inkSoft }}>No critical mentions of named staff in this view.</p>}</div>
       </Panel>
     </div>
   );
