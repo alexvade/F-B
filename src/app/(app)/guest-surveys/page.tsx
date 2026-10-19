@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { useProfile } from "@/lib/profile-context";
 import { useFeatureFlag } from "@/lib/feature-flags-context";
 import { Section } from "@/components/section";
+import { GuestSurveyInsights } from "@/components/guest-survey-insights";
 import { bg, border, ink, inkSoft } from "@/lib/design-tokens";
 
 type Answer = { question: string; answer: string | null };
@@ -38,6 +39,13 @@ function formatDate(iso: string | null): string {
   return new Date(iso + "T00:00:00Z").toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric", timeZone: "UTC" });
 }
 
+const pd = (s: string | null) => (s ? new Date(s + "T00:00:00Z") : null);
+const iso = (d: Date) => d.toISOString().slice(0, 10);
+const addDays = (d: Date, n: number) => new Date(d.getTime() + n * 86400000);
+
+type ResponseFilters = { from: string; to: string; preset: string; kw: string; npsCategory: string; surveyName: string };
+const emptyResponseFilters = (): ResponseFilters => ({ from: "", to: "", preset: "all", kw: "", npsCategory: "", surveyName: "" });
+
 export default function GuestSurveysPage() {
   const profile = useProfile();
   const isAdmin = profile.role === "admin";
@@ -48,6 +56,8 @@ export default function GuestSurveysPage() {
   const [surveys, setSurveys] = useState<Survey[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<number | null>(null);
+  const [tab, setTab] = useState<"responses" | "insights">("responses");
+  const [filters, setFilters] = useState<ResponseFilters>(emptyResponseFilters());
 
   const loadData = useCallback(async () => {
     const { data } = await supabase
@@ -86,14 +96,92 @@ export default function GuestSurveysPage() {
     );
   }
 
-  const scored = surveys.filter((s) => s.overall_score != null);
+  const DMAX = surveys.reduce<Date | null>((max, s) => {
+    const d = pd(s.response_date);
+    return d && (!max || d > max) ? d : max;
+  }, null);
+  const surveyNames = Array.from(new Set(surveys.map((s) => s.survey_name).filter((v): v is string => !!v))).sort();
+
+  const kwMatch = (s: Survey, kw: string) => {
+    const q = kw.toLowerCase();
+    if (s.guest_name.toLowerCase().includes(q)) return true;
+    return s.answers.some((a) => (a.answer ?? "").toLowerCase().includes(q));
+  };
+  const filteredSurveys = surveys.filter((s) => {
+    if (filters.kw && !kwMatch(s, filters.kw)) return false;
+    if (filters.npsCategory && s.nps_category !== filters.npsCategory) return false;
+    if (filters.surveyName && s.survey_name !== filters.surveyName) return false;
+    if (filters.from || filters.to) {
+      const d = pd(s.response_date);
+      if (!d) return false;
+      const di = iso(d);
+      if (filters.from && di < filters.from) return false;
+      if (filters.to && di > filters.to) return false;
+    }
+    return true;
+  });
+  const applyPreset = (p: string) => {
+    if (!DMAX) return;
+    const nf: ResponseFilters = { ...filters, preset: p };
+    if (p === "all") { nf.from = ""; nf.to = ""; }
+    else if (p === "30" || p === "90") { nf.from = iso(addDays(DMAX, -(+p - 1))); nf.to = iso(DMAX); }
+    else if (p === "month") { nf.from = iso(new Date(Date.UTC(DMAX.getUTCFullYear(), DMAX.getUTCMonth(), 1))); nf.to = iso(DMAX); }
+    else if (p === "lastmonth") { const a = new Date(Date.UTC(DMAX.getUTCFullYear(), DMAX.getUTCMonth() - 1, 1)); nf.from = iso(a); nf.to = iso(new Date(Date.UTC(DMAX.getUTCFullYear(), DMAX.getUTCMonth(), 0))); }
+    setFilters(nf);
+  };
+
+  const scored = filteredSurveys.filter((s) => s.overall_score != null);
   const avgScore = scored.length ? scored.reduce((sum, s) => sum + (s.overall_score ?? 0), 0) / scored.length : null;
   const counts = { Promoter: 0, Passive: 0, Detractor: 0 } as Record<string, number>;
-  for (const s of surveys) if (s.nps_category && s.nps_category in counts) counts[s.nps_category]++;
+  for (const s of filteredSurveys) if (s.nps_category && s.nps_category in counts) counts[s.nps_category]++;
 
   return (
     <Section title="Guest Surveys" subtitle="Post-stay feedback from ReviewPro">
       {!loading && surveys.length > 0 && (
+        <div className="flex gap-2 mb-5">
+          {(["responses", "insights"] as const).map((t) => (
+            <button
+              key={t}
+              onClick={() => setTab(t)}
+              className="text-sm font-medium px-4 py-1.5 rounded-2xl capitalize"
+              style={
+                tab === t
+                  ? { background: ink, color: bg, border: `1px solid ${border}` }
+                  : { background: bg, color: ink, border: `1px solid ${border}` }
+              }
+            >
+              {t}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {!loading && surveys.length > 0 && tab === "responses" && (
+        <div className="p-3 rounded-2xl mb-4 flex flex-col gap-2.5" style={{ background: bg, border: `1px solid ${border}` }}>
+          <div className="flex flex-wrap gap-1.5">
+            {[["all", "All"], ["30", "Last 30 days"], ["90", "Last 90 days"], ["month", "This month"], ["lastmonth", "Last month"]].map(([p, l]) => (
+              <button key={p} type="button" onClick={() => applyPreset(p)} className="text-[11px] px-2.5 py-1 rounded-2xl" style={filters.preset === p ? { background: ink, color: bg } : { border: `1px solid ${border}` }}>{l}</button>
+            ))}
+            <input type="date" value={filters.from} onChange={(e) => setFilters({ ...filters, from: e.target.value, preset: "" })} className="text-[11px] px-2 py-1 rounded-2xl" style={{ border: `1px solid ${border}`, background: bg, color: ink }} />
+            <input type="date" value={filters.to} onChange={(e) => setFilters({ ...filters, to: e.target.value, preset: "" })} className="text-[11px] px-2 py-1 rounded-2xl" style={{ border: `1px solid ${border}`, background: bg, color: ink }} />
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            <input placeholder="Search guest name or comments…" value={filters.kw} onChange={(e) => setFilters({ ...filters, kw: e.target.value })} className="text-[11px] px-2.5 py-1 rounded-2xl flex-1 min-w-[160px]" style={{ border: `1px solid ${border}`, background: bg, color: ink }} />
+            <select value={filters.npsCategory} onChange={(e) => setFilters({ ...filters, npsCategory: e.target.value })} className="text-[11px] px-2 py-1 rounded-2xl" style={{ border: `1px solid ${border}`, background: bg, color: ink }}>
+              <option value="">All NPS groups</option>
+              {["Promoter", "Passive", "Detractor"].map((v) => <option key={v} value={v}>{v}</option>)}
+            </select>
+            <select value={filters.surveyName} onChange={(e) => setFilters({ ...filters, surveyName: e.target.value })} className="text-[11px] px-2 py-1 rounded-2xl" style={{ border: `1px solid ${border}`, background: bg, color: ink }}>
+              <option value="">All sources</option>
+              {surveyNames.map((v) => <option key={v} value={v}>{v}</option>)}
+            </select>
+            <button type="button" onClick={() => setFilters(emptyResponseFilters())} className="text-[11px] px-2.5 py-1 rounded-2xl" style={{ border: `1px solid ${border}` }}>Reset filters</button>
+            <span className="text-[11px] ml-auto" style={{ color: inkSoft }}>{filteredSurveys.length} of {surveys.length} responses</span>
+          </div>
+        </div>
+      )}
+
+      {!loading && surveys.length > 0 && tab === "responses" && (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
           <div className="p-3 rounded-2xl text-center" style={{ background: bg, border: `1px solid ${border}` }}>
             <div className="text-xl font-semibold" style={{ color: ink }}>
@@ -138,9 +226,15 @@ export default function GuestSurveysPage() {
         <p className="text-sm" style={{ color: inkSoft }}>
           No survey responses yet.
         </p>
+      ) : tab === "insights" ? (
+        <GuestSurveyInsights surveys={surveys} />
+      ) : filteredSurveys.length === 0 ? (
+        <p className="text-sm" style={{ color: inkSoft }}>
+          No responses match these filters.
+        </p>
       ) : (
         <div className="flex flex-col gap-3">
-          {surveys.map((s) => {
+          {filteredSurveys.map((s) => {
             const expanded = expandedId === s.id;
             const colors = scoreColors(s.overall_score, s.nps_category);
             return (
