@@ -6,8 +6,8 @@ import { sendPushToStaff } from "@/lib/push";
 // using production's own VAPID keys (which aren't in local .env.local).
 // Delete this route once the test is confirmed.
 export async function POST(request: Request) {
-  const secret = request.headers.get("x-cron-secret");
-  if (!secret || secret !== process.env.CRON_SECRET) {
+  const secret = request.headers.get("x-admin-secret");
+  if (!secret || secret !== process.env.SUPABASE_SERVICE_ROLE_KEY) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
