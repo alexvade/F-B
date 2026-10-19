@@ -855,11 +855,11 @@ function TeamTab({ rows, person, setPerson, onOpen }: { rows: Row[]; person: str
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-0 sm:gap-4">
         <Panel title="Most nominated" subtitle="Guests who named each person on your rota. Click a name for their quotes.">
           <HBars max={maxBar} empty="No one on your rota was named in this view." color={CHART.good} color2={CHART.bad} items={ppl.map((x) => ({
-            label: x.name, value: x.praise + (x.crit ? ` · ${x.crit}!` : ""), v: x.praise, v2: x.crit, active: x.name === activePerson,
+            label: firstName(x.name), value: x.praise + (x.crit ? ` · ${x.crit}!` : ""), v: x.praise, v2: x.crit, active: x.name === activePerson,
             title: `${x.praise} praised${x.crit ? `, ${x.crit} possible criticism` : ""}`, onClick: () => setPerson(x.name),
           }))} />
         </Panel>
-        <Panel title={p ? p.name : "No one named"} subtitle={p ? `${p.praise} guest${p.praise === 1 ? "" : "s"} praised ${p.name}${p.crit ? `, ${p.crit} possibly critical` : ""}.` : "No one on your rota is named in the current view."}>
+        <Panel title={p ? firstName(p.name) : "No one named"} subtitle={p ? `${p.praise} guest${p.praise === 1 ? "" : "s"} praised ${firstName(p.name)}${p.crit ? `, ${p.crit} possibly critical` : ""}.` : "No one on your rota is named in the current view."}>
           <div>{p?.quotes.map((q, i) => {
             const quoteRow = rows.find((r) => r.staff.includes(q)) ?? rows[0];
             return <QuoteCard key={i} r={quoteRow} text={q.quote} tag={q.tone === "critical" ? "possible criticism" : q.dept ?? undefined} onClick={() => onOpen(quoteRow)} />;
@@ -868,7 +868,7 @@ function TeamTab({ rows, person, setPerson, onOpen }: { rows: Row[]; person: str
       </div>
 
       <Panel title="Possible criticism of named staff" subtitle={'Picked out by a name re-appearing in an improvement, issue or "anything else" comment, near negative wording. Read each one before acting on it.'}>
-        <div>{cq.length ? cq.map((q, i) => <QuoteCard key={i} r={q.r} text={q.s.quote} tag={q.s.name} onClick={() => onOpen(q.r)} />) : <p className="text-xs" style={{ color: inkSoft }}>No critical mentions of named staff in this view.</p>}</div>
+        <div>{cq.length ? cq.map((q, i) => <QuoteCard key={i} r={q.r} text={q.s.quote} tag={firstName(q.s.name)} onClick={() => onOpen(q.r)} />) : <p className="text-xs" style={{ color: inkSoft }}>No critical mentions of named staff in this view.</p>}</div>
       </Panel>
     </div>
   );
