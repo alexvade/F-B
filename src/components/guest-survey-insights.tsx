@@ -445,7 +445,10 @@ function ResponseModal({ r, onClose }: { r: Row; onClose: () => void }) {
 }
 
 // ================= main component =================
-export function GuestSurveyInsights({ surveys }: { surveys: SurveyInput[] }) {
+// Shared by both the Insights dashboard and the standalone Staff Mentions
+// tab — fetches the real rota roster once and builds the normalized rows
+// (with roster-matched staff mentions) from the raw survey data.
+function useStaffMatchedRows(surveys: SurveyInput[]): Row[] {
   const [roster, setRoster] = useState<RosterPerson[]>([]);
   useEffect(() => {
     const supabase = createClient();
@@ -454,8 +457,28 @@ export function GuestSurveyInsights({ surveys }: { surveys: SurveyInput[] }) {
       .select("staff_name")
       .then(({ data }) => setRoster(applyManualRosterOverrides(buildRoster((data ?? []).map((r) => r.staff_name)))));
   }, []);
+  return useMemo(() => buildRows(surveys, roster), [surveys, roster]);
+}
 
-  const ALL = useMemo(() => buildRows(surveys, roster), [surveys, roster]);
+// A self-contained version of the Team tab's "Staff Mentions" list, shown
+// as its own top-level tab on the Guest Surveys page (alongside Responses
+// and Insights) rather than buried inside the Insights dashboard.
+export function GuestSurveyMentions({ surveys }: { surveys: SurveyInput[] }) {
+  const ALL = useStaffMatchedRows(surveys);
+  const [openRow, setOpenRow] = useState<Row | null>(null);
+  if (surveys.length === 0) {
+    return <p className="text-sm" style={{ color: inkSoft }}>No survey responses yet.</p>;
+  }
+  return (
+    <div>
+      {openRow && <ResponseModal r={openRow} onClose={() => setOpenRow(null)} />}
+      <MentionsTab rows={ALL} onOpen={setOpenRow} />
+    </div>
+  );
+}
+
+export function GuestSurveyInsights({ surveys }: { surveys: SurveyInput[] }) {
+  const ALL = useStaffMatchedRows(surveys);
   const DMAX = useMemo(() => { const ds = ALL.map((r) => pd(r.date)).filter((d): d is Date => !!d); return ds.length ? new Date(Math.max(...ds.map((d) => d.getTime()))) : null; }, [ALL]);
 
   const [F, setF] = useState<Filters>(emptyFilters());
@@ -518,7 +541,7 @@ export function GuestSurveyInsights({ surveys }: { surveys: SurveyInput[] }) {
 
   const TABS: [string, string][] = [
     ["overview", "Overview"], ["trends", "Trends & calendar"], ["questions", "Questions"], ["team", "Team"],
-    ["mentions", "Staff Mentions"], ["problems", "Problems"], ["guests", "Guests"], ["followups", "Follow-ups"], ["comments", "Comments"],
+    ["problems", "Problems"], ["guests", "Guests"], ["followups", "Follow-ups"], ["comments", "Comments"],
   ];
 
   if (surveys.length === 0) {
@@ -617,9 +640,6 @@ export function GuestSurveyInsights({ surveys }: { surveys: SurveyInput[] }) {
       )}
       {tab === "team" && (
         <TeamTab rows={rows} person={person} setPerson={setPerson} onOpen={setOpenRow} />
-      )}
-      {tab === "mentions" && (
-        <MentionsTab rows={rows} onOpen={setOpenRow} />
       )}
       {tab === "problems" && (
         <ProblemsTab rows={rows} prev={prev} theme={theme} setTheme={setTheme} room={room} setRoom={setRoom} onOpen={setOpenRow} />

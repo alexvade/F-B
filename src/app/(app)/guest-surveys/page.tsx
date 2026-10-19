@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { useProfile } from "@/lib/profile-context";
 import { useFeatureFlag } from "@/lib/feature-flags-context";
 import { Section } from "@/components/section";
-import { GuestSurveyInsights } from "@/components/guest-survey-insights";
+import { GuestSurveyInsights, GuestSurveyMentions } from "@/components/guest-survey-insights";
 import { bg, border, ink, inkSoft } from "@/lib/design-tokens";
 
 type Answer = { question: string; answer: string | null };
@@ -56,7 +56,7 @@ export default function GuestSurveysPage() {
   const [surveys, setSurveys] = useState<Survey[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<number | null>(null);
-  const [tab, setTab] = useState<"responses" | "insights">("responses");
+  const [tab, setTab] = useState<"responses" | "insights" | "mentions">("responses");
   const [filters, setFilters] = useState<ResponseFilters>(emptyResponseFilters());
 
   const loadData = useCallback(async () => {
@@ -139,18 +139,18 @@ export default function GuestSurveysPage() {
     <Section title="Guest Surveys" subtitle="Post-stay feedback from ReviewPro">
       {!loading && surveys.length > 0 && (
         <div className="flex gap-2 mb-5">
-          {(["responses", "insights"] as const).map((t) => (
+          {([["responses", "Responses"], ["insights", "Insights"], ["mentions", "Staff Mentions"]] as const).map(([t, label]) => (
             <button
               key={t}
               onClick={() => setTab(t)}
-              className="text-sm font-medium px-4 py-1.5 rounded-2xl capitalize"
+              className="text-sm font-medium px-4 py-1.5 rounded-2xl"
               style={
                 tab === t
                   ? { background: ink, color: bg, border: `1px solid ${border}` }
                   : { background: bg, color: ink, border: `1px solid ${border}` }
               }
             >
-              {t}
+              {label}
             </button>
           ))}
         </div>
@@ -228,6 +228,8 @@ export default function GuestSurveysPage() {
         </p>
       ) : tab === "insights" ? (
         <GuestSurveyInsights surveys={surveys} />
+      ) : tab === "mentions" ? (
+        <GuestSurveyMentions surveys={surveys} />
       ) : filteredSurveys.length === 0 ? (
         <p className="text-sm" style={{ color: inkSoft }}>
           No responses match these filters.
