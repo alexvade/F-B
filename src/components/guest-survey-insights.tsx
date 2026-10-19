@@ -518,7 +518,7 @@ export function GuestSurveyInsights({ surveys }: { surveys: SurveyInput[] }) {
 
   const TABS: [string, string][] = [
     ["overview", "Overview"], ["trends", "Trends & calendar"], ["questions", "Questions"], ["team", "Team"],
-    ["problems", "Problems"], ["guests", "Guests"], ["followups", "Follow-ups"], ["comments", "Comments"],
+    ["mentions", "Staff Mentions"], ["problems", "Problems"], ["guests", "Guests"], ["followups", "Follow-ups"], ["comments", "Comments"],
   ];
 
   if (surveys.length === 0) {
@@ -617,6 +617,9 @@ export function GuestSurveyInsights({ surveys }: { surveys: SurveyInput[] }) {
       )}
       {tab === "team" && (
         <TeamTab rows={rows} person={person} setPerson={setPerson} onOpen={setOpenRow} />
+      )}
+      {tab === "mentions" && (
+        <MentionsTab rows={rows} onOpen={setOpenRow} />
       )}
       {tab === "problems" && (
         <ProblemsTab rows={rows} prev={prev} theme={theme} setTheme={setTheme} room={room} setRoom={setRoom} onOpen={setOpenRow} />
@@ -905,6 +908,65 @@ function TeamTab({ rows, person, setPerson, onOpen }: { rows: Row[]; person: str
 
       <Panel title="Possible criticism of named staff" subtitle={'Picked out by a name re-appearing in an improvement, issue or "anything else" comment, near negative wording. Read each one before acting on it.'}>
         <div>{cq.length ? cq.map((q, i) => <QuoteCard key={i} r={q.r} text={q.s.quote} tag={firstName(q.s.name)} onClick={() => onOpen(q.r)} />) : <p className="text-xs" style={{ color: inkSoft }}>No critical mentions of named staff in this view.</p>}</div>
+      </Panel>
+    </div>
+  );
+}
+
+// ================= STAFF MENTIONS =================
+function MentionsTab({ rows, onOpen }: { rows: Row[]; onOpen: (r: Row) => void }) {
+  const [person, setPerson] = useState("");
+  const [tone, setTone] = useState<"all" | "praise" | "critical">("all");
+
+  const mentioned = rows.filter((r) => r.staff.length > 0);
+  const people = Array.from(new Set(mentioned.flatMap((r) => r.staff.map((s) => s.name)))).sort((a, b) => firstName(a).localeCompare(firstName(b)));
+
+  // One entry per distinct quote within a row — a row can carry two
+  // separate mentions (e.g. praise in "stand out", a different complaint
+  // in "anything else") that deserve their own card rather than being
+  // merged into one.
+  type Entry = { r: Row; quote: string; mentions: { name: string; tone: "praise" | "critical" }[] };
+  const entries: Entry[] = [];
+  for (const r of mentioned) {
+    const byQuote = new Map<string, Entry>();
+    for (const s of r.staff) {
+      const key = s.field + "||" + s.quote;
+      if (!byQuote.has(key)) byQuote.set(key, { r, quote: s.quote, mentions: [] });
+      const e = byQuote.get(key)!;
+      if (!e.mentions.some((m) => m.name === s.name && m.tone === s.tone)) e.mentions.push({ name: s.name, tone: s.tone });
+    }
+    entries.push(...byQuote.values());
+  }
+
+  const filtered = entries
+    .filter((e) => (!person || e.mentions.some((m) => m.name === person)) && (tone === "all" || e.mentions.some((m) => m.tone === tone)))
+    .sort((a, b) => (pd(b.r.date)?.getTime() ?? 0) - (pd(a.r.date)?.getTime() ?? 0));
+
+  return (
+    <div>
+      <div className="flex flex-wrap gap-1.5 mb-4">
+        <select value={person} onChange={(e) => setPerson(e.target.value)} className="text-xs px-2 py-1.5 rounded-2xl" style={{ border: `1px solid ${border}`, background: bg, color: ink }}>
+          <option value="">Everyone mentioned</option>
+          {people.map((p) => <option key={p} value={p}>{firstName(p)}</option>)}
+        </select>
+        <div className="flex gap-1">
+          {(["all", "praise", "critical"] as const).map((t) => (
+            <button key={t} type="button" onClick={() => setTone(t)} className="text-xs font-medium px-3 py-1.5 rounded-2xl capitalize"
+              style={tone === t ? { background: ink, color: bg } : { border: `1px solid ${border}`, color: ink }}>
+              {t === "all" ? "All" : t === "praise" ? "Praise" : "Possible criticism"}
+            </button>
+          ))}
+        </div>
+      </div>
+      <Panel title="Reviews and surveys mentioning staff" subtitle={`${int(filtered.length)} response${filtered.length === 1 ? "" : "s"} name someone on your rota. Click one to open the full response.`}>
+        {!filtered.length ? (
+          <p className="text-xs" style={{ color: inkSoft }}>No responses match.</p>
+        ) : (
+          filtered.map((e, i) => {
+            const tag = e.mentions.map((m) => firstName(m.name) + (m.tone === "critical" ? " ⚠" : "")).join(", ");
+            return <QuoteCard key={i} r={e.r} text={e.quote} tag={tag} onClick={() => onOpen(e.r)} />;
+          })
+        )}
       </Panel>
     </div>
   );
