@@ -109,7 +109,7 @@ function dOf(r: Row, basis: Filters["basis"]): Date | null {
 }
 
 function searchText(r: Row): string {
-  return [r.highlight, r.improve, r.standout, r.issue_text, r.additional, r.event_comment, ...Object.values(r.notes), r.guest, r.room ?? "", r.staff.map((s) => s.name).join(" ")]
+  return [r.highlight, r.improve, r.standout, r.issue_text, r.additional, r.event_comment, r.review, ...Object.values(r.notes), r.guest, r.room ?? "", r.staff.map((s) => s.name).join(" ")]
     .join("\n")
     .toLowerCase();
 }
@@ -366,9 +366,43 @@ function QuoteCard({ r, text, tag, onClick }: { r: Row; text: string; tag?: stri
   );
 }
 
+// Finds the comment field that actually contains the search term, so the
+// search-results panel can show guests *why* a response matched — not
+// just that it did.
+function findMatchSnippet(r: Row, kw: string): { label: string; text: string } | null {
+  const terms = kw.toLowerCase().split(",").map((s) => s.trim()).filter(Boolean);
+  const hit = (text: string) => !!text && terms.some((term) => text.toLowerCase().includes(term));
+  const candidates: [string, string][] = [
+    ["Review", r.review], ["Highlight", r.highlight], ["Team stand-out", r.standout], ["Improve", r.improve],
+    ["Issue", r.issue_text], ["Anything else", r.additional], ["Event feedback", r.event_comment],
+    ...Object.entries(r.notes).map(([k, v]) => [QL[k] ?? k, v] as [string, string]),
+  ];
+  for (const [label, text] of candidates) if (hit(text)) return { label, text };
+  return null;
+}
+
+function SearchResultsPanel({ rows, kw, onOpen }: { rows: Row[]; kw: string; onOpen: (r: Row) => void }) {
+  return (
+    <Panel title={`Search results for "${kw}"`} subtitle={`${int(rows.length)} response${rows.length === 1 ? "" : "s"} match across every tab's filters. Click one to open the full response.`}>
+      {!rows.length ? (
+        <p className="text-xs" style={{ color: inkSoft }}>No responses match.</p>
+      ) : (
+        <div className="max-h-[420px] overflow-y-auto">
+          {rows.map((r, i) => {
+            const m = findMatchSnippet(r, kw);
+            const text = m?.text ?? r.highlight ?? r.standout ?? r.improve ?? "";
+            return <QuoteCard key={i} r={r} text={text || `Matched by name or room — open to see the full response.`} tag={m?.label} onClick={() => onOpen(r)} />;
+          })}
+        </div>
+      )}
+    </Panel>
+  );
+}
+
 function ResponseModal({ r, onClose }: { r: Row; onClose: () => void }) {
   const scores = QS.filter(([k]) => typeof r[k] === "number").map(([k]) => ({ k, v: r[k] as number }));
   const sections: [string, string][] = [
+    ["Review", r.review],
     ["Highlight of the stay", r.highlight], ["What could have been improved", r.improve], ["Team member stand-out", r.standout],
     ["Issue", r.issue_text], ["Event feedback", r.event_comment], ["Anything else", r.additional],
     ...Object.entries(r.notes).map(([k, v]) => [`Comment on ${QL[k]?.toLowerCase() ?? k}`, v] as [string, string]),
@@ -559,6 +593,8 @@ export function GuestSurveyInsights({ surveys }: { surveys: SurveyInput[] }) {
       </div>
 
       <p className="text-sm mb-4" style={{ color: ink }}>{headline}</p>
+
+      {F.kw && <SearchResultsPanel rows={rows} kw={F.kw} onOpen={setOpenRow} />}
 
       {/* ---------- tabs ---------- */}
       <div className="flex gap-1.5 mb-4 overflow-x-auto">
@@ -920,7 +956,7 @@ function ProblemsTab({ rows, prev, theme, setTheme, room, setRoom, onOpen }: {
         </Panel>
         <Panel title={t ? t.name : "No themes"} subtitle={t ? `${t.n} responses mention this, average overall ${fmt2(mean(t.rows, "overall"))}.` : ""}>
           <div>{t?.rows.slice(0, 20).map((r, i) => {
-            const txt = [r.improve, r.issue_text, ...Object.values(r.notes), r.value === "No" ? r.additional : ""].filter(Boolean).join(" / ");
+            const txt = [r.improve, r.issue_text, r.review, ...Object.values(r.notes), r.value === "No" ? r.additional : ""].filter(Boolean).join(" / ");
             return <QuoteCard key={i} r={r} text={txt} onClick={() => onOpen(r)} />;
           })}</div>
         </Panel>
@@ -1088,7 +1124,7 @@ function FollowupsTab({ rows, fuMode, setFuMode, onOpen }: { rows: Row[]; fuMode
           <div className="flex flex-col gap-2">
             {list.map((r, i) => {
               const low = QS.filter(([key]) => typeof r[key] === "number" && (r[key] as number) <= 6 && key !== "nps");
-              const txt = r.issue_text || r.improve || r.additional || "";
+              const txt = r.issue_text || r.improve || r.additional || r.review || "";
               return (
                 <button key={i} type="button" onClick={() => onOpen(r)} className="w-full text-left p-3 rounded-2xl" style={{ border: `1px solid ${border}` }}>
                   <div className="flex items-start justify-between gap-2 flex-wrap">
@@ -1120,9 +1156,9 @@ function FollowupsTab({ rows, fuMode, setFuMode, onOpen }: { rows: Row[]; fuMode
 function CommentsTab({ rows, cmQ, setCmQ, cmField, setCmField, cmLimit, setCmLimit, onOpen }: {
   rows: Row[]; cmQ: string; setCmQ: (s: string) => void; cmField: string; setCmField: (s: string) => void; cmLimit: number; setCmLimit: (n: number) => void; onOpen: (r: Row) => void;
 }) {
-  const fieldMap: Record<string, keyof Row> = { highlight: "highlight", improve: "improve", standout: "standout", issue_text: "issue_text", additional: "additional" };
+  const fieldMap: Record<string, keyof Row> = { highlight: "highlight", improve: "improve", standout: "standout", issue_text: "issue_text", additional: "additional", review: "review" };
   const fields = cmField === "all" ? Object.keys(fieldMap) : [cmField];
-  const lbl: Record<string, string> = { highlight: "Highlight", improve: "Improve", standout: "Team", issue_text: "Issue", additional: "Other" };
+  const lbl: Record<string, string> = { highlight: "Highlight", improve: "Improve", standout: "Team", issue_text: "Issue", additional: "Other", review: "Review" };
   const q = cmQ.trim().toLowerCase();
   const out: [Row, string, string][] = [];
   for (const r of [...rows].sort((a, b) => (pd(b.date)?.getTime() ?? 0) - (pd(a.date)?.getTime() ?? 0))) {
@@ -1144,6 +1180,7 @@ function CommentsTab({ rows, cmQ, setCmQ, cmField, setCmField, cmLimit, setCmLim
           <option value="standout">Team member stand-outs</option>
           <option value="issue_text">Issues</option>
           <option value="additional">Anything else</option>
+          <option value="review">OTA reviews</option>
         </select>
       </div>
       <p className="text-xs mb-2" style={{ color: inkSoft }}>{int(out.length)} comment{out.length === 1 ? "" : "s"}{q ? ` mentioning "${cmQ.trim()}"` : ""}</p>

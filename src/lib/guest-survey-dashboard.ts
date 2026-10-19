@@ -110,6 +110,10 @@ export type Row = {
   issue_text: string;
   additional: string;
   event_comment: string;
+  // OTA reviews (Google/TripAdvisor/Booking/etc.) have no "stand out" or
+  // "what could be improved" questions — the whole review is one free-text
+  // blob under this field, and doubles as both for matching/search purposes.
+  review: string;
   notes: Record<string, string>;
   staff: StaffMention[];
   otherNames: string[];
@@ -151,7 +155,33 @@ function nightsBetween(checkin: string | null, checkout: string | null): number 
 
 // ---------- real staff roster (from the F&B rota) ----------
 
-export type RosterPerson = { canonical: string; firstNames: string[]; surname: string; contextKeywords?: RegExp };
+export type RosterPerson = {
+  canonical: string;
+  firstNames: string[];
+  surname: string;
+  contextKeywords?: RegExp;
+  // Rejects a specific occurrence of the name as a false match (e.g. "Will"
+  // used as the modal verb — "we will return" — rather than the person).
+  // Checked per-occurrence, not per-text, since one review can contain both
+  // a real mention and an unrelated "will" elsewhere.
+  isFalseMatch?: (text: string, index: number, matchLength: number) => boolean;
+};
+
+// "Will" (and similarly common-word names) is a modal verb far more often
+// than it's this person — "we will return", "Will definitely be back" —
+// so a bare regex match massively overcounts him. Reject an occurrence
+// immediately preceded by a subject pronoun/adverb ("we will", "I will")
+// or immediately followed by a bare verb ("will be", "will not", "will
+// return") — both patterns are near-exclusively the modal verb, not a name.
+function modalVerbFalsePositive(text: string, index: number, matchLength: number): boolean {
+  const before = text.slice(Math.max(0, index - 20), index).toLowerCase();
+  const after = text.slice(index + matchLength, index + matchLength + 20).toLowerCase();
+  // Stems rather than exact spellings — "definetly"/"definately" and
+  // similar misspellings are common in free-text reviews.
+  if (/\b(we|i|they|you|it|he|she|defin\w*|certain\w*|probab\w*|surel\w*)\s*$/.test(before)) return true;
+  if (/^\s*(be|not|defin\w*|certain\w*|probab\w*|surel\w*|always|never|also|still|have|retur\w*|come|visit|recommend|love|ensure|take|stay|book|miss|get|see|need|want|do)\b/.test(after)) return true;
+  return false;
+}
 
 // Listed in the rota sheet's row order but not a real person to match —
 // shift-label artifacts, not staff.
@@ -216,7 +246,29 @@ export function applyManualRosterOverrides(roster: RosterPerson[]): RosterPerson
   if (!out.some((p) => p.surname.toLowerCase() === "gillies")) {
     out.push({ canonical: "Richard Gillies", firstNames: ["Richard"], surname: "Gillies", contextKeywords: /\b(reception|check[\s-]?in|check[\s-]?out|front desk)\b/i });
   }
+  // "Gabi" is an uncommon spelling guests often don't get right.
+  const gabi = out.find((p) => p.canonical === "Gabi Vadeanu");
+  if (gabi) for (const alias of ["Gabby", "Gabbi", "Gabbie", "Gaby"]) if (!gabi.firstNames.includes(alias)) gabi.firstNames.push(alias);
+  // "Will" is a modal verb far more often than it's this person — see
+  // modalVerbFalsePositive. Checked against real data: cut 35 matched
+  // mentions down to the ~11 that are actually about him.
+  const will = out.find((p) => p.canonical === "Will Carr");
+  if (will) will.isFalseMatch = modalVerbFalsePositive;
   return out;
+}
+
+// True if `first` occurs in `text` at least once that isn't rejected by
+// that person's `isFalseMatch` guard (e.g. "will" as a modal verb) — a
+// single long review can contain both a real mention and an unrelated
+// false one, so this checks every occurrence rather than just presence.
+function hasGenuineOccurrence(text: string, first: string, person: RosterPerson): boolean {
+  if (!person.isFalseMatch) return true;
+  const re = new RegExp(`\\b${first.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "gi");
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(text))) {
+    if (!person.isFalseMatch(text, m.index, m[0].length)) return true;
+  }
+  return false; // every occurrence was a false match (or there were none)
 }
 
 // Matches real roster people mentioned in free text. A first name shared
@@ -240,7 +292,10 @@ export function matchRosterMentions(text: string, roster: RosterPerson[]): Roste
   for (const [first, people] of byFirst.entries()) {
     const re = new RegExp(`\\b${first.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "i");
     if (!re.test(text)) continue;
-    if (people.length === 1) { found.add(people[0]); continue; }
+    if (people.length === 1) {
+      if (hasGenuineOccurrence(text, first, people[0])) found.add(people[0]);
+      continue;
+    }
     const bySurname = people.filter((p) => p.surname && new RegExp(`\\b${p.surname.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "i").test(text));
     if (bySurname.length) { bySurname.forEach((p) => found.add(p)); continue; }
     const byContext = people.filter((p) => p.contextKeywords?.test(text));
@@ -379,6 +434,7 @@ export function buildRows(surveys: SurveyInput[], roster: RosterPerson[] = []): 
       ans(a, "Please tell us the reasons for your scores about the function Comment") ??
       ans(a, "Please tell us the reasons for your wedding function scores Comment") ??
       "";
+    const review = ans(a, "Review") ?? "";
 
     const notes: Record<string, string> = {};
     for (const [key, q] of Object.entries(NOTE_QUESTIONS)) {
@@ -419,6 +475,7 @@ export function buildRows(surveys: SurveyInput[], roster: RosterPerson[] = []): 
       issue_text,
       additional,
       event_comment,
+      review,
       notes,
       staff: [],
       otherNames: [],
@@ -459,15 +516,25 @@ export function buildRows(surveys: SurveyInput[], roster: RosterPerson[] = []): 
         }
       }
     }
+    // An OTA review (Google/TripAdvisor/Booking/etc.) has no separate
+    // "stand out" question — it's one free-text blob that can praise and
+    // criticise in the same paragraph, so each mention's own sentiment
+    // decides its tone, rather than assuming the whole field is positive.
+    if (review) {
+      for (const p of matchRosterMentions(review, roster)) {
+        const critical = p.firstNames.some((f) => hasNearbyNegative(review, f));
+        staff.push({ name: p.canonical, tone: critical ? "critical" : "praise", dept: guessDept(review), quote: review, field: "review" });
+      }
+    }
     row.staff = staff;
 
     // Low-confidence fallback: names guessed from free text that aren't a
     // match for anyone on the roster (e.g. a new starter not yet synced
     // from the rota sheet) — kept separate, never mixed into `staff`.
     const rosterFirstNames = new Set(roster.flatMap((p) => p.firstNames.map((f) => f.toLowerCase())));
-    row.otherNames = Array.from(new Set(extractNames(standout).filter((n) => !rosterFirstNames.has(n.split(" ")[0].toLowerCase()))));
+    row.otherNames = Array.from(new Set(extractNames(standout + " " + review).filter((n) => !rosterFirstNames.has(n.split(" ")[0].toLowerCase()))));
 
-    const themeText = [improve, issue_text, additional].join(" \n ").toLowerCase();
+    const themeText = [improve, issue_text, additional, review].join(" \n ").toLowerCase();
     row.themes = THEMES.filter(([, re]) => re.test(themeText)).map(([name]) => name);
 
     return row;
