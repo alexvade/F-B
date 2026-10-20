@@ -93,32 +93,88 @@ function readableTextColor(hex: string): string {
   return luminance > 0.6 ? "#000000" : "#FFFFFF";
 }
 
-// Background: soft pastels, readable with black text. Text: more
-// saturated, readable on white or a pastel background — same split
-// Google Sheets' own default swatch picker uses.
-const BG_PALETTE = ["#F4CCCC", "#FCE5CD", "#FFF2CC", "#D9EAD3", "#CFE2F3", "#D9D2E9", "#EAD1DC", "#D9D9D9"];
-const TEXT_PALETTE = ["#CC0000", "#E69138", "#BF9000", "#38761D", "#1155CC", "#741B47", "#000000", "#666666"];
+// The same grid Google Sheets' own colour picker uses — a greyscale row
+// plus seven shade-rows per hue — so Bg/Text pickers read as genuinely
+// spreadsheet-native rather than an app-specific swatch set.
+const GOOGLE_GREYS = ["#000000", "#434343", "#666666", "#999999", "#B7B7B7", "#CCCCCC", "#D9D9D9", "#EFEFEF", "#F3F3F3", "#FFFFFF"];
+const GOOGLE_COLOR_ROWS = [
+  ["#980000", "#FF0000", "#FF9900", "#FFFF00", "#00FF00", "#00FFFF", "#4A86E8", "#0000FF", "#9900FF", "#FF00FF"],
+  ["#E6B8AF", "#F4CCCC", "#FCE5CD", "#FFF2CC", "#D9EAD3", "#D0E0E3", "#C9DAF8", "#CFE2F3", "#D9D2E9", "#EAD1DC"],
+  ["#DD7E6B", "#EA9999", "#F9CB9C", "#FFE599", "#B6D7A8", "#A2C4C9", "#A4C2F4", "#9FC5E8", "#B4A7D6", "#D5A6BD"],
+  ["#CC4125", "#E06666", "#F6B26B", "#FFD966", "#93C47D", "#76A5AF", "#6D9EEB", "#6FA8DC", "#8E7CC3", "#C27BA0"],
+  ["#A61C00", "#CC0000", "#E69138", "#F1C232", "#6AA84F", "#45818E", "#3C78D8", "#3D85C6", "#674EA7", "#A64D79"],
+  ["#85200C", "#990000", "#B45F06", "#BF9000", "#38761D", "#134F5C", "#1155CC", "#0B5394", "#351C75", "#741B47"],
+  ["#5B0F00", "#660000", "#783F04", "#7F6000", "#274E13", "#0C343D", "#1C4587", "#073763", "#20124D", "#4C1130"],
+];
+const STANDARD_SWATCHES = ["#000000", "#FFFFFF", "#4A86E8", "#FF0000", "#FF9900", "#00FFFF"];
+const KNOWN_SWATCHES = new Set([...GOOGLE_GREYS, ...GOOGLE_COLOR_ROWS.flat(), ...STANDARD_SWATCHES]);
 
-function ColorPopover({ palette, onPick, onClear, onClose }: { palette: string[]; onPick: (c: string) => void; onClear: () => void; onClose: () => void }) {
+function ColorPopover({ value, onPick, onClear, onClose }: { value: string | null; onPick: (c: string) => void; onClear: () => void; onClose: () => void }) {
+  const swatch = (c: string, key: string) => (
+    <button
+      key={key}
+      type="button"
+      title={c}
+      onClick={() => { onPick(c); onClose(); }}
+      className="w-4 h-4 rounded-full shrink-0"
+      style={{
+        background: c,
+        border: c.toUpperCase() === "#FFFFFF" ? `1px solid ${border}` : "none",
+        boxShadow: value?.toUpperCase() === c.toUpperCase() ? `0 0 0 2px #FFFFFF, 0 0 0 3px ${SELECTION_COLOR}` : undefined,
+      }}
+    />
+  );
+
+  const customValue = value && !KNOWN_SWATCHES.has(value.toUpperCase()) ? value : null;
+
   return (
     <div
-      className="absolute z-20 p-1.5 rounded-xl grid grid-cols-5 gap-1"
-      style={{ background: "#FFFFFF", border: `1px solid ${border}`, top: "100%", left: 0, boxShadow: "0 2px 8px rgba(0,0,0,0.15)" }}
+      className="absolute z-20 p-2.5 rounded-xl"
+      style={{ background: "#FFFFFF", border: `1px solid ${border}`, top: "100%", left: 0, width: 212, boxShadow: "0 2px 10px rgba(0,0,0,0.2)" }}
     >
-      <button type="button" onClick={() => { onClear(); onClose(); }} title="Clear" className="w-5 h-5 rounded flex items-center justify-center text-[10px]" style={{ border: `1px solid ${border}`, color: ink }}>
-        ✕
+      <button
+        type="button"
+        onClick={() => { onClear(); onClose(); }}
+        className="flex items-center gap-2 w-full text-xs rounded px-1 py-1 mb-2 hover:bg-[#F1F3F4]"
+        style={{ color: ink }}
+      >
+        <span className="w-4 h-4 rounded-full relative inline-block shrink-0" style={{ border: `1px solid ${border}` }}>
+          <span
+            className="absolute inset-0 rounded-full"
+            style={{
+              background: `linear-gradient(to top right, transparent calc(50% - 1px), ${orange} calc(50% - 1px), ${orange} calc(50% + 1px), transparent calc(50% + 1px))`,
+            }}
+          />
+        </span>
+        Reset
       </button>
-      {palette.map((c) => (
-        <button key={c} type="button" onClick={() => { onPick(c); onClose(); }} className="w-5 h-5 rounded" style={{ background: c, border: `1px solid ${border}` }} />
-      ))}
-      <label className="w-5 h-5 rounded relative cursor-pointer overflow-hidden" style={{ border: `1px solid ${border}` }} title="Custom colour">
-        <input
-          type="color"
-          className="absolute opacity-0 cursor-pointer"
-          style={{ width: 40, height: 40, left: -8, top: -8 }}
-          onChange={(e) => { onPick(e.target.value); onClose(); }}
-        />
-      </label>
+      <div className="flex flex-col gap-[3px] mb-2">
+        <div className="flex gap-[3px]">{GOOGLE_GREYS.map((c) => swatch(c, c))}</div>
+        {GOOGLE_COLOR_ROWS.map((row, i) => (
+          <div key={i} className="flex gap-[3px]">{row.map((c) => swatch(c, `${i}-${c}`))}</div>
+        ))}
+      </div>
+      <div className="h-px mb-2" style={{ background: border }} />
+      <div className="text-[9px] font-semibold tracking-wide mb-1" style={{ color: inkSoft }}>STANDARD</div>
+      <div className="flex gap-[3px] mb-2">{STANDARD_SWATCHES.map((c) => swatch(c, `std-${c}`))}</div>
+      <div className="h-px mb-2" style={{ background: border }} />
+      <div className="text-[9px] font-semibold tracking-wide mb-1" style={{ color: inkSoft }}>CUSTOM</div>
+      <div className="flex items-center gap-[6px]">
+        {customValue && swatch(customValue, "custom-current")}
+        <label
+          className="w-4 h-4 rounded-full relative cursor-pointer overflow-hidden flex items-center justify-center shrink-0"
+          style={{ border: `1px dashed ${inkSoft}` }}
+          title="Custom colour"
+        >
+          <span className="text-[10px] leading-none" style={{ color: inkSoft }}>+</span>
+          <input
+            type="color"
+            className="absolute opacity-0 cursor-pointer"
+            style={{ width: 30, height: 30, left: -7, top: -7 }}
+            onChange={(e) => { onPick(e.target.value); onClose(); }}
+          />
+        </label>
+      </div>
     </div>
   );
 }
@@ -230,7 +286,7 @@ function FormatToolbar({
         </button>
         {openPicker === "bg" && (
           <ColorPopover
-            palette={BG_PALETTE}
+            value={shift.color}
             onPick={(c) => onChange({ ...shift, color: c })}
             onClear={() => onChange({ ...shift, color: null })}
             onClose={() => setOpenPicker(null)}
@@ -249,7 +305,7 @@ function FormatToolbar({
         </button>
         {openPicker === "text" && (
           <ColorPopover
-            palette={TEXT_PALETTE}
+            value={shift.text_color}
             onPick={(c) => onChange({ ...shift, text_color: c })}
             onClear={() => onChange({ ...shift, text_color: null })}
             onClose={() => setOpenPicker(null)}
