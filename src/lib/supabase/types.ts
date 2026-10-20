@@ -92,14 +92,7 @@ export interface Database {
           start_time: string | null;
           end_time: string | null;
           color: string | null;
-          text_color: string | null;
-          bold: boolean;
-          italic: boolean;
-          strikethrough: boolean;
-          font_size: number | null;
-          note: string | null;
           checklist_reminder_sent_at: string | null;
-          manually_edited_at: string | null;
         },
         {
           id?: number;
@@ -110,14 +103,7 @@ export interface Database {
           start_time?: string | null;
           end_time?: string | null;
           color?: string | null;
-          text_color?: string | null;
-          bold?: boolean;
-          italic?: boolean;
-          strikethrough?: boolean;
-          font_size?: number | null;
-          note?: string | null;
           checklist_reminder_sent_at?: string | null;
-          manually_edited_at?: string | null;
         }
       >;
       // Casual staff's self-declared "can't work" dates — see
