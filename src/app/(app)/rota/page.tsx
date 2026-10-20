@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Pencil } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useProfile } from "@/lib/profile-context";
@@ -439,7 +439,7 @@ export default function RotaPage() {
   const [staff, setStaff] = useState<Staff[]>([]);
   const [shifts, setShifts] = useState<Record<string, Record<string, Shift>>>({});
   const [openPicker, setOpenPicker] = useState<string | null>(null);
-  const [selected, setSelected] = useState<{ person: string; date: string } | null>(null);
+  const [selected, setSelected] = useState<{ person: string; date: string; field: "start" | "end" | null } | null>(null);
   const [editingCell, setEditingCell] = useState(false);
   const [cellDraft, setCellDraft] = useState("");
   const [undoStack, setUndoStack] = useState<UndoEntry[]>([]);
@@ -596,26 +596,55 @@ export default function RotaPage() {
     if (!selected) return;
     const person = staff.find((p) => p.name === selected.person);
     if (!person) return;
-    const parsed = parseCellText(cellDraft);
-    if (!parsed) return; // unrecognised text — discard rather than corrupt the shift
     const base = shifts[selected.person]?.[selected.date] ?? defaultShift;
+    if (selected.field) {
+      // A start/end sub-cell only ever edits its own one time value —
+      // the other field and the status stay exactly as they were.
+      const key = selected.field === "start" ? "start_time" : "end_time";
+      const trimmed = cellDraft.trim();
+      if (trimmed === "") {
+        saveShift(person, selected.date, { ...base, [key]: null });
+      } else {
+        const parsed = parseTimeInput(trimmed);
+        if (parsed) saveShift(person, selected.date, { ...base, [key]: parsed });
+        // unrecognised text — discard rather than corrupt the shift
+      }
+      return;
+    }
+    const parsed = parseCellText(cellDraft);
+    if (!parsed) return;
     saveShift(person, selected.date, { ...base, ...parsed });
   };
 
-  const handleCellKeyDown = (e: React.KeyboardEvent<HTMLTableCellElement>, shift: Shift | undefined) => {
+  const handleCellKeyDown = (
+    e: React.KeyboardEvent<HTMLTableCellElement>,
+    shift: Shift | undefined,
+    field: "start" | "end" | null
+  ) => {
     if (e.key === "Enter" || e.key === "F2") {
       e.preventDefault();
-      setCellDraft(shiftDisplayText(shift));
+      if (field) {
+        const value = field === "start" ? shift?.start_time : shift?.end_time;
+        setCellDraft(value ? formatTimeHHMM(value) ?? "" : "");
+      } else {
+        setCellDraft(shiftDisplayText(shift));
+      }
       setEditingCell(true);
     } else if (e.key === "Backspace" || e.key === "Delete") {
       e.preventDefault();
       if (!selected) return;
       const person = staff.find((p) => p.name === selected.person);
       if (!person) return;
-      // Clears the value but keeps formatting/notes, same as Sheets' own
-      // Delete key.
       const base = shifts[selected.person]?.[selected.date] ?? defaultShift;
-      saveShift(person, selected.date, { ...base, status: "off", start_time: null, end_time: null });
+      if (field) {
+        // Clears just this one time, keeping the other field, status and
+        // formatting untouched.
+        saveShift(person, selected.date, { ...base, [field === "start" ? "start_time" : "end_time"]: null });
+      } else {
+        // Clears the value but keeps formatting/notes, same as Sheets' own
+        // Delete key.
+        saveShift(person, selected.date, { ...base, status: "off", start_time: null, end_time: null });
+      }
     } else if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
       e.preventDefault();
       setCellDraft(e.key);
@@ -755,7 +784,14 @@ export default function RotaPage() {
         <FormatToolbar
           label={selected && selectedDay ? `${selected.person} · ${selectedDay.label}` : null}
           shift={selectedShift}
-          onChange={(next) => { if (selected && selectedPerson) saveShift(selectedPerson, selected.date, next); }}
+          onChange={(next) => {
+            if (!selected || !selectedPerson) return;
+            saveShift(selectedPerson, selected.date, next);
+            // A status change can switch the cell between the merged
+            // OFF/HOL layout and the split Start/Finish one — keep the
+            // selection pointing at a cell that still exists either way.
+            setSelected((s) => (s ? { ...s, field: next.status === "work" ? s.field ?? "start" : null } : s));
+          }}
           openPicker={openPicker}
           setOpenPicker={setOpenPicker}
           canUndo={undoStack.length > 0}
@@ -776,7 +812,8 @@ export default function RotaPage() {
           <thead>
             <tr>
               <th
-                className="text-left p-1.5 sticky left-0"
+                rowSpan={2}
+                className="text-left p-1.5 sticky left-0 align-bottom"
                 style={{ background: "#FFFFFF", color: ink, minWidth: 150, borderBottom: `1px solid ${GRID}`, borderRight: `1px solid ${GRID}` }}
               >
                 Name
@@ -784,14 +821,13 @@ export default function RotaPage() {
               {days.map((d) => (
                 <th
                   key={d.date}
+                  colSpan={2}
                   className="text-center p-1.5"
                   style={{
                     background: d.date === today ? "#E8EAED" : "#FFFFFF",
                     color: ink,
                     fontWeight: d.date === today ? 700 : 400,
-                    minWidth: 92,
                     borderLeft: `1px solid ${GRID}`,
-                    borderBottom: `1px solid ${GRID}`,
                   }}
                 >
                   <div>{d.day}</div>
@@ -799,6 +835,37 @@ export default function RotaPage() {
                     {d.label}
                   </div>
                 </th>
+              ))}
+            </tr>
+            <tr>
+              {days.map((d) => (
+                <Fragment key={d.date}>
+                  <th
+                    className="text-center p-1 font-normal"
+                    style={{
+                      background: d.date === today ? "#E8EAED" : "#FFFFFF",
+                      color: inkSoft,
+                      fontSize: 10,
+                      minWidth: 62,
+                      borderLeft: `1px solid ${GRID}`,
+                      borderBottom: `1px solid ${GRID}`,
+                    }}
+                  >
+                    Start
+                  </th>
+                  <th
+                    className="text-center p-1 font-normal"
+                    style={{
+                      background: d.date === today ? "#E8EAED" : "#FFFFFF",
+                      color: inkSoft,
+                      fontSize: 10,
+                      minWidth: 62,
+                      borderBottom: `1px solid ${GRID}`,
+                    }}
+                  >
+                    Finish
+                  </th>
+                </Fragment>
               ))}
             </tr>
           </thead>
@@ -818,72 +885,111 @@ export default function RotaPage() {
                 </td>
                 {days.map((d) => {
                   const shift = shifts[person.name]?.[d.date];
-                  const isSelected = editing && selected?.person === person.name && selected?.date === d.date;
-                  const isCellEditing = isSelected && editingCell;
-                  // The shift's own colour-coding (from the sheet, or now
-                  // set in-app) always shows.
                   const cellColor = shift?.color ?? null;
                   const textColor = shift?.text_color ?? (cellColor ? readableTextColor(cellColor) : undefined);
-                  return (
-                    <td
-                      key={d.date}
-                      ref={isSelected ? selectedCellRef : undefined}
-                      tabIndex={isSelected && !isCellEditing ? 0 : -1}
-                      onClick={() => { if (editing) { setSelected({ person: person.name, date: d.date }); setEditingCell(false); } }}
-                      onKeyDown={isSelected && !isCellEditing ? (e) => handleCellKeyDown(e, shift) : undefined}
-                      className="text-center p-1.5 relative"
-                      style={{
-                        background: cellColor ?? "#FFFFFF",
-                        color: textColor,
-                        fontWeight: shift?.bold ? 700 : undefined,
-                        fontStyle: shift?.italic ? "italic" : undefined,
-                        textDecoration: shift?.strikethrough ? "line-through" : undefined,
-                        fontSize: shift?.font_size ? `${shift.font_size}px` : undefined,
-                        cursor: editing ? "pointer" : undefined,
-                        boxShadow: isSelected ? `inset 0 0 0 2px ${SELECTION_COLOR}` : undefined,
-                        border: `1px solid ${GRID}`,
-                        outline: "none",
+                  const commonStyle = {
+                    background: cellColor ?? "#FFFFFF",
+                    color: textColor,
+                    fontWeight: shift?.bold ? 700 : undefined,
+                    fontStyle: shift?.italic ? "italic" : undefined,
+                    textDecoration: shift?.strikethrough ? "line-through" : undefined,
+                    fontSize: shift?.font_size ? `${shift.font_size}px` : undefined,
+                    cursor: editing ? "pointer" : undefined,
+                    border: `1px solid ${GRID}`,
+                    outline: "none",
+                  } as const;
+
+                  const editInput = (
+                    <input
+                      autoFocus
+                      value={cellDraft}
+                      onChange={(e) => setCellDraft(e.target.value)}
+                      onClick={(e) => e.stopPropagation()}
+                      onKeyDown={(e) => {
+                        e.stopPropagation();
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          commitCellEdit();
+                        } else if (e.key === "Escape") {
+                          e.preventDefault();
+                          cancelAction();
+                        }
                       }}
-                    >
-                      {shift?.note && !isCellEditing && (
-                        <div
-                          title={shift.note}
-                          className="absolute top-0 right-0"
-                          style={{ width: 0, height: 0, borderStyle: "solid", borderWidth: "0 7px 7px 0", borderColor: `transparent ${ink} transparent transparent` }}
-                        />
-                      )}
-                      {isCellEditing ? (
-                        <input
-                          autoFocus
-                          value={cellDraft}
-                          onChange={(e) => setCellDraft(e.target.value)}
-                          onClick={(e) => e.stopPropagation()}
-                          onKeyDown={(e) => {
-                            e.stopPropagation();
-                            if (e.key === "Enter") {
-                              e.preventDefault();
-                              commitCellEdit();
-                            } else if (e.key === "Escape") {
-                              e.preventDefault();
-                              cancelAction();
-                            }
-                          }}
-                          onBlur={() => commitCellEdit()}
-                          className="w-full text-center bg-transparent outline-none"
-                          style={{ color: "inherit", font: "inherit" }}
-                        />
-                      ) : shift?.status === "work" ? (
-                        <span>
-                          {formatTimeHHMM(shift.start_time)}–{formatTimeHHMM(shift.end_time)}
-                        </span>
-                      ) : shift?.status === "holiday" ? (
-                        <span style={{ color: textColor ?? warn }}>HOL</span>
-                      ) : shift?.status === "off" ? (
-                        <span style={{ color: textColor ?? inkSoft }}>OFF</span>
-                      ) : (
-                        <span style={{ color: textColor ?? inkSoft }}>–</span>
-                      )}
-                    </td>
+                      onBlur={() => commitCellEdit()}
+                      className="w-full text-center bg-transparent outline-none"
+                      style={{ color: "inherit", font: "inherit" }}
+                    />
+                  );
+
+                  // OFF / holiday / no shift at all has no start or finish
+                  // to split — one merged cell, same as before.
+                  if (shift?.status !== "work") {
+                    const isSelected = editing && selected?.person === person.name && selected?.date === d.date && selected?.field === null;
+                    const isCellEditing = isSelected && editingCell;
+                    return (
+                      <td
+                        key={d.date}
+                        colSpan={2}
+                        ref={isSelected ? selectedCellRef : undefined}
+                        tabIndex={isSelected && !isCellEditing ? 0 : -1}
+                        onClick={() => { if (editing) { setSelected({ person: person.name, date: d.date, field: null }); setEditingCell(false); } }}
+                        onKeyDown={isSelected && !isCellEditing ? (e) => handleCellKeyDown(e, shift, null) : undefined}
+                        className="text-center p-1.5 relative"
+                        style={{ ...commonStyle, boxShadow: isSelected ? `inset 0 0 0 2px ${SELECTION_COLOR}` : undefined }}
+                      >
+                        {shift?.note && !isCellEditing && (
+                          <div
+                            title={shift.note}
+                            className="absolute top-0 right-0"
+                            style={{ width: 0, height: 0, borderStyle: "solid", borderWidth: "0 7px 7px 0", borderColor: `transparent ${ink} transparent transparent` }}
+                          />
+                        )}
+                        {isCellEditing ? (
+                          editInput
+                        ) : shift?.status === "holiday" ? (
+                          <span style={{ color: textColor ?? warn }}>HOL</span>
+                        ) : shift?.status === "off" ? (
+                          <span style={{ color: textColor ?? inkSoft }}>OFF</span>
+                        ) : (
+                          <span style={{ color: textColor ?? inkSoft }}>–</span>
+                        )}
+                      </td>
+                    );
+                  }
+
+                  // Working: a separate Start cell and Finish cell, each
+                  // independently selectable/editable/clearable.
+                  const renderTimeCell = (field: "start" | "end") => {
+                    const isSelected = editing && selected?.person === person.name && selected?.date === d.date && selected?.field === field;
+                    const isCellEditing = isSelected && editingCell;
+                    const value = field === "start" ? shift.start_time : shift.end_time;
+                    return (
+                      <td
+                        key={`${d.date}-${field}`}
+                        ref={isSelected ? selectedCellRef : undefined}
+                        tabIndex={isSelected && !isCellEditing ? 0 : -1}
+                        onClick={() => { if (editing) { setSelected({ person: person.name, date: d.date, field }); setEditingCell(false); } }}
+                        onKeyDown={isSelected && !isCellEditing ? (e) => handleCellKeyDown(e, shift, field) : undefined}
+                        className="text-center p-1.5 relative"
+                        style={{ ...commonStyle, boxShadow: isSelected ? `inset 0 0 0 2px ${SELECTION_COLOR}` : undefined }}
+                      >
+                        {field === "start" && shift.note && !isCellEditing && (
+                          <div
+                            title={shift.note}
+                            className="absolute top-0 right-0"
+                            style={{ width: 0, height: 0, borderStyle: "solid", borderWidth: "0 7px 7px 0", borderColor: `transparent ${ink} transparent transparent` }}
+                          />
+                        )}
+                        {isCellEditing ? editInput : <span>{value ? formatTimeHHMM(value) : ""}</span>}
+                      </td>
+                    );
+                  };
+
+                  return (
+                    <Fragment key={d.date}>
+                      {renderTimeCell("start")}
+                      {renderTimeCell("end")}
+                    </Fragment>
                   );
                 })}
               </tr>
