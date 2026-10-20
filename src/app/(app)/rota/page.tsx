@@ -25,7 +25,88 @@ import {
 const EXCLUDED_STAFF_NAMES = new Set(["Nicola Smith", "alexandru.vadeanu@gmail.com"]);
 
 type Staff = { name: string; id: string | null };
-type Shift = { status: ShiftStatus; start_time: string | null; end_time: string | null; color: string | null };
+type Shift = {
+  status: ShiftStatus;
+  start_time: string | null;
+  end_time: string | null;
+  color: string | null;
+  text_color: string | null;
+  bold: boolean;
+};
+
+// Accepts loose spreadsheet-style typing — "9", "17", "9:30", "0900",
+// "5pm" — rather than requiring the browser's native HH:MM time picker.
+function parseTimeInput(raw: string): string | null {
+  const s = raw.trim().toLowerCase();
+  if (!s) return null;
+  if (/^\d{4}$/.test(s)) {
+    const h = parseInt(s.slice(0, 2), 10);
+    const min = parseInt(s.slice(2), 10);
+    if (h > 23 || min > 59) return null;
+    return `${String(h).padStart(2, "0")}:${String(min).padStart(2, "0")}`;
+  }
+  const m = /^(\d{1,2})(?::(\d{2}))?\s*(am|pm)?$/.exec(s);
+  if (!m) return null;
+  let h = parseInt(m[1], 10);
+  const min = m[2] ? parseInt(m[2], 10) : 0;
+  if (min > 59) return null;
+  if (m[3] === "pm" && h < 12) h += 12;
+  if (m[3] === "am" && h === 12) h = 0;
+  if (h > 23) return null;
+  return `${String(h).padStart(2, "0")}:${String(min).padStart(2, "0")}`;
+}
+
+// Background: soft pastels, readable with black text. Text: more
+// saturated, readable on white or a pastel background — same split
+// Google Sheets' own default swatch picker uses.
+const BG_PALETTE = ["#F4CCCC", "#FCE5CD", "#FFF2CC", "#D9EAD3", "#CFE2F3", "#D9D2E9", "#EAD1DC", "#D9D9D9"];
+const TEXT_PALETTE = ["#CC0000", "#E69138", "#BF9000", "#38761D", "#1155CC", "#741B47", "#000000", "#666666"];
+
+function ColorPopover({ palette, onPick, onClear, onClose }: { palette: string[]; onPick: (c: string) => void; onClear: () => void; onClose: () => void }) {
+  return (
+    <div
+      className="absolute z-20 p-1.5 rounded-xl grid grid-cols-5 gap-1"
+      style={{ background: "#FFFFFF", border: `1px solid ${border}`, top: "100%", left: 0, boxShadow: "0 2px 8px rgba(0,0,0,0.15)" }}
+    >
+      <button type="button" onClick={() => { onClear(); onClose(); }} title="Clear" className="w-5 h-5 rounded flex items-center justify-center text-[10px]" style={{ border: `1px solid ${border}`, color: ink }}>
+        ✕
+      </button>
+      {palette.map((c) => (
+        <button key={c} type="button" onClick={() => { onPick(c); onClose(); }} className="w-5 h-5 rounded" style={{ background: c, border: `1px solid ${border}` }} />
+      ))}
+      <label className="w-5 h-5 rounded relative cursor-pointer overflow-hidden" style={{ border: `1px solid ${border}` }} title="Custom colour">
+        <input
+          type="color"
+          className="absolute opacity-0 cursor-pointer"
+          style={{ width: 40, height: 40, left: -8, top: -8 }}
+          onChange={(e) => { onPick(e.target.value); onClose(); }}
+        />
+      </label>
+    </div>
+  );
+}
+
+function TimeField({ value, onCommit }: { value: string | null; onCommit: (hhmm: string) => void }) {
+  const [draft, setDraft] = useState(value ? value.slice(0, 5) : "");
+  useEffect(() => setDraft(value ? value.slice(0, 5) : ""), [value]);
+  return (
+    <input
+      type="text"
+      inputMode="numeric"
+      placeholder="09:00"
+      value={draft}
+      onChange={(e) => setDraft(e.target.value)}
+      onBlur={() => {
+        const parsed = parseTimeInput(draft);
+        if (parsed) onCommit(parsed);
+        else setDraft(value ? value.slice(0, 5) : "");
+      }}
+      onKeyDown={(e) => { if (e.key === "Enter") (e.target as HTMLInputElement).blur(); }}
+      className="text-xs rounded px-1 py-0.5 w-[62px] text-center"
+      style={{ border: `1px solid ${border}`, color: ink, background: fill }}
+    />
+  );
+}
 
 // Picks black or white text so it stays readable over whatever pastel the
 // sheet's cell was painted — same idea as the sheet itself, where the fill
@@ -51,6 +132,7 @@ export default function RotaPage() {
   const [editing, setEditing] = useState(false);
   const [staff, setStaff] = useState<Staff[]>([]);
   const [shifts, setShifts] = useState<Record<string, Record<string, Shift>>>({});
+  const [openPicker, setOpenPicker] = useState<string | null>(null);
 
   const days = useMemo(() => weekDates(weekStart), [weekStart]);
   const today = todayISO();
@@ -80,7 +162,7 @@ export default function RotaPage() {
       supabase.from("profiles").select("id, name").order("name"),
       supabase
         .from("rota_shifts")
-        .select("staff_id, staff_name, date, status, start_time, end_time, color")
+        .select("staff_id, staff_name, date, status, start_time, end_time, color, text_color, bold")
         .gte("date", weekStart)
         .lte("date", weekEnd),
       supabase.from("rota_staff_order").select("staff_name, sort_order"),
@@ -115,6 +197,8 @@ export default function RotaPage() {
         start_time: s.start_time,
         end_time: s.end_time,
         color: s.color,
+        text_color: s.text_color,
+        bold: s.bold,
       };
     }
     setShifts(shiftMap);
@@ -128,12 +212,18 @@ export default function RotaPage() {
     loadData();
   }, [loadData]);
 
+  const defaultShift: Shift = { status: "off", start_time: null, end_time: null, color: null, text_color: null, bold: false };
+
   const saveShift = async (person: Staff, date: string, shift: Shift) => {
     setShifts((prev) => ({ ...prev, [person.name]: { ...prev[person.name], [date]: shift } }));
     await supabase
       .from("rota_shifts")
       .upsert(
-        { staff_id: person.id, staff_name: person.name, date, ...shift },
+        // manually_edited_at marks this row as hand-edited in the app, so
+        // the next Google Sheet sync skips it for a while rather than
+        // silently reverting the change — see ROTA_PROTECT_WINDOW_HOURS
+        // in src/app/api/sync/rota-sheet/route.ts.
+        { staff_id: person.id, staff_name: person.name, date, ...shift, manually_edited_at: new Date().toISOString() },
         { onConflict: "staff_name,date" }
       );
   };
@@ -286,19 +376,22 @@ export default function RotaPage() {
                 {days.map((d) => {
                   const shift = shifts[person.name]?.[d.date];
                   const isToday = d.date === today;
-                  // The sheet's own colour-coding — not shown in edit mode
-                  // (where the select/time inputs take over the cell).
-                  // Today used to be a solid black fill, which hid it — now
-                  // today is marked with a coloured outline instead, so the
-                  // shift colour stays visible underneath.
-                  const cellColor = !editing ? shift?.color ?? null : null;
+                  // The shift's own colour-coding (from the sheet, or now
+                  // set in-app) shows in both modes — today used to be a
+                  // solid black fill, which hid it; now today is marked
+                  // with a border instead, so the shift colour stays
+                  // visible underneath, including while editing.
+                  const cellColor = shift?.color ?? null;
+                  const textColor = shift?.text_color ?? (cellColor ? readableTextColor(cellColor) : undefined);
+                  const cellKey = `${person.name}|${d.date}`;
                   return (
                     <td
                       key={d.date}
-                      className="text-center p-2"
+                      className="text-center p-2 relative"
                       style={{
                         background: cellColor ?? fill,
-                        color: cellColor ? readableTextColor(cellColor) : undefined,
+                        color: textColor,
+                        fontWeight: shift?.bold ? 700 : undefined,
                         borderBottom: isToday ? `2px solid ${orange}` : `1px solid ${border}`,
                         borderTop: isToday ? `2px solid ${orange}` : undefined,
                         borderLeft: isToday ? `2px solid ${orange}` : `1px solid ${border}`,
@@ -315,6 +408,8 @@ export default function RotaPage() {
                                 start_time: shift?.start_time ?? "09:00",
                                 end_time: shift?.end_time ?? "17:00",
                                 color: shift?.color ?? null,
+                                text_color: shift?.text_color ?? null,
+                                bold: shift?.bold ?? false,
                               })
                             }
                             className="text-xs rounded px-1 py-0.5"
@@ -326,37 +421,70 @@ export default function RotaPage() {
                           </select>
                           {shift?.status === "work" && (
                             <div className="flex gap-1">
-                              <input
-                                type="time"
-                                value={shift.start_time ?? ""}
-                                onChange={(e) =>
-                                  saveShift(person, d.date, { ...shift, start_time: e.target.value })
-                                }
-                                className="text-xs rounded px-1 py-0.5 w-[68px]"
-                                style={inputStyle}
-                              />
-                              <input
-                                type="time"
-                                value={shift.end_time ?? ""}
-                                onChange={(e) =>
-                                  saveShift(person, d.date, { ...shift, end_time: e.target.value })
-                                }
-                                className="text-xs rounded px-1 py-0.5 w-[68px]"
-                                style={inputStyle}
-                              />
+                              <TimeField value={shift.start_time} onCommit={(v) => saveShift(person, d.date, { ...shift, start_time: v })} />
+                              <TimeField value={shift.end_time} onCommit={(v) => saveShift(person, d.date, { ...shift, end_time: v })} />
                             </div>
                           )}
+                          <div className="flex gap-1 items-center">
+                            <div className="relative">
+                              <button
+                                type="button"
+                                title="Background colour"
+                                onClick={() => setOpenPicker(openPicker === `${cellKey}|bg` ? null : `${cellKey}|bg`)}
+                                className="w-5 h-5 rounded text-[9px] font-semibold"
+                                style={{ background: cellColor ?? fill, border: `1px solid ${border}`, color: cellColor ? readableTextColor(cellColor) : ink }}
+                              >
+                                Bg
+                              </button>
+                              {openPicker === `${cellKey}|bg` && (
+                                <ColorPopover
+                                  palette={BG_PALETTE}
+                                  onPick={(c) => saveShift(person, d.date, { ...(shift ?? defaultShift), color: c })}
+                                  onClear={() => saveShift(person, d.date, { ...(shift ?? defaultShift), color: null })}
+                                  onClose={() => setOpenPicker(null)}
+                                />
+                              )}
+                            </div>
+                            <div className="relative">
+                              <button
+                                type="button"
+                                title="Text colour"
+                                onClick={() => setOpenPicker(openPicker === `${cellKey}|text` ? null : `${cellKey}|text`)}
+                                className="w-5 h-5 rounded text-[10px] font-bold"
+                                style={{ background: fill, border: `1px solid ${border}`, color: shift?.text_color ?? ink }}
+                              >
+                                A
+                              </button>
+                              {openPicker === `${cellKey}|text` && (
+                                <ColorPopover
+                                  palette={TEXT_PALETTE}
+                                  onPick={(c) => saveShift(person, d.date, { ...(shift ?? defaultShift), text_color: c })}
+                                  onClear={() => saveShift(person, d.date, { ...(shift ?? defaultShift), text_color: null })}
+                                  onClose={() => setOpenPicker(null)}
+                                />
+                              )}
+                            </div>
+                            <button
+                              type="button"
+                              title="Bold"
+                              onClick={() => saveShift(person, d.date, { ...(shift ?? defaultShift), bold: !shift?.bold })}
+                              className="w-5 h-5 rounded text-[10px] font-bold"
+                              style={shift?.bold ? { background: ink, color: fill } : { border: `1px solid ${border}`, color: ink }}
+                            >
+                              B
+                            </button>
+                          </div>
                         </div>
                       ) : shift?.status === "work" ? (
                         <span>
                           {formatTimeHHMM(shift.start_time)}–{formatTimeHHMM(shift.end_time)}
                         </span>
                       ) : shift?.status === "holiday" ? (
-                        <span style={{ color: cellColor ? readableTextColor(cellColor) : warn }}>HOL</span>
+                        <span style={{ color: textColor ?? warn }}>HOL</span>
                       ) : shift?.status === "off" ? (
-                        <span style={{ color: cellColor ? readableTextColor(cellColor) : inkSoft }}>OFF</span>
+                        <span style={{ color: textColor ?? inkSoft }}>OFF</span>
                       ) : (
-                        <span style={{ color: cellColor ? readableTextColor(cellColor) : inkSoft }}>–</span>
+                        <span style={{ color: textColor ?? inkSoft }}>–</span>
                       )}
                     </td>
                   );

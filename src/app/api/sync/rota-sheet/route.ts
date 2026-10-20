@@ -8,6 +8,16 @@ import type { ShiftStatus } from "@/lib/supabase/types";
 
 type ChangedShift = { date: string; status: ShiftStatus; start_time: string | null; end_time: string | null };
 
+// A shift edited in-app more recently than this is left untouched by the
+// sheet sync, so a fresh in-app edit (hours, colour, bold) doesn't get
+// silently overwritten by the next catch-up sync — see
+// supabase/migrations/0050_rota_manual_formatting.sql. The Sheet is still
+// the long-run source of truth: once this window passes, it resumes
+// overwriting that cell normally. There's no reliable per-cell "last
+// edited" time from a CSV export, so this is an approximation, not a true
+// most-recent-edit-wins comparison.
+const ROTA_PROTECT_WINDOW_HOURS = 24;
+
 function describeShift(s: ChangedShift): string {
   if (s.status === "off") return "OFF";
   if (s.status === "holiday") return "Holiday";
@@ -90,24 +100,41 @@ export async function POST(request: Request) {
   // Fetched before the upsert, so a change notification only goes out for
   // what this sync actually altered — not for every row the sheet contains
   // (the hourly syncAllSheets catch-up re-sends every tab regardless of
-  // whether anyone touched it).
+  // whether anyone touched it). Also where recently-hand-edited shifts get
+  // identified so the upsert below can skip them.
   const changedByStaff = new Map<string, ChangedShift[]>();
+  let protectedCount = 0;
   if (shiftRows.length) {
     const dates = Array.from(new Set(shiftRows.map((r) => r.date)));
     const { data: existingRows } = await supabase
       .from("rota_shifts")
-      .select("staff_name, date, status, start_time, end_time")
+      .select("staff_name, date, status, start_time, end_time, manually_edited_at")
       .in("date", dates);
     const existingByKey = new Map(
       (existingRows ?? []).map((r) => [`${r.staff_name}|${r.date}`, r])
     );
 
-    const { error } = await supabase
-      .from("rota_shifts")
-      .upsert(shiftRows, { onConflict: "staff_name,date" });
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    const protectWindowMs = ROTA_PROTECT_WINDOW_HOURS * 60 * 60 * 1000;
+    const now = Date.now();
+    const isProtected = (key: string) => {
+      const editedAt = existingByKey.get(key)?.manually_edited_at;
+      return !!editedAt && now - new Date(editedAt).getTime() < protectWindowMs;
+    };
 
-    for (const row of shiftRows) {
+    const rowsToWrite = shiftRows.filter((row) => {
+      const protect = isProtected(`${row.staff_name}|${row.date}`);
+      if (protect) protectedCount++;
+      return !protect;
+    });
+
+    if (rowsToWrite.length) {
+      const { error } = await supabase
+        .from("rota_shifts")
+        .upsert(rowsToWrite, { onConflict: "staff_name,date" });
+      if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    for (const row of rowsToWrite) {
       if (!row.staff_id) continue;
       const existing = existingByKey.get(`${row.staff_name}|${row.date}`);
       // Postgres returns a `time` column as "HH:MM:SS", but the sheet only
@@ -165,7 +192,8 @@ export async function POST(request: Request) {
   return NextResponse.json({
     ok: true,
     datesSynced: parsed.dates,
-    shiftsWritten: shiftRows.length,
+    shiftsWritten: shiftRows.length - protectedCount,
+    shiftsProtected: protectedCount,
     eventsWritten: parsed.events.length,
     unmatched: Array.from(unmatched),
     coloursSynced: colorGrid !== null,
