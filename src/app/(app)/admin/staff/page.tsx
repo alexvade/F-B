@@ -16,6 +16,8 @@ type StaffRow = {
   role: Role;
   contract_hours: number | null;
   is_casual: boolean;
+  is_supervisor: boolean;
+  is_super_admin: boolean;
 };
 
 export default function StaffAdminPage() {
@@ -75,19 +77,30 @@ export default function StaffAdminPage() {
     }
   };
 
-  // One status covers both the role column and the separate is_casual flag
-  // — "Casual" is role=staff + is_casual=true, "Staff" is role=staff +
-  // is_casual=false, "Admin" is role=admin (never casual).
-  type Status = "casual" | "staff" | "admin";
-  const statusOf = (s: StaffRow): Status => (s.role === "admin" ? "admin" : s.is_casual ? "casual" : "staff");
+  // One status covers the role column plus two separate flags.
+  // "Supervisor" is a label only (see 0052_supervisor_status.sql) — it
+  // carries exactly the same permissions as "Team member" everywhere else
+  // in the app, same as how "Casual" is just role=staff + is_casual=true.
+  // "Super-admin" always implies role=admin too (see 0042's comment on that
+  // tier sitting on top of, not instead of, admin).
+  type Status = "super_admin" | "admin" | "supervisor" | "team_member" | "casual";
+  const statusOf = (s: StaffRow): Status => {
+    if (s.is_super_admin) return "super_admin";
+    if (s.role === "admin") return "admin";
+    if (s.is_casual) return "casual";
+    if (s.is_supervisor) return "supervisor";
+    return "team_member";
+  };
 
   const changeStatus = async (member: StaffRow, status: Status) => {
-    const newRole: Role = status === "admin" ? "admin" : "staff";
-    const newCasual = status === "casual";
-    setStaff((prev) =>
-      prev.map((s) => (s.id === member.id ? { ...s, role: newRole, is_casual: newCasual } : s))
-    );
-    await supabase.from("profiles").update({ role: newRole, is_casual: newCasual }).eq("id", member.id);
+    const patch = {
+      role: (status === "admin" || status === "super_admin" ? "admin" : "staff") as Role,
+      is_super_admin: status === "super_admin",
+      is_casual: status === "casual",
+      is_supervisor: status === "supervisor",
+    };
+    setStaff((prev) => prev.map((s) => (s.id === member.id ? { ...s, ...patch } : s)));
+    await supabase.from("profiles").update(patch).eq("id", member.id);
   };
 
   const deleteStaff = async (member: StaffRow) => {
@@ -205,13 +218,20 @@ export default function StaffAdminPage() {
               <select
                 value={statusOf(s)}
                 onChange={(e) => changeStatus(s, e.target.value as Status)}
-                title="Casual staff see the Availability page to mark days they can't work"
-                className="text-xs px-2 py-1 rounded-full outline-none"
+                disabled={s.id === profile.id}
+                title={
+                  s.id === profile.id
+                    ? "You can't change your own status here"
+                    : "Casual staff see the Availability page to mark days they can't work"
+                }
+                className="text-xs px-2 py-1 rounded-full outline-none disabled:opacity-60"
                 style={inputStyle}
               >
                 <option value="casual">Casual</option>
-                <option value="staff">Staff</option>
+                <option value="team_member">Team member</option>
+                <option value="supervisor">Supervisor</option>
                 <option value="admin">Admin</option>
+                <option value="super_admin">Super-admin</option>
               </select>
               {s.id !== profile.id && (
                 <button onClick={() => deleteStaff(s)} aria-label={`Delete ${s.name}`} style={{ color: "#000000" }}>
