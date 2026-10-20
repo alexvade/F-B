@@ -20,7 +20,8 @@ select cron.schedule(
   $$
   select net.http_get(
     url := 'https://www.team-ops.co.uk/api/cron/tick',
-    headers := jsonb_build_object('Authorization', 'Bearer REPLACE_WITH_YOUR_CRON_SECRET')
+    headers := jsonb_build_object('Authorization', 'Bearer REPLACE_WITH_YOUR_CRON_SECRET'),
+    timeout_milliseconds := 20000
   );
   $$
 );
