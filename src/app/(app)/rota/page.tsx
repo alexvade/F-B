@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Pencil } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useProfile } from "@/lib/profile-context";
@@ -44,6 +44,10 @@ type Shift = {
   note: string | null;
 };
 
+// One entry per saved change, oldest first — enough to restore the exact
+// prior Shift on undo, and to redo back to `next` afterwards.
+type UndoEntry = { person: Staff; date: string; prev: Shift | undefined; next: Shift };
+
 const defaultShift: Shift = {
   status: "off",
   start_time: null,
@@ -79,6 +83,34 @@ function parseTimeInput(raw: string): string | null {
   if (m[3] === "am" && h === 12) h = 0;
   if (h > 23) return null;
   return `${String(h).padStart(2, "0")}:${String(min).padStart(2, "0")}`;
+}
+
+// The text shown (and editable) directly in a selected cell — distinct
+// from "–" (no row at all) so typing Enter/F2 on an explicit OFF/HOL cell
+// re-opens that word rather than a blank box.
+function shiftDisplayText(shift?: Shift): string {
+  if (!shift || shift.status === "off") return shift ? "OFF" : "";
+  if (shift.status === "holiday") return "HOL";
+  return `${shift.start_time ? formatTimeHHMM(shift.start_time) : ""}-${shift.end_time ? formatTimeHHMM(shift.end_time) : ""}`;
+}
+
+// Parses whatever the user typed straight into a cell — "9-5", "09:00-17:30",
+// "off", "hol" — back into a status + times, the same loose spirit as
+// parseTimeInput. Returns null for anything unrecognised so the edit is
+// discarded rather than silently corrupting the shift.
+function parseCellText(raw: string): { status: ShiftStatus; start_time: string | null; end_time: string | null } | null {
+  const trimmed = raw.trim();
+  if (trimmed === "") return { status: "off", start_time: null, end_time: null };
+  const lower = trimmed.toLowerCase();
+  if (lower === "off") return { status: "off", start_time: null, end_time: null };
+  if (lower === "hol" || lower === "holiday") return { status: "holiday", start_time: null, end_time: null };
+  const parts = trimmed.split(/[-–]/).map((p) => p.trim()).filter(Boolean);
+  if (parts.length === 2) {
+    const start = parseTimeInput(parts[0]);
+    const end = parseTimeInput(parts[1]);
+    if (start && end) return { status: "work", start_time: start, end_time: end };
+  }
+  return null;
 }
 
 // Picks black or white text so it stays readable over whatever pastel the
@@ -238,23 +270,55 @@ function FormatToolbar({
   onChange,
   openPicker,
   setOpenPicker,
+  canUndo,
+  canRedo,
+  onUndo,
+  onRedo,
+  onCancel,
 }: {
   label: string | null;
   shift: Shift | null;
   onChange: (next: Shift) => void;
   openPicker: string | null;
   setOpenPicker: (k: string | null) => void;
+  canUndo: boolean;
+  canRedo: boolean;
+  onUndo: () => void;
+  onRedo: () => void;
+  onCancel: () => void;
 }) {
   const inputStyle = { border: `1px solid ${border}`, color: ink, background: fill } as const;
+  const historyStyle = (enabled: boolean) => ({
+    border: `1px solid ${border}`,
+    color: enabled ? ink : inkSoft,
+    opacity: enabled ? 1 : 0.4,
+  });
+  const history = (
+    <>
+      <button type="button" title="Undo (Ctrl+Z)" disabled={!canUndo} onClick={onUndo} className="text-xs font-medium px-2 py-1 rounded shrink-0" style={historyStyle(canUndo)}>
+        ↶ Undo
+      </button>
+      <button type="button" title="Redo (Ctrl+Y)" disabled={!canRedo} onClick={onRedo} className="text-xs font-medium px-2 py-1 rounded shrink-0" style={historyStyle(canRedo)}>
+        ↷ Redo
+      </button>
+      <button type="button" title="Cancel" onClick={onCancel} className="text-xs font-medium px-2 py-1 rounded shrink-0" style={{ border: `1px solid ${border}`, color: ink }}>
+        Cancel
+      </button>
+    </>
+  );
   if (!shift) {
     return (
-      <div className="flex items-center p-2.5 mb-3 rounded-xl" style={{ border: `1px solid ${border}`, background: "#F7F7F7" }}>
+      <div className="flex flex-wrap items-center gap-2 p-2.5 mb-3 rounded-xl" style={{ border: `1px solid ${border}`, background: "#F7F7F7" }}>
+        {history}
+        <div className="w-px h-6 shrink-0" style={{ background: border }} />
         <span className="text-xs" style={{ color: inkSoft }}>Click a cell below to edit it.</span>
       </div>
     );
   }
   return (
     <div className="flex flex-wrap items-center gap-2 p-2 mb-3 rounded-xl" style={{ border: `1px solid ${border}`, background: fill }}>
+      {history}
+      <div className="w-px h-6 shrink-0" style={{ background: border }} />
       <span className="text-xs font-semibold shrink-0 mr-1" style={{ color: ink }}>{label}</span>
       <select
         value={shift.status}
@@ -376,6 +440,11 @@ export default function RotaPage() {
   const [shifts, setShifts] = useState<Record<string, Record<string, Shift>>>({});
   const [openPicker, setOpenPicker] = useState<string | null>(null);
   const [selected, setSelected] = useState<{ person: string; date: string } | null>(null);
+  const [editingCell, setEditingCell] = useState(false);
+  const [cellDraft, setCellDraft] = useState("");
+  const [undoStack, setUndoStack] = useState<UndoEntry[]>([]);
+  const [redoStack, setRedoStack] = useState<UndoEntry[]>([]);
+  const selectedCellRef = useRef<HTMLTableCellElement | null>(null);
 
   const days = useMemo(() => weekDates(weekStart), [weekStart]);
   const today = todayISO();
@@ -464,9 +533,13 @@ export default function RotaPage() {
   useEffect(() => {
     setSelected(null);
     setOpenPicker(null);
+    setEditingCell(false);
   }, [weekStart, editing]);
 
-  const saveShift = async (person: Staff, date: string, shift: Shift) => {
+  // Only `applyShift` actually writes — `saveShift` is the one entry point
+  // every edit (toolbar or in-cell) goes through, so it's the one place
+  // that records undo history.
+  const applyShift = async (person: Staff, date: string, shift: Shift) => {
     setShifts((prev) => ({ ...prev, [person.name]: { ...prev[person.name], [date]: shift } }));
     await supabase
       .from("rota_shifts")
@@ -479,6 +552,104 @@ export default function RotaPage() {
         { onConflict: "staff_name,date" }
       );
   };
+
+  const saveShift = (person: Staff, date: string, next: Shift) => {
+    const prev = shifts[person.name]?.[date];
+    setUndoStack((u) => [...u, { person, date, prev, next }]);
+    setRedoStack([]);
+    void applyShift(person, date, next);
+  };
+
+  const undo = () => {
+    setUndoStack((u) => {
+      if (!u.length) return u;
+      const entry = u[u.length - 1];
+      setRedoStack((r) => [...r, entry]);
+      void applyShift(entry.person, entry.date, entry.prev ?? defaultShift);
+      return u.slice(0, -1);
+    });
+  };
+
+  const redo = () => {
+    setRedoStack((r) => {
+      if (!r.length) return r;
+      const entry = r[r.length - 1];
+      setUndoStack((u) => [...u, entry]);
+      void applyShift(entry.person, entry.date, entry.next);
+      return r.slice(0, -1);
+    });
+  };
+
+  // One button (and Escape) for both: discard an in-progress cell edit, or
+  // otherwise just drop the current selection.
+  const cancelAction = () => {
+    if (editingCell) {
+      setEditingCell(false);
+      return;
+    }
+    setSelected(null);
+    setOpenPicker(null);
+  };
+
+  const commitCellEdit = () => {
+    setEditingCell(false);
+    if (!selected) return;
+    const person = staff.find((p) => p.name === selected.person);
+    if (!person) return;
+    const parsed = parseCellText(cellDraft);
+    if (!parsed) return; // unrecognised text — discard rather than corrupt the shift
+    const base = shifts[selected.person]?.[selected.date] ?? defaultShift;
+    saveShift(person, selected.date, { ...base, ...parsed });
+  };
+
+  const handleCellKeyDown = (e: React.KeyboardEvent<HTMLTableCellElement>, shift: Shift | undefined) => {
+    if (e.key === "Enter" || e.key === "F2") {
+      e.preventDefault();
+      setCellDraft(shiftDisplayText(shift));
+      setEditingCell(true);
+    } else if (e.key === "Backspace" || e.key === "Delete") {
+      e.preventDefault();
+      if (!selected) return;
+      const person = staff.find((p) => p.name === selected.person);
+      if (!person) return;
+      // Clears the value but keeps formatting/notes, same as Sheets' own
+      // Delete key.
+      const base = shifts[selected.person]?.[selected.date] ?? defaultShift;
+      saveShift(person, selected.date, { ...base, status: "off", start_time: null, end_time: null });
+    } else if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
+      e.preventDefault();
+      setCellDraft(e.key);
+      setEditingCell(true);
+    }
+  };
+
+  // Keeps keyboard focus on whichever cell is selected, so typing starts an
+  // edit immediately — same as clicking a Sheets cell and just typing.
+  useEffect(() => {
+    if (selected && !editingCell) selectedCellRef.current?.focus({ preventScroll: true });
+  }, [selected, editingCell]);
+
+  // Ctrl/Cmd+Z and Ctrl/Cmd+Y (or Shift+Z) — but not while an actual input,
+  // textarea or select has focus, so this never fights a popover's own
+  // native undo (e.g. the note textarea).
+  useEffect(() => {
+    if (!editing) return;
+    const handler = (e: KeyboardEvent) => {
+      const tag = (e.target as HTMLElement | null)?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+      if (!(e.ctrlKey || e.metaKey)) return;
+      const key = e.key.toLowerCase();
+      if (key === "z" && !e.shiftKey) {
+        e.preventDefault();
+        undo();
+      } else if (key === "y" || (key === "z" && e.shiftKey)) {
+        e.preventDefault();
+        redo();
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  });
 
   const selectedPerson = selected ? staff.find((p) => p.name === selected.person) ?? null : null;
   const selectedShift = selected ? shifts[selected.person]?.[selected.date] ?? defaultShift : null;
@@ -587,13 +758,19 @@ export default function RotaPage() {
           onChange={(next) => { if (selected && selectedPerson) saveShift(selectedPerson, selected.date, next); }}
           openPicker={openPicker}
           setOpenPicker={setOpenPicker}
+          canUndo={undoStack.length > 0}
+          canRedo={redoStack.length > 0}
+          onUndo={undo}
+          onRedo={redo}
+          onCancel={cancelAction}
         />
       )}
 
       {/* A flatter, denser grid — sharp corners and uniform column widths,
           closer to an actual spreadsheet than the previous rounded, form-like
-          layout. Formatting is applied here for display, but only ever
-          changed via the toolbar above (click a cell to select it). */}
+          layout. Formatting still goes through the toolbar above; the value
+          itself (hours/OFF/HOL) can also be typed straight into whichever
+          cell is selected, same as a real spreadsheet. */}
       <div className="overflow-x-auto mb-6" style={{ border: `1px solid ${GRID}` }}>
         <table className="text-xs" style={{ borderCollapse: "collapse", minWidth: 720, width: "100%" }}>
           <thead>
@@ -642,6 +819,7 @@ export default function RotaPage() {
                 {days.map((d) => {
                   const shift = shifts[person.name]?.[d.date];
                   const isSelected = editing && selected?.person === person.name && selected?.date === d.date;
+                  const isCellEditing = isSelected && editingCell;
                   // The shift's own colour-coding (from the sheet, or now
                   // set in-app) always shows.
                   const cellColor = shift?.color ?? null;
@@ -649,7 +827,10 @@ export default function RotaPage() {
                   return (
                     <td
                       key={d.date}
-                      onClick={() => editing && setSelected({ person: person.name, date: d.date })}
+                      ref={isSelected ? selectedCellRef : undefined}
+                      tabIndex={isSelected && !isCellEditing ? 0 : -1}
+                      onClick={() => { if (editing) { setSelected({ person: person.name, date: d.date }); setEditingCell(false); } }}
+                      onKeyDown={isSelected && !isCellEditing ? (e) => handleCellKeyDown(e, shift) : undefined}
                       className="text-center p-1.5 relative"
                       style={{
                         background: cellColor ?? "#FFFFFF",
@@ -661,16 +842,37 @@ export default function RotaPage() {
                         cursor: editing ? "pointer" : undefined,
                         boxShadow: isSelected ? `inset 0 0 0 2px ${SELECTION_COLOR}` : undefined,
                         border: `1px solid ${GRID}`,
+                        outline: "none",
                       }}
                     >
-                      {shift?.note && (
+                      {shift?.note && !isCellEditing && (
                         <div
                           title={shift.note}
                           className="absolute top-0 right-0"
                           style={{ width: 0, height: 0, borderStyle: "solid", borderWidth: "0 7px 7px 0", borderColor: `transparent ${ink} transparent transparent` }}
                         />
                       )}
-                      {shift?.status === "work" ? (
+                      {isCellEditing ? (
+                        <input
+                          autoFocus
+                          value={cellDraft}
+                          onChange={(e) => setCellDraft(e.target.value)}
+                          onClick={(e) => e.stopPropagation()}
+                          onKeyDown={(e) => {
+                            e.stopPropagation();
+                            if (e.key === "Enter") {
+                              e.preventDefault();
+                              commitCellEdit();
+                            } else if (e.key === "Escape") {
+                              e.preventDefault();
+                              cancelAction();
+                            }
+                          }}
+                          onBlur={() => commitCellEdit()}
+                          className="w-full text-center bg-transparent outline-none"
+                          style={{ color: "inherit", font: "inherit" }}
+                        />
+                      ) : shift?.status === "work" ? (
                         <span>
                           {formatTimeHHMM(shift.start_time)}–{formatTimeHHMM(shift.end_time)}
                         </span>
