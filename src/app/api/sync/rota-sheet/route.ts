@@ -2,28 +2,6 @@ import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { parseRotaSheet } from "@/lib/rota-sheet";
 import { fetchRotaColorGrid } from "@/lib/google-sheet-colors";
-import { sendPushToStaff } from "@/lib/push";
-import { formatTimeHHMM, formatDDMM } from "@/lib/dates";
-import type { ShiftStatus } from "@/lib/supabase/types";
-
-type ChangedShift = { date: string; status: ShiftStatus; start_time: string | null; end_time: string | null };
-
-// A shift edited in-app more recently than this is left untouched by the
-// sheet sync, so a fresh in-app edit (hours, colour, bold) doesn't get
-// silently overwritten by the next catch-up sync — see
-// supabase/migrations/0050_rota_manual_formatting.sql. The Sheet is still
-// the long-run source of truth: once this window passes, it resumes
-// overwriting that cell normally. There's no reliable per-cell "last
-// edited" time from a CSV export, so this is an approximation, not a true
-// most-recent-edit-wins comparison.
-const ROTA_PROTECT_WINDOW_HOURS = 24;
-
-function describeShift(s: ChangedShift): string {
-  if (s.status === "off") return "OFF";
-  if (s.status === "holiday") return "Holiday";
-  if (s.start_time && s.end_time) return `${formatTimeHHMM(s.start_time)}–${formatTimeHHMM(s.end_time)}`;
-  return s.status;
-}
 
 // Called by the Apps Script bound to the F&B Rota Google Sheet whenever it's
 // edited (see docs/rota-sheet-sync.md for the script + setup steps). Fetches
@@ -97,61 +75,11 @@ export async function POST(request: Request) {
     };
   });
 
-  // Fetched before the upsert, so a change notification only goes out for
-  // what this sync actually altered — not for every row the sheet contains
-  // (the hourly syncAllSheets catch-up re-sends every tab regardless of
-  // whether anyone touched it). Also where recently-hand-edited shifts get
-  // identified so the upsert below can skip them.
-  const changedByStaff = new Map<string, ChangedShift[]>();
-  let protectedCount = 0;
   if (shiftRows.length) {
-    const dates = Array.from(new Set(shiftRows.map((r) => r.date)));
-    const { data: existingRows } = await supabase
+    const { error } = await supabase
       .from("rota_shifts")
-      .select("staff_name, date, status, start_time, end_time, manually_edited_at")
-      .in("date", dates);
-    const existingByKey = new Map(
-      (existingRows ?? []).map((r) => [`${r.staff_name}|${r.date}`, r])
-    );
-
-    const protectWindowMs = ROTA_PROTECT_WINDOW_HOURS * 60 * 60 * 1000;
-    const now = Date.now();
-    const isProtected = (key: string) => {
-      const editedAt = existingByKey.get(key)?.manually_edited_at;
-      return !!editedAt && now - new Date(editedAt).getTime() < protectWindowMs;
-    };
-
-    const rowsToWrite = shiftRows.filter((row) => {
-      const protect = isProtected(`${row.staff_name}|${row.date}`);
-      if (protect) protectedCount++;
-      return !protect;
-    });
-
-    if (rowsToWrite.length) {
-      const { error } = await supabase
-        .from("rota_shifts")
-        .upsert(rowsToWrite, { onConflict: "staff_name,date" });
-      if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-    }
-
-    for (const row of rowsToWrite) {
-      if (!row.staff_id) continue;
-      const existing = existingByKey.get(`${row.staff_name}|${row.date}`);
-      // Postgres returns a `time` column as "HH:MM:SS", but the sheet only
-      // ever produces "HH:MM" — comparing those directly made every timed
-      // shift look "changed" on every single sync (including the hourly
-      // syncAllSheets catch-up), flooding people with false-positive pushes.
-      const changed =
-        !existing ||
-        existing.status !== row.status ||
-        formatTimeHHMM(existing.start_time) !== formatTimeHHMM(row.start_time) ||
-        formatTimeHHMM(existing.end_time) !== formatTimeHHMM(row.end_time);
-      if (changed) {
-        const list = changedByStaff.get(row.staff_id) ?? [];
-        list.push({ date: row.date, status: row.status, start_time: row.start_time, end_time: row.end_time });
-        changedByStaff.set(row.staff_id, list);
-      }
-    }
+      .upsert(shiftRows, { onConflict: "staff_name,date" });
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
   if (parsed.dates.length) {
@@ -177,26 +105,12 @@ export async function POST(request: Request) {
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  await Promise.all(
-    Array.from(changedByStaff.entries()).map(([staffId, shifts]) => {
-      const sorted = [...shifts].sort((a, b) => a.date.localeCompare(b.date));
-      const body = sorted.map((s) => `${formatDDMM(s.date)}: ${describeShift(s)}`).join(", ");
-      return sendPushToStaff([staffId], {
-        title: "Your shift has changed",
-        body,
-        url: "/rota",
-      });
-    })
-  );
-
   return NextResponse.json({
     ok: true,
     datesSynced: parsed.dates,
-    shiftsWritten: shiftRows.length - protectedCount,
-    shiftsProtected: protectedCount,
+    shiftsWritten: shiftRows.length,
     eventsWritten: parsed.events.length,
     unmatched: Array.from(unmatched),
     coloursSynced: colorGrid !== null,
-    staffNotified: changedByStaff.size,
   });
 }
