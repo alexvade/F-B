@@ -94,6 +94,10 @@ export interface Database {
           color: string | null;
           text_color: string | null;
           bold: boolean;
+          italic: boolean;
+          strikethrough: boolean;
+          font_size: number | null;
+          note: string | null;
           checklist_reminder_sent_at: string | null;
           manually_edited_at: string | null;
         },
@@ -108,6 +112,10 @@ export interface Database {
           color?: string | null;
           text_color?: string | null;
           bold?: boolean;
+          italic?: boolean;
+          strikethrough?: boolean;
+          font_size?: number | null;
+          note?: string | null;
           checklist_reminder_sent_at?: string | null;
           manually_edited_at?: string | null;
         }
