@@ -30,6 +30,7 @@ const COMPOSER_PLACEHOLDERS = [
 type Comment = {
   id: number;
   authorName: string;
+  authorAvatarUrl: string | null;
   text: string | null;
   photo_url: string | null;
   file_url: string | null;
@@ -42,6 +43,7 @@ type Post = {
   id: number;
   authorId: string | null;
   authorName: string;
+  authorAvatarUrl: string | null;
   text: string | null;
   photo_url: string | null;
   file_url: string | null;
@@ -54,6 +56,25 @@ type Post = {
   pollVotes: PollVote[];
   pinned: boolean;
 };
+
+function Avatar({ name, avatarUrl, size }: { name: string; avatarUrl: string | null; size: number }) {
+  return avatarUrl ? (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={avatarUrl}
+      alt={name}
+      className="rounded-full object-cover shrink-0"
+      style={{ width: size, height: size }}
+    />
+  ) : (
+    <span
+      className="flex items-center justify-center rounded-full font-medium shrink-0"
+      style={{ width: size, height: size, background: navyText, color: orangeSoft, fontSize: size <= 18 ? 9 : 12 }}
+    >
+      {initials(name)}
+    </span>
+  );
+}
 
 function AttachmentPreview({
   url,
@@ -141,25 +162,32 @@ export default function UpdatesPage() {
       ])
     ) as string[];
     const { data: profiles } = ids.length
-      ? await supabase.from("profiles").select("id, name").in("id", ids)
+      ? await supabase.from("profiles").select("id, name, avatar_url").in("id", ids)
       : { data: [] };
     const nameById = new Map((profiles ?? []).map((p) => [p.id, p.name]));
+    const avatarPathById = new Map((profiles ?? []).map((p) => [p.id, p.avatar_url]));
 
     const storedPaths = Array.from(
       new Set([
         ...(postRows ?? []).flatMap((p) => [p.photo_url, p.file_url].filter(Boolean)),
         ...(commentRows ?? []).flatMap((c) => [c.photo_url, c.file_url].filter(Boolean)),
+        ...(profiles ?? []).map((p) => p.avatar_url).filter(Boolean),
       ])
     ) as string[];
     const signedByPath = new Map(
       await Promise.all(storedPaths.map(async (p) => [p, await getAttachmentUrl(p)] as const))
     );
+    const avatarUrlFor = (authorId: string | null) => {
+      const path = authorId ? avatarPathById.get(authorId) : null;
+      return path ? signedByPath.get(path) ?? null : null;
+    };
 
     setPosts(
       (postRows ?? []).map((p) => ({
         id: p.id,
         authorId: p.author_id,
         authorName: nameById.get(p.author_id ?? "") ?? "Someone",
+        authorAvatarUrl: avatarUrlFor(p.author_id),
         text: p.text,
         photo_url: p.photo_url,
         file_url: p.file_url,
@@ -177,6 +205,7 @@ export default function UpdatesPage() {
           .map((c) => ({
             id: c.id,
             authorName: nameById.get(c.author_id ?? "") ?? "Someone",
+            authorAvatarUrl: avatarUrlFor(c.author_id),
             text: c.text,
             photo_url: c.photo_url,
             file_url: c.file_url,
@@ -431,12 +460,7 @@ export default function UpdatesPage() {
             )}
             <div className="flex items-baseline justify-between">
               <span className="flex items-center gap-2">
-                <span
-                  className="flex items-center justify-center rounded-full text-xs font-medium shrink-0"
-                  style={{ width: 24, height: 24, background: navyText, color: orangeSoft }}
-                >
-                  {initials(p.authorName)}
-                </span>
+                <Avatar name={p.authorName} avatarUrl={p.authorAvatarUrl} size={24} />
                 <span className="text-sm font-medium">{p.authorName}</span>
               </span>
               <span className="flex items-center gap-2 shrink-0">
@@ -523,12 +547,7 @@ export default function UpdatesPage() {
                 {p.comments.map((c) => (
                   <div key={c.id}>
                     <div className="flex items-center gap-1.5">
-                      <span
-                        className="flex items-center justify-center rounded-full text-xs font-medium shrink-0"
-                        style={{ width: 18, height: 18, background: navyText, color: orangeSoft, fontSize: 9 }}
-                      >
-                        {initials(c.authorName)}
-                      </span>
+                      <Avatar name={c.authorName} avatarUrl={c.authorAvatarUrl} size={18} />
                       <span className="text-xs font-medium">{c.authorName}</span>
                     </div>
                     {c.text && (
