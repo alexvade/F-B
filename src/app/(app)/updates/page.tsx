@@ -32,6 +32,7 @@ const COMPOSER_PLACEHOLDERS = [
 
 type Comment = {
   id: number;
+  authorId: string | null;
   authorName: string;
   authorAvatarUrl: string | null;
   text: string | null;
@@ -217,6 +218,7 @@ export default function UpdatesPage() {
           .filter((c) => c.post_id === p.id)
           .map((c) => ({
             id: c.id,
+            authorId: c.author_id,
             authorName: nameById.get(c.author_id ?? "") ?? "Someone",
             authorAvatarUrl: avatarUrlFor(c.author_id),
             text: c.text,
@@ -323,8 +325,8 @@ export default function UpdatesPage() {
     loadPosts();
   };
 
-  // Open to every user, not just the comment's own author or an admin —
-  // see 0054_delete_any_comment.sql.
+  // The comment's own author or a super admin only — see the button's own
+  // gate below and 0055_comment_delete_scope.sql.
   const deleteComment = async (comment: Comment) => {
     if (!confirm("Delete this comment?")) return;
     await supabase.from("comments").delete().eq("id", comment.id);
@@ -587,9 +589,11 @@ export default function UpdatesPage() {
                         <Avatar name={c.authorName} avatarUrl={c.authorAvatarUrl} size={18} />
                         <span className="text-xs font-medium">{c.authorName}</span>
                       </span>
-                      <button onClick={() => deleteComment(c)} style={{ color: inkSoft }} title="Delete comment">
-                        <Trash2 size={12} />
-                      </button>
+                      {(c.authorId === profile.id || profile.is_super_admin) && (
+                        <button onClick={() => deleteComment(c)} style={{ color: inkSoft }} title="Delete comment">
+                          <Trash2 size={12} />
+                        </button>
+                      )}
                     </div>
                     {c.text && (
                       <p className="text-xs mt-0.5" style={{ color: inkSoft }}>
