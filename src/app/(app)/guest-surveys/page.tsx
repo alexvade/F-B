@@ -8,7 +8,9 @@ import { useFeatureFlag } from "@/lib/feature-flags-context";
 import { Section } from "@/components/section";
 import { GuestSurveyInsights, GuestSurveyMentions } from "@/components/guest-survey-insights";
 import { bestGuestComment } from "@/lib/guest-survey-dashboard";
-import { bg, border, ink, inkSoft } from "@/lib/design-tokens";
+import { MentionTextarea } from "@/components/mention-field";
+import type { MentionablePerson } from "@/lib/mentions";
+import { bg, border, fill, ink, inkSoft, navy } from "@/lib/design-tokens";
 
 type Answer = { question: string; answer: string | null };
 type Survey = {
@@ -61,6 +63,16 @@ export default function GuestSurveysPage() {
   const [filters, setFilters] = useState<ResponseFilters>(emptyResponseFilters());
   const [sharingId, setSharingId] = useState<number | null>(null);
   const [sharedMessage, setSharedMessage] = useState<{ surveyId: number; text: string } | null>(null);
+  const [composingId, setComposingId] = useState<number | null>(null);
+  const [composeDraft, setComposeDraft] = useState("");
+  const [people, setPeople] = useState<MentionablePerson[]>([]);
+  useEffect(() => {
+    supabase
+      .from("profiles")
+      .select("id, name")
+      .order("name")
+      .then(({ data }) => setPeople(data ?? []));
+  }, [supabase]);
 
   const loadData = useCallback(async () => {
     const { data } = await supabase
@@ -90,16 +102,28 @@ export default function GuestSurveysPage() {
   };
 
   // Super-admin-only — see profile.is_super_admin gate on the button below.
-  // Posts as a normal Noticeboard post (same push-notification path as the
-  // composer), just pre-filled from the review instead of typed by hand.
+  const openComposer = (survey: Survey) => {
+    setComposingId(survey.id);
+    setComposeDraft("");
+    setSharedMessage(null);
+  };
+  const cancelComposer = () => {
+    setComposingId(null);
+    setComposeDraft("");
+  };
+
+  // Posts as a normal Noticeboard post (same push-notification/@mention
+  // path as the composer there), just with the survey summary appended
+  // after whatever comment was typed above it.
   const shareToNoticeboard = async (survey: Survey) => {
     setSharingId(survey.id);
     setSharedMessage(null);
     try {
-      const comment = bestGuestComment(survey.answers);
+      const quote = bestGuestComment(survey.answers);
       const scoreBit = survey.overall_score != null ? ` — scored ${survey.overall_score}/10${survey.nps_category ? ` (${survey.nps_category})` : ""}` : "";
       const header = `Guest review from ${survey.guest_name}${scoreBit}`;
-      const text = comment ? `${header}\n\n"${comment}"` : header;
+      const parts = [composeDraft.trim(), header, quote ? `"${quote}"` : null].filter((p): p is string => !!p);
+      const text = parts.join("\n\n");
       const { data: inserted, error } = await supabase
         .from("posts")
         .insert({ author_id: profile.id, text })
@@ -113,6 +137,8 @@ export default function GuestSurveysPage() {
           body: JSON.stringify({ postId: inserted.id }),
         }).catch(() => {});
       }
+      setComposingId(null);
+      setComposeDraft("");
       setSharedMessage({ surveyId: survey.id, text: `Shared ${survey.guest_name}'s review to the Noticeboard.` });
     } catch {
       setSharedMessage({ surveyId: survey.id, text: "Couldn't share that review — try again." });
@@ -340,14 +366,13 @@ export default function GuestSurveysPage() {
                           <ExternalLink size={13} /> View in ReviewPro
                         </a>
                       )}
-                      {profile.is_super_admin && (
+                      {profile.is_super_admin && composingId !== s.id && (
                         <button
-                          onClick={() => shareToNoticeboard(s)}
-                          disabled={sharingId === s.id}
-                          className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-2xl disabled:opacity-60"
+                          onClick={() => openComposer(s)}
+                          className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-2xl"
                           style={{ background: "#FFFFFF", color: ink, border: `1px solid ${border}` }}
                         >
-                          <Share2 size={13} /> {sharingId === s.id ? "Sharing…" : "Share to Noticeboard"}
+                          <Share2 size={13} /> Share to Noticeboard
                         </button>
                       )}
                       {isAdmin && (
@@ -360,6 +385,40 @@ export default function GuestSurveysPage() {
                         </button>
                       )}
                     </div>
+                    {composingId === s.id && (
+                      <div className="mt-2 p-3 rounded-2xl" style={{ background: bg, border: `1px solid ${border}` }}>
+                        <div className="text-xs font-medium mb-1.5" style={{ color: inkSoft }}>
+                          Add a note — posts above the review summary
+                        </div>
+                        <MentionTextarea
+                          value={composeDraft}
+                          onChange={setComposeDraft}
+                          people={people}
+                          placeholder="Great job team! 🎉"
+                          rows={2}
+                          className="w-full text-sm resize-none outline-none px-3.5 py-2 rounded-2xl"
+                          style={{ color: ink, background: fill, border: `1px solid ${border}` }}
+                        />
+                        <div className="flex items-center gap-2 mt-2">
+                          <button
+                            onClick={() => shareToNoticeboard(s)}
+                            disabled={sharingId === s.id}
+                            className="text-xs font-medium px-3.5 py-1.5 rounded-2xl disabled:opacity-60"
+                            style={{ background: navy, color: "#FFFFFF" }}
+                          >
+                            {sharingId === s.id ? "Posting…" : "Post"}
+                          </button>
+                          <button
+                            onClick={cancelComposer}
+                            disabled={sharingId === s.id}
+                            className="text-xs font-medium px-3.5 py-1.5 rounded-2xl disabled:opacity-60"
+                            style={{ background: "#FFFFFF", color: ink, border: `1px solid ${border}` }}
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    )}
                     {sharedMessage?.surveyId === s.id && (
                       <p className="text-xs mt-2" style={{ color: inkSoft }}>
                         {sharedMessage.text}
