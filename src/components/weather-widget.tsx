@@ -1,24 +1,82 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import {
-  Sun,
-  CloudSun,
-  Cloud,
-  CloudFog,
-  CloudDrizzle,
-  CloudRain,
-  CloudSnow,
-  CloudLightning,
-  MapPin,
-  ChevronDown,
-  ChevronUp,
-  Droplets,
-  Eye,
-  Gauge,
-} from "lucide-react";
-import type { LucideIcon } from "lucide-react";
+import { MapPin, ChevronDown, ChevronUp, Droplets, Eye, Gauge } from "lucide-react";
 import { bg, border, ink, inkSoft, navyText } from "@/lib/design-tokens";
+
+// Bold, solid-shape weather glyphs — a single filled silhouette per
+// condition group in its own colour (set via `style.color`, read as
+// `currentColor`), rather than lucide's thin two-tone outline icons. Same
+// cloud silhouette reused as the base for every non-sunny condition so
+// they read as one consistent icon family.
+type WeatherIconProps = { size?: number; style?: React.CSSProperties };
+const CLOUD_PATH = "M7 19a4.5 4.5 0 0 1-.5-8.98A6 6 0 0 1 18 9a4.5 4.5 0 0 1-1 8.9V19H7Z";
+
+function SunIcon({ size = 24, style }: WeatherIconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" style={style}>
+      <circle cx="12" cy="12" r="8" fill="currentColor" />
+    </svg>
+  );
+}
+
+function PartlyCloudyIcon({ size = 24, style }: WeatherIconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" style={style}>
+      <circle cx="16.5" cy="7.5" r="5" fill="currentColor" />
+      <path d={CLOUD_PATH} fill="currentColor" />
+    </svg>
+  );
+}
+
+function CloudyIcon({ size = 24, style }: WeatherIconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" style={style}>
+      <path d={CLOUD_PATH} fill="currentColor" />
+    </svg>
+  );
+}
+
+function FogIcon({ size = 24, style }: WeatherIconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" style={style}>
+      <path d={CLOUD_PATH} fill="currentColor" opacity="0.85" />
+      <rect x="4" y="20.2" width="16" height="1.6" rx="0.8" fill="currentColor" />
+      <rect x="7" y="22.4" width="10" height="1.6" rx="0.8" fill="currentColor" />
+    </svg>
+  );
+}
+
+function RainIcon({ size = 24, style }: WeatherIconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" style={style}>
+      <path d={CLOUD_PATH} fill="currentColor" />
+      <path d="M8 19.3c0-.9.7-1.6 1-2.3.3.7 1 1.4 1 2.3a1 1 0 0 1-2 0Z" fill="currentColor" />
+      <path d="M12.8 19.3c0-.9.7-1.6 1-2.3.3.7 1 1.4 1 2.3a1 1 0 0 1-2 0Z" fill="currentColor" />
+      <path d="M17.6 19.3c0-.9.7-1.6 1-2.3.3.7 1 1.4 1 2.3a1 1 0 0 1-2 0Z" fill="currentColor" />
+    </svg>
+  );
+}
+
+function SnowIcon({ size = 24, style }: WeatherIconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" style={style}>
+      <path d={CLOUD_PATH} fill="currentColor" />
+      <circle cx="9" cy="19.3" r="1.3" fill="currentColor" />
+      <circle cx="13.8" cy="19.3" r="1.3" fill="currentColor" />
+      <circle cx="18.6" cy="19.3" r="1.3" fill="currentColor" />
+    </svg>
+  );
+}
+
+function StormIcon({ size = 24, style }: WeatherIconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" style={style}>
+      <path d={CLOUD_PATH} fill="currentColor" />
+      <path d="M13.2 16.5 9.8 21.2h2.6l-1 3.1 4.3-5.4h-2.6l1.1-2.4Z" fill="currentColor" />
+    </svg>
+  );
+}
 
 type DayForecast = { date: string; weatherCode: number; high: number; low: number };
 type HourForecast = { time: string; label: string; tempC: number; weatherCode: number };
@@ -39,35 +97,35 @@ type WeatherData = {
 // colours and the Insights charts) — just the icon itself, so it reads at a
 // glance the way a phone's own weather app does; everything else on this
 // widget (numbers, labels, the hourly chart) stays plain black/white.
-const CONDITIONS: Record<number, { label: string; Icon: LucideIcon; color: string }> = {
-  0: { label: "Clear sky", Icon: Sun, color: "#F2A900" },
-  1: { label: "Mostly clear", Icon: Sun, color: "#F2A900" },
-  2: { label: "Partly cloudy", Icon: CloudSun, color: "#E0A62E" },
-  3: { label: "Overcast", Icon: Cloud, color: "#8A8F98" },
-  45: { label: "Foggy", Icon: CloudFog, color: "#93A5B8" },
-  48: { label: "Foggy", Icon: CloudFog, color: "#93A5B8" },
-  51: { label: "Light drizzle", Icon: CloudDrizzle, color: "#3B82C4" },
-  53: { label: "Drizzle", Icon: CloudDrizzle, color: "#3B82C4" },
-  55: { label: "Heavy drizzle", Icon: CloudDrizzle, color: "#2E6CA3" },
-  56: { label: "Freezing drizzle", Icon: CloudDrizzle, color: "#5B8FBF" },
-  57: { label: "Freezing drizzle", Icon: CloudDrizzle, color: "#5B8FBF" },
-  61: { label: "Light rain", Icon: CloudRain, color: "#3B82C4" },
-  63: { label: "Rain", Icon: CloudRain, color: "#2E6CA3" },
-  65: { label: "Heavy rain", Icon: CloudRain, color: "#1F5485" },
-  66: { label: "Freezing rain", Icon: CloudRain, color: "#5B8FBF" },
-  67: { label: "Freezing rain", Icon: CloudRain, color: "#5B8FBF" },
-  71: { label: "Light snow", Icon: CloudSnow, color: "#7FCBE0" },
-  73: { label: "Snow", Icon: CloudSnow, color: "#63BBD6" },
-  75: { label: "Heavy snow", Icon: CloudSnow, color: "#4AA7C4" },
-  77: { label: "Snow grains", Icon: CloudSnow, color: "#7FCBE0" },
-  80: { label: "Rain showers", Icon: CloudRain, color: "#3B82C4" },
-  81: { label: "Rain showers", Icon: CloudRain, color: "#2E6CA3" },
-  82: { label: "Heavy showers", Icon: CloudRain, color: "#1F5485" },
-  85: { label: "Snow showers", Icon: CloudSnow, color: "#7FCBE0" },
-  86: { label: "Snow showers", Icon: CloudSnow, color: "#63BBD6" },
-  95: { label: "Thunderstorm", Icon: CloudLightning, color: "#7C5CBF" },
-  96: { label: "Thunderstorm", Icon: CloudLightning, color: "#7C5CBF" },
-  99: { label: "Thunderstorm", Icon: CloudLightning, color: "#6246A3" },
+const CONDITIONS: Record<number, { label: string; Icon: (props: WeatherIconProps) => React.ReactElement; color: string }> = {
+  0: { label: "Clear sky", Icon: SunIcon, color: "#F2A900" },
+  1: { label: "Mostly clear", Icon: SunIcon, color: "#F2A900" },
+  2: { label: "Partly cloudy", Icon: PartlyCloudyIcon, color: "#E0A62E" },
+  3: { label: "Overcast", Icon: CloudyIcon, color: "#8A8F98" },
+  45: { label: "Foggy", Icon: FogIcon, color: "#93A5B8" },
+  48: { label: "Foggy", Icon: FogIcon, color: "#93A5B8" },
+  51: { label: "Light drizzle", Icon: RainIcon, color: "#3B82C4" },
+  53: { label: "Drizzle", Icon: RainIcon, color: "#3B82C4" },
+  55: { label: "Heavy drizzle", Icon: RainIcon, color: "#2E6CA3" },
+  56: { label: "Freezing drizzle", Icon: RainIcon, color: "#5B8FBF" },
+  57: { label: "Freezing drizzle", Icon: RainIcon, color: "#5B8FBF" },
+  61: { label: "Light rain", Icon: RainIcon, color: "#3B82C4" },
+  63: { label: "Rain", Icon: RainIcon, color: "#2E6CA3" },
+  65: { label: "Heavy rain", Icon: RainIcon, color: "#1F5485" },
+  66: { label: "Freezing rain", Icon: RainIcon, color: "#5B8FBF" },
+  67: { label: "Freezing rain", Icon: RainIcon, color: "#5B8FBF" },
+  71: { label: "Light snow", Icon: SnowIcon, color: "#7FCBE0" },
+  73: { label: "Snow", Icon: SnowIcon, color: "#63BBD6" },
+  75: { label: "Heavy snow", Icon: SnowIcon, color: "#4AA7C4" },
+  77: { label: "Snow grains", Icon: SnowIcon, color: "#7FCBE0" },
+  80: { label: "Rain showers", Icon: RainIcon, color: "#3B82C4" },
+  81: { label: "Rain showers", Icon: RainIcon, color: "#2E6CA3" },
+  82: { label: "Heavy showers", Icon: RainIcon, color: "#1F5485" },
+  85: { label: "Snow showers", Icon: SnowIcon, color: "#7FCBE0" },
+  86: { label: "Snow showers", Icon: SnowIcon, color: "#63BBD6" },
+  95: { label: "Thunderstorm", Icon: StormIcon, color: "#7C5CBF" },
+  96: { label: "Thunderstorm", Icon: StormIcon, color: "#7C5CBF" },
+  99: { label: "Thunderstorm", Icon: StormIcon, color: "#6246A3" },
 };
 
 const REFRESH_MS = 10 * 60 * 1000;
@@ -146,12 +204,12 @@ export function WeatherWidget() {
   }, []);
 
   const todayCondition = weather ? CONDITIONS[weather.weatherCode] : undefined;
-  const TodayIcon = todayCondition?.Icon ?? Cloud;
+  const TodayIcon = todayCondition?.Icon ?? CloudyIcon;
   const today = weather?.daily[0];
 
   const selected = weather?.daily[selectedDay];
   const selectedCondition = selected ? CONDITIONS[selected.weatherCode] : undefined;
-  const SelectedIcon = selectedCondition?.Icon ?? Cloud;
+  const SelectedIcon = selectedCondition?.Icon ?? CloudyIcon;
 
   return (
     <>
