@@ -7,11 +7,18 @@ import { useProfile } from "@/lib/profile-context";
 import { useFeatureFlag } from "@/lib/feature-flags-context";
 import { Section } from "@/components/section";
 import { bg, border, ink, inkSoft, navy } from "@/lib/design-tokens";
-import { uploadAttachment, getAttachmentUrl } from "@/lib/storage";
+import { uploadAttachment, getAttachmentUrl, deleteAttachment } from "@/lib/storage";
 import { NAV_ITEMS, DEFAULT_ISLAND_LEFT, DEFAULT_ISLAND_RIGHT } from "@/components/nav-shell";
+import type { StatusTier } from "@/lib/page-access";
 import { User, Users, ChevronRight } from "lucide-react";
 
 type Flag = { key: string; label: string; description: string };
+type FlagRow = { enabled: boolean; casual_enabled: boolean; supervisor_enabled: boolean; team_member_enabled: boolean };
+const STATUS_TIERS: { tier: StatusTier; label: string }[] = [
+  { tier: "casual", label: "Casual" },
+  { tier: "supervisor", label: "Supervisor" },
+  { tier: "team_member", label: "Team member" },
+];
 
 const FLAG_GROUPS: { group: string; flags: Flag[] }[] = [
   {
@@ -197,7 +204,7 @@ export default function SettingsPage() {
     return isAdmin || !item.adminOnly || (item.staffFlag && resolvedFlags[item.staffFlag]);
   });
 
-  const [flags, setFlags] = useState<Record<string, boolean>>({});
+  const [flags, setFlags] = useState<Record<string, FlagRow>>({});
   const [savingKey, setSavingKey] = useState<string | null>(null);
 
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
@@ -289,8 +296,22 @@ export default function SettingsPage() {
   };
 
   const loadData = useCallback(async () => {
-    const { data } = await supabase.from("feature_flags").select("key, enabled");
-    setFlags(Object.fromEntries((data ?? []).map((f) => [f.key, f.enabled])));
+    const { data } = await supabase
+      .from("feature_flags")
+      .select("key, enabled, casual_enabled, supervisor_enabled, team_member_enabled");
+    setFlags(
+      Object.fromEntries(
+        (data ?? []).map((f) => [
+          f.key,
+          {
+            enabled: f.enabled,
+            casual_enabled: f.casual_enabled,
+            supervisor_enabled: f.supervisor_enabled,
+            team_member_enabled: f.team_member_enabled,
+          },
+        ])
+      )
+    );
   }, [supabase]);
 
   useEffect(() => {
@@ -304,15 +325,51 @@ export default function SettingsPage() {
     };
   }, [loadData, supabase]);
 
+  // Simple on/off flags (Content editing, Noticeboard) — unchanged, still
+  // one switch for every non-admin status.
   const toggle = async (key: string) => {
     setSavingKey(key);
-    const nextEnabled = !flags[key];
+    const nextEnabled = !flags[key]?.enabled;
     try {
       const { error } = await supabase
         .from("feature_flags")
         .update({ enabled: nextEnabled, updated_by: profile.id, updated_at: new Date().toISOString() })
         .eq("key", key);
-      if (!error) setFlags((prev) => ({ ...prev, [key]: nextEnabled }));
+      if (!error) setFlags((prev) => ({ ...prev, [key]: { ...prev[key], enabled: nextEnabled } }));
+    } finally {
+      setSavingKey(null);
+    }
+  };
+
+  const STATUS_COLUMN = {
+    casual: "casual_enabled",
+    supervisor: "supervisor_enabled",
+    team_member: "team_member_enabled",
+  } as const;
+
+  // Page-access flags — one independent switch per status. `enabled` is
+  // kept as "any of the three" alongside it, since a couple of these keys
+  // (stock_orders_edit) double as a write-permission check elsewhere that
+  // still reads the single `enabled` column.
+  const toggleStatus = async (key: string, tier: StatusTier) => {
+    const column = STATUS_COLUMN[tier];
+    const current = flags[key] ?? { enabled: false, casual_enabled: false, supervisor_enabled: false, team_member_enabled: false };
+    const next: FlagRow = { ...current, [column]: !current[column] };
+    next.enabled = next.casual_enabled || next.supervisor_enabled || next.team_member_enabled;
+    setSavingKey(`${key}:${tier}`);
+    try {
+      const { error } = await supabase
+        .from("feature_flags")
+        .update({
+          casual_enabled: next.casual_enabled,
+          supervisor_enabled: next.supervisor_enabled,
+          team_member_enabled: next.team_member_enabled,
+          enabled: next.enabled,
+          updated_by: profile.id,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("key", key);
+      if (!error) setFlags((prev) => ({ ...prev, [key]: next }));
     } finally {
       setSavingKey(null);
     }
@@ -322,16 +379,34 @@ export default function SettingsPage() {
     if (!file) return;
     setAvatarError(null);
     setUploadingAvatar(true);
+    const previousPath = profile.avatar_url;
     try {
       const path = await uploadAttachment(file, "avatars");
       const { error } = await supabase.from("profiles").update({ avatar_url: path }).eq("id", profile.id);
       if (error) throw error;
       setAvatarUrl(await getAttachmentUrl(path));
+      if (previousPath) await deleteAttachment(previousPath);
     } catch (err) {
       setAvatarError((err as Error).message || "Couldn't upload that photo — try again.");
     } finally {
       setUploadingAvatar(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
+  const handleAvatarRemove = async () => {
+    setAvatarError(null);
+    setUploadingAvatar(true);
+    const previousPath = profile.avatar_url;
+    try {
+      const { error } = await supabase.from("profiles").update({ avatar_url: null }).eq("id", profile.id);
+      if (error) throw error;
+      setAvatarUrl(null);
+      if (previousPath) await deleteAttachment(previousPath);
+    } catch (err) {
+      setAvatarError((err as Error).message || "Couldn't remove that photo — try again.");
+    } finally {
+      setUploadingAvatar(false);
     }
   };
 
@@ -391,13 +466,25 @@ export default function SettingsPage() {
                   className="hidden"
                   id="avatar-upload"
                 />
-                <label
-                  htmlFor="avatar-upload"
-                  className="text-xs font-medium px-3 py-1.5 rounded-2xl w-fit cursor-pointer"
-                  style={{ background: uploadingAvatar ? "#FFFFFF" : navy, color: uploadingAvatar ? "#000000" : "#FFFFFF", border: `1px solid ${border}` }}
-                >
-                  {uploadingAvatar ? "Uploading…" : avatarUrl ? "Change photo" : "Upload a photo"}
-                </label>
+                <div className="flex items-center gap-2">
+                  <label
+                    htmlFor="avatar-upload"
+                    className="text-xs font-medium px-3 py-1.5 rounded-2xl w-fit cursor-pointer"
+                    style={{ background: uploadingAvatar ? "#FFFFFF" : navy, color: uploadingAvatar ? "#000000" : "#FFFFFF", border: `1px solid ${border}` }}
+                  >
+                    {uploadingAvatar ? "Uploading…" : avatarUrl ? "Change photo" : "Upload a photo"}
+                  </label>
+                  {avatarUrl && (
+                    <button
+                      onClick={handleAvatarRemove}
+                      disabled={uploadingAvatar}
+                      className="text-xs font-medium px-3 py-1.5 rounded-2xl disabled:opacity-60"
+                      style={{ background: "#FFFFFF", color: ink, border: `1px solid ${border}` }}
+                    >
+                      Remove
+                    </button>
+                  )}
+                </div>
                 {avatarError && (
                   <p className="text-xs" style={{ color: "#B3261E" }}>
                     {avatarError}
@@ -525,7 +612,46 @@ export default function SettingsPage() {
                 </div>
                 <div className="flex flex-col gap-1">
                   {g.flags.map((f) => {
-                    const enabled = flags[f.key] ?? false;
+                    const row = flags[f.key];
+                    if (g.group === "Page access") {
+                      return (
+                        <div
+                          key={f.key}
+                          className="flex items-center justify-between gap-3 p-4 rounded-2xl flex-wrap"
+                          style={{ background: bg, border: `1px solid ${border}` }}
+                        >
+                          <div className="min-w-0">
+                            <div className="text-sm font-medium" style={{ color: ink }}>
+                              {f.label}
+                            </div>
+                            <div className="text-xs mt-0.5" style={{ color: inkSoft }}>
+                              {f.description}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            {STATUS_TIERS.map(({ tier, label }) => {
+                              const on = row?.[STATUS_COLUMN[tier]] ?? false;
+                              return (
+                                <button
+                                  key={tier}
+                                  onClick={() => toggleStatus(f.key, tier)}
+                                  disabled={savingKey === `${f.key}:${tier}`}
+                                  className="text-xs font-semibold px-3 py-1.5 rounded-2xl disabled:opacity-60"
+                                  style={{
+                                    background: on ? "#000000" : "#FFFFFF",
+                                    color: on ? "#FFFFFF" : "#000000",
+                                    border: "1px solid #000000",
+                                  }}
+                                >
+                                  {label}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      );
+                    }
+                    const enabled = row?.enabled ?? false;
                     return (
                       <div
                         key={f.key}

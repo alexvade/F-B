@@ -692,8 +692,24 @@ export interface Database {
         { id?: number; name: string; day: number; month: number; created_at?: string }
       >;
       feature_flags: Table<
-        { key: string; enabled: boolean; updated_by: string | null; updated_at: string | null },
-        { key: string; enabled?: boolean; updated_by?: string | null; updated_at?: string | null }
+        {
+          key: string;
+          enabled: boolean;
+          updated_by: string | null;
+          updated_at: string | null;
+          casual_enabled: boolean;
+          supervisor_enabled: boolean;
+          team_member_enabled: boolean;
+        },
+        {
+          key: string;
+          enabled?: boolean;
+          updated_by?: string | null;
+          updated_at?: string | null;
+          casual_enabled?: boolean;
+          supervisor_enabled?: boolean;
+          team_member_enabled?: boolean;
+        }
       >;
       menus: Table<
         {

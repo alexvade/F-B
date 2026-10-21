@@ -4,6 +4,7 @@ import { FileText } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { EventGuide } from "@/components/event-guide";
 import { bg, border, ink, inkSoft, navyText, orange } from "@/lib/design-tokens";
+import { statusTierOf, effectivePageAccess } from "@/lib/page-access";
 
 export default async function EventDetailPage({ params }: PageProps<"/events/[id]">) {
   const { id } = await params;
@@ -16,16 +17,29 @@ export default async function EventDetailPage({ params }: PageProps<"/events/[id
   if (!event) notFound();
 
   let isAdmin = false;
+  let isCasual = false;
+  let isSupervisor = false;
   if (auth?.user) {
-    const { data: viewerProfile } = await supabase.from("profiles").select("role").eq("id", auth.user.id).single();
+    const { data: viewerProfile } = await supabase
+      .from("profiles")
+      .select("role, is_casual, is_supervisor")
+      .eq("id", auth.user.id)
+      .single();
     isAdmin = viewerProfile?.role === "admin";
+    isCasual = viewerProfile?.is_casual ?? false;
+    isSupervisor = viewerProfile?.is_supervisor ?? false;
   }
 
   // Same page-access gate as the Events list — a direct link shouldn't
   // bypass it.
   if (!isAdmin) {
-    const { data: flag } = await supabase.from("feature_flags").select("enabled").eq("key", "page_access_events").single();
-    if (!flag?.enabled) {
+    const { data: flag } = await supabase
+      .from("feature_flags")
+      .select("casual_enabled, supervisor_enabled, team_member_enabled")
+      .eq("key", "page_access_events")
+      .single();
+    const tier = statusTierOf({ is_casual: isCasual, is_supervisor: isSupervisor });
+    if (!effectivePageAccess(flag, tier)) {
       return (
         <div>
           <p className="text-sm" style={{ color: inkSoft }}>

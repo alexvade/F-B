@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Martini, Wine } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { bg, border, inkSoft, navyText, orange } from "@/lib/design-tokens";
+import { statusTierOf, effectivePageAccess } from "@/lib/page-access";
 
 export default async function MenusPage() {
   const supabase = await createClient();
@@ -9,12 +10,12 @@ export default async function MenusPage() {
     data: { user },
   } = await supabase.auth.getUser();
   const [{ data: profile }, { data: flag }, { count: cocktailCount }, { count: wineCount }] = await Promise.all([
-    supabase.from("profiles").select("role").eq("id", user!.id).single(),
-    supabase.from("feature_flags").select("enabled").eq("key", "page_access_menus").single(),
+    supabase.from("profiles").select("role, is_casual, is_supervisor").eq("id", user!.id).single(),
+    supabase.from("feature_flags").select("casual_enabled, supervisor_enabled, team_member_enabled").eq("key", "page_access_menus").single(),
     supabase.from("cocktails").select("*", { count: "exact", head: true }),
     supabase.from("wines").select("*", { count: "exact", head: true }),
   ]);
-  const canView = profile?.role === "admin" || flag?.enabled;
+  const canView = profile?.role === "admin" || (profile && effectivePageAccess(flag, statusTierOf(profile)));
 
   if (!canView) {
     return (
