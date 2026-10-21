@@ -10,6 +10,9 @@ import { relativeTime, timestamp } from "@/lib/relative-time";
 import { initials } from "@/lib/shift-status";
 import { Section } from "@/components/section";
 import { EmojiText } from "@/components/emoji-text";
+import { MentionText } from "@/components/mention-text";
+import { MentionTextarea, MentionInput } from "@/components/mention-field";
+import type { MentionablePerson } from "@/lib/mentions";
 import { bg, border, fill, ink, inkSoft, navy, navyText, orange, orangeSoft } from "@/lib/design-tokens";
 
 // A grab-bag of composer placeholders — picked once per page load so it
@@ -131,6 +134,16 @@ export default function UpdatesPage() {
     setPlaceholder(COMPOSER_PLACEHOLDERS[Math.floor(Math.random() * COMPOSER_PLACEHOLDERS.length)]);
   }, []);
   const [posts, setPosts] = useState<Post[]>([]);
+  // The full staff roster, for the @mention autocomplete — everyone, not
+  // just people who've already posted (unlike nameById in loadPosts below).
+  const [people, setPeople] = useState<MentionablePerson[]>([]);
+  useEffect(() => {
+    supabase
+      .from("profiles")
+      .select("id, name")
+      .order("name")
+      .then(({ data }) => setPeople(data ?? []));
+  }, [supabase]);
   const [newPost, setNewPost] = useState("");
   const [newPhoto, setNewPhoto] = useState<File | null>(null);
   const [newFile, setNewFile] = useState<File | null>(null);
@@ -310,6 +323,15 @@ export default function UpdatesPage() {
     loadPosts();
   };
 
+  // Open to every user, not just the comment's own author or an admin —
+  // see 0054_delete_any_comment.sql.
+  const deleteComment = async (comment: Comment) => {
+    if (!confirm("Delete this comment?")) return;
+    await supabase.from("comments").delete().eq("id", comment.id);
+    await Promise.all([deleteAttachment(comment.photo_url), deleteAttachment(comment.file_url)]);
+    loadPosts();
+  };
+
   const addComment = async (postId: number) => {
     const text = (commentDrafts[postId] || "").trim();
     const photo = commentPhoto[postId];
@@ -318,15 +340,28 @@ export default function UpdatesPage() {
     try {
       const photoUrl = photo ? await uploadAttachment(photo, "comments") : null;
       const fileUrl = file ? await uploadAttachment(file, "comments") : null;
-      const { error } = await supabase.from("comments").insert({
-        post_id: postId,
-        author_id: profile.id,
-        text: text || null,
-        photo_url: photoUrl,
-        file_url: fileUrl,
-        file_name: file?.name ?? null,
-      });
+      const { data: inserted, error } = await supabase
+        .from("comments")
+        .insert({
+          post_id: postId,
+          author_id: profile.id,
+          text: text || null,
+          photo_url: photoUrl,
+          file_url: fileUrl,
+          file_name: file?.name ?? null,
+        })
+        .select("id")
+        .single();
       if (error) throw error;
+      if (inserted) {
+        // Fire-and-forget, same as addPost's push below — only actually
+        // sends anything if the reply @mentions someone.
+        fetch("/api/push/notify-comment", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ commentId: inserted.id }),
+        }).catch(() => {});
+      }
       setCommentDrafts((prev) => ({ ...prev, [postId]: "" }));
       setCommentPhoto((prev) => ({ ...prev, [postId]: null }));
       setCommentFile((prev) => ({ ...prev, [postId]: null }));
@@ -349,9 +384,10 @@ export default function UpdatesPage() {
   return (
     <Section title="Noticeboard" subtitle="Shared announcements and shift notes">
       <div className="p-3 rounded-2xl mb-6" style={{ background: bg, border: `1px solid ${border}` }}>
-        <textarea
+        <MentionTextarea
           value={newPost}
-          onChange={(e) => setNewPost(e.target.value)}
+          onChange={setNewPost}
+          people={people}
           placeholder={placeholder}
           className="w-full text-sm resize-none outline-none px-4 py-3 rounded-full text-left"
           rows={1}
@@ -485,7 +521,7 @@ export default function UpdatesPage() {
             </div>
             {p.text && (
               <p className="text-sm mt-1" style={{ color: ink }}>
-                <EmojiText text={p.text} />
+                <MentionText text={p.text} people={people} />
               </p>
             )}
             {p.photoDisplayUrl && (
@@ -546,13 +582,18 @@ export default function UpdatesPage() {
               <div className="flex flex-col gap-2 mt-3 pl-3" style={{ borderLeft: `2px solid ${border}` }}>
                 {p.comments.map((c) => (
                   <div key={c.id}>
-                    <div className="flex items-center gap-1.5">
-                      <Avatar name={c.authorName} avatarUrl={c.authorAvatarUrl} size={18} />
-                      <span className="text-xs font-medium">{c.authorName}</span>
+                    <div className="flex items-center gap-1.5 justify-between">
+                      <span className="flex items-center gap-1.5">
+                        <Avatar name={c.authorName} avatarUrl={c.authorAvatarUrl} size={18} />
+                        <span className="text-xs font-medium">{c.authorName}</span>
+                      </span>
+                      <button onClick={() => deleteComment(c)} style={{ color: inkSoft }} title="Delete comment">
+                        <Trash2 size={12} />
+                      </button>
                     </div>
                     {c.text && (
                       <p className="text-xs mt-0.5" style={{ color: inkSoft }}>
-                        <EmojiText text={c.text} />
+                        <MentionText text={c.text} people={people} />
                       </p>
                     )}
                     {c.photoDisplayUrl && (
@@ -597,12 +638,13 @@ export default function UpdatesPage() {
                 />
               )}
               <div className="flex items-center gap-2">
-                <input
+                <MentionInput
                   value={commentDrafts[p.id] || ""}
-                  onChange={(e) => setCommentDrafts((prev) => ({ ...prev, [p.id]: e.target.value }))}
-                  onKeyDown={(e) => e.key === "Enter" && addComment(p.id)}
+                  onChange={(v) => setCommentDrafts((prev) => ({ ...prev, [p.id]: v }))}
+                  onEnter={() => addComment(p.id)}
+                  people={people}
                   placeholder="Reply with more info…"
-                  className="flex-1 text-xs px-3.5 py-2 rounded-full outline-none"
+                  className="w-full text-xs px-3.5 py-2 rounded-full outline-none"
                   style={{ border: `1px solid ${border}`, color: ink, background: fill }}
                 />
                 <label

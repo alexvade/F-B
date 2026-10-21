@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { sendPushToAll } from "@/lib/push";
+import { sendPushToStaff } from "@/lib/push";
+import { extractMentionedIds } from "@/lib/mentions";
 
 // Called right after a successful Noticeboard post insert (see
 // src/app/(app)/updates/page.tsx) — re-reads the post server-side rather
@@ -23,9 +24,10 @@ export async function POST(request: Request) {
   }
 
   const admin = createAdminClient();
-  const [{ data: post }, { data: author }] = await Promise.all([
+  const [{ data: post }, { data: author }, { data: allProfiles }] = await Promise.all([
     admin.from("posts").select("text").eq("id", postId).single(),
     admin.from("profiles").select("name").eq("id", user.id).single(),
+    admin.from("profiles").select("id, name"),
   ]);
   if (!post) {
     return NextResponse.json({ error: "Post not found" }, { status: 404 });
@@ -39,7 +41,18 @@ export async function POST(request: Request) {
       : snippet
     : "New post on the Noticeboard";
 
-  await sendPushToAll({ title: `${authorName} posted on the Noticeboard`, body: message, url: "/updates" });
+  // Anyone @mentioned gets a more specific push instead of the generic
+  // broadcast, so they're not pinged twice for the same post.
+  const people = allProfiles ?? [];
+  const mentionedIds = new Set(extractMentionedIds(post.text, people).filter((id) => id !== user.id));
+  const everyoneElseIds = people.map((p) => p.id).filter((id) => !mentionedIds.has(id));
+
+  await Promise.all([
+    sendPushToStaff(everyoneElseIds, { title: `${authorName} posted on the Noticeboard`, body: message, url: "/updates" }),
+    mentionedIds.size
+      ? sendPushToStaff(Array.from(mentionedIds), { title: `${authorName} mentioned you on the Noticeboard`, body: message, url: "/updates" })
+      : Promise.resolve(),
+  ]);
 
   return NextResponse.json({ ok: true });
 }
