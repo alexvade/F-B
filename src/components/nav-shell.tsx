@@ -13,7 +13,6 @@ import {
   Martini,
   MessageCircle,
   FileStack,
-  Users,
   ClipboardList,
   Sparkles,
   Cake,
@@ -34,18 +33,21 @@ import type { FeatureFlags } from "@/lib/feature-flags-context";
 import { bg, bgText, bgTextSoft, border, ink, inkSoft, navy, orange, panel, surface } from "@/lib/design-tokens";
 import { ThemeContext } from "@/lib/theme-context";
 
+// Dashboard always sorts first regardless of position (see the
+// dashboardItem handling below) — the rest render in this order, a fixed
+// front group the team uses daily followed by everything else.
 export const NAV_ITEMS = [
-  { href: "/menus", label: "Drinks", icon: Martini, adminOnly: true, staffFlag: "page_access_menus" },
-  { href: "/updates", label: "Noticeboard", icon: MessageCircle, adminOnly: true, staffFlag: "page_access_updates" },
-  { href: "/rota", label: "Rota", icon: CalendarDays, adminOnly: true, staffFlag: "page_access_rota" },
-  { href: "/checklists", label: "Checklists", icon: CheckSquare, adminOnly: true, staffFlag: "page_access_checklists" },
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/sops", label: "SOPs", icon: BookOpen, adminOnly: true, staffFlag: "page_access_sops" },
-  { href: "/colleague-of-the-month", label: "Colleague of the Month", icon: Award, adminOnly: true, staffFlag: "page_access_colleague_of_the_month" },
+  { href: "/updates", label: "Noticeboard", icon: MessageCircle, adminOnly: true, staffFlag: "page_access_updates" },
+  { href: "/checklists", label: "Checklists", icon: CheckSquare, adminOnly: true, staffFlag: "page_access_checklists" },
   { href: "/function-sheets", label: "Function Sheets", icon: FileStack, adminOnly: true, staffFlag: "page_access_function_sheets" },
   { href: "/events", label: "Events", icon: Sparkles, adminOnly: true, staffFlag: "page_access_events" },
-  { href: "/running-order", label: "Running Order", icon: ListOrdered, adminOnly: true, staffFlag: "page_access_running_order" },
   { href: "/guest-surveys", label: "Guest Surveys", icon: Star, adminOnly: true, staffFlag: "page_access_guest_surveys" },
+  { href: "/menus", label: "Drinks", icon: Martini, adminOnly: true, staffFlag: "page_access_menus" },
+  { href: "/rota", label: "Rota", icon: CalendarDays, adminOnly: true, staffFlag: "page_access_rota" },
+  { href: "/sops", label: "SOPs", icon: BookOpen, adminOnly: true, staffFlag: "page_access_sops" },
+  { href: "/colleague-of-the-month", label: "Colleague of the Month", icon: Award, adminOnly: true, staffFlag: "page_access_colleague_of_the_month" },
+  { href: "/running-order", label: "Running Order", icon: ListOrdered, adminOnly: true, staffFlag: "page_access_running_order" },
   { href: "/stock-orders", label: "Stock Orders", icon: ClipboardList, adminOnly: true, staffFlag: "stock_orders_edit" },
   { href: "/birthdays", label: "Birthdays", icon: Cake, adminOnly: true, staffFlag: "birthdays_access" },
   { href: "/training", label: "Training", icon: GraduationCap, adminOnly: true, staffFlag: "page_access_training" },
@@ -235,15 +237,6 @@ export function NavShell({
           <div className="px-2 py-2 text-sm" style={{ color: bgText }}>
             {name}
           </div>
-          {isSuperAdmin && (
-            <Link
-              href="/admin/staff"
-              className="flex items-center gap-2 px-2 py-1.5 text-xs"
-              style={{ color: isActive("/admin/staff") ? orange : bgTextSoft }}
-            >
-              <Users size={14} /> Manage staff
-            </Link>
-          )}
           <button
             onClick={toggleDark}
             className="flex items-center gap-2 px-2 py-1.5 text-xs w-full text-left"
@@ -310,16 +303,6 @@ export function NavShell({
                   </Link>
                 );
               })}
-              {isSuperAdmin && (
-                <Link
-                  href="/admin/staff"
-                  onClick={() => setMenuOpen(false)}
-                  className="flex items-center gap-3 px-4 py-3 rounded-2xl text-sm"
-                  style={{ color: ink }}
-                >
-                  <Users size={18} style={{ color: orange }} /> Manage staff
-                </Link>
-              )}
               <button
                 onClick={toggleDark}
                 className="flex items-center gap-3 px-4 py-3 rounded-2xl text-sm text-left"

@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { useProfile } from "@/lib/profile-context";
 import { useFeatureFlag } from "@/lib/feature-flags-context";
@@ -8,7 +9,7 @@ import { Section } from "@/components/section";
 import { bg, border, ink, inkSoft, navy } from "@/lib/design-tokens";
 import { uploadAttachment, getAttachmentUrl } from "@/lib/storage";
 import { NAV_ITEMS, DEFAULT_ISLAND_LEFT, DEFAULT_ISLAND_RIGHT } from "@/components/nav-shell";
-import { User } from "lucide-react";
+import { User, Users, ChevronRight } from "lucide-react";
 
 type Flag = { key: string; label: string; description: string };
 
@@ -497,6 +498,22 @@ export default function SettingsPage() {
           </div>
         </div>
       </Section>
+
+      {profile.is_super_admin && (
+        <Section title="Manage staff" subtitle="Invite accounts, set status, and remove staff">
+          <Link
+            href="/admin/staff"
+            className="flex items-center justify-between p-4 rounded-2xl"
+            style={{ background: bg, border: `1px solid ${border}`, color: ink }}
+          >
+            <span className="flex items-center gap-2 text-sm font-medium">
+              <Users size={16} style={{ color: inkSoft }} />
+              Manage staff
+            </span>
+            <ChevronRight size={16} style={{ color: inkSoft }} />
+          </Link>
+        </Section>
+      )}
 
       {profile.is_super_admin && (
         <Section title="Page access & permissions" subtitle="Control which pages and features staff can use, beyond admins">
