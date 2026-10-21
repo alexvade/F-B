@@ -18,7 +18,7 @@ import {
   Gauge,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import { bg, border, ink, inkSoft, navyText, orange } from "@/lib/design-tokens";
+import { bg, border, ink, inkSoft, navyText } from "@/lib/design-tokens";
 
 type DayForecast = { date: string; weatherCode: number; high: number; low: number };
 type HourForecast = { time: string; label: string; tempC: number; weatherCode: number };
@@ -33,36 +33,41 @@ type WeatherData = {
   hourly: HourForecast[];
 };
 
-// WMO weather codes → a short label and icon (https://open-meteo.com/en/docs).
-const CONDITIONS: Record<number, { label: string; Icon: LucideIcon }> = {
-  0: { label: "Clear sky", Icon: Sun },
-  1: { label: "Mostly clear", Icon: Sun },
-  2: { label: "Partly cloudy", Icon: CloudSun },
-  3: { label: "Overcast", Icon: Cloud },
-  45: { label: "Foggy", Icon: CloudFog },
-  48: { label: "Foggy", Icon: CloudFog },
-  51: { label: "Light drizzle", Icon: CloudDrizzle },
-  53: { label: "Drizzle", Icon: CloudDrizzle },
-  55: { label: "Heavy drizzle", Icon: CloudDrizzle },
-  56: { label: "Freezing drizzle", Icon: CloudDrizzle },
-  57: { label: "Freezing drizzle", Icon: CloudDrizzle },
-  61: { label: "Light rain", Icon: CloudRain },
-  63: { label: "Rain", Icon: CloudRain },
-  65: { label: "Heavy rain", Icon: CloudRain },
-  66: { label: "Freezing rain", Icon: CloudRain },
-  67: { label: "Freezing rain", Icon: CloudRain },
-  71: { label: "Light snow", Icon: CloudSnow },
-  73: { label: "Snow", Icon: CloudSnow },
-  75: { label: "Heavy snow", Icon: CloudSnow },
-  77: { label: "Snow grains", Icon: CloudSnow },
-  80: { label: "Rain showers", Icon: CloudRain },
-  81: { label: "Rain showers", Icon: CloudRain },
-  82: { label: "Heavy showers", Icon: CloudRain },
-  85: { label: "Snow showers", Icon: CloudSnow },
-  86: { label: "Snow showers", Icon: CloudSnow },
-  95: { label: "Thunderstorm", Icon: CloudLightning },
-  96: { label: "Thunderstorm", Icon: CloudLightning },
-  99: { label: "Thunderstorm", Icon: CloudLightning },
+// WMO weather codes → a short label, icon, and colour
+// (https://open-meteo.com/en/docs). Colour is a deliberate, scoped exception
+// to the app's black-and-white system (same spirit as the rota's shift
+// colours and the Insights charts) — just the icon itself, so it reads at a
+// glance the way a phone's own weather app does; everything else on this
+// widget (numbers, labels, the hourly chart) stays plain black/white.
+const CONDITIONS: Record<number, { label: string; Icon: LucideIcon; color: string }> = {
+  0: { label: "Clear sky", Icon: Sun, color: "#F2A900" },
+  1: { label: "Mostly clear", Icon: Sun, color: "#F2A900" },
+  2: { label: "Partly cloudy", Icon: CloudSun, color: "#E0A62E" },
+  3: { label: "Overcast", Icon: Cloud, color: "#8A8F98" },
+  45: { label: "Foggy", Icon: CloudFog, color: "#93A5B8" },
+  48: { label: "Foggy", Icon: CloudFog, color: "#93A5B8" },
+  51: { label: "Light drizzle", Icon: CloudDrizzle, color: "#3B82C4" },
+  53: { label: "Drizzle", Icon: CloudDrizzle, color: "#3B82C4" },
+  55: { label: "Heavy drizzle", Icon: CloudDrizzle, color: "#2E6CA3" },
+  56: { label: "Freezing drizzle", Icon: CloudDrizzle, color: "#5B8FBF" },
+  57: { label: "Freezing drizzle", Icon: CloudDrizzle, color: "#5B8FBF" },
+  61: { label: "Light rain", Icon: CloudRain, color: "#3B82C4" },
+  63: { label: "Rain", Icon: CloudRain, color: "#2E6CA3" },
+  65: { label: "Heavy rain", Icon: CloudRain, color: "#1F5485" },
+  66: { label: "Freezing rain", Icon: CloudRain, color: "#5B8FBF" },
+  67: { label: "Freezing rain", Icon: CloudRain, color: "#5B8FBF" },
+  71: { label: "Light snow", Icon: CloudSnow, color: "#7FCBE0" },
+  73: { label: "Snow", Icon: CloudSnow, color: "#63BBD6" },
+  75: { label: "Heavy snow", Icon: CloudSnow, color: "#4AA7C4" },
+  77: { label: "Snow grains", Icon: CloudSnow, color: "#7FCBE0" },
+  80: { label: "Rain showers", Icon: CloudRain, color: "#3B82C4" },
+  81: { label: "Rain showers", Icon: CloudRain, color: "#2E6CA3" },
+  82: { label: "Heavy showers", Icon: CloudRain, color: "#1F5485" },
+  85: { label: "Snow showers", Icon: CloudSnow, color: "#7FCBE0" },
+  86: { label: "Snow showers", Icon: CloudSnow, color: "#63BBD6" },
+  95: { label: "Thunderstorm", Icon: CloudLightning, color: "#7C5CBF" },
+  96: { label: "Thunderstorm", Icon: CloudLightning, color: "#7C5CBF" },
+  99: { label: "Thunderstorm", Icon: CloudLightning, color: "#6246A3" },
 };
 
 const REFRESH_MS = 10 * 60 * 1000;
@@ -155,8 +160,10 @@ export function WeatherWidget() {
         style={{ background: bg, border: `1px solid ${border}`, minHeight: 76 }}
       >
         {/* A soft decorative glow behind the reading, echoing a phone weather
-            app's background art — kept to greyscale circles to match the
-            app's black-and-white theme instead of a colour per condition. */}
+            app's background art — stays a plain greyscale circle regardless
+            of condition; only the icon itself is coloured (CONDITIONS
+            above), a deliberate, scoped exception to the app's otherwise
+            black-and-white system. */}
         <div
           aria-hidden
           className="absolute rounded-full pointer-events-none"
@@ -188,7 +195,7 @@ export function WeatherWidget() {
             )}
           </div>
           <div className="flex flex-col items-center gap-1 shrink-0">
-            <TodayIcon size={30} style={{ color: orange, opacity: 0.8 }} />
+            <TodayIcon size={30} style={{ color: todayCondition?.color ?? inkSoft }} />
             {weather && (
               <button
                 onClick={() => setExpanded((e) => !e)}
@@ -264,7 +271,7 @@ export function WeatherWidget() {
           </div>
           {selected && (
             <div className="flex items-center gap-3">
-              <SelectedIcon size={28} style={{ color: orange, opacity: 0.8 }} />
+              <SelectedIcon size={28} style={{ color: selectedCondition?.color ?? inkSoft }} />
               <div>
                 <div className="text-sm font-medium" style={{ color: navyText }}>
                   {selectedCondition?.label ?? "—"}
