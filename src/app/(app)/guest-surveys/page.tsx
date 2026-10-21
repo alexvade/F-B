@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { ChevronDown, ChevronUp, ExternalLink, Share2, Trash2 } from "lucide-react";
+import { ChevronDown, ChevronUp, Share2, Trash2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useProfile } from "@/lib/profile-context";
 import { useFeatureFlag } from "@/lib/feature-flags-context";
@@ -355,17 +355,6 @@ export default function GuestSurveysPage() {
                       ))}
                     </div>
                     <div className="flex items-center gap-3 pt-2 flex-wrap" style={{ borderTop: `1px solid ${border}` }}>
-                      {s.response_url && (
-                        <a
-                          href={s.response_url}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-2xl"
-                          style={{ background: "#FFFFFF", color: ink, border: `1px solid ${border}` }}
-                        >
-                          <ExternalLink size={13} /> View in ReviewPro
-                        </a>
-                      )}
                       {profile.is_super_admin && composingId !== s.id && (
                         <button
                           onClick={() => openComposer(s)}
