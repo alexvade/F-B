@@ -137,6 +137,18 @@ function ans(answers: Answer[], question: string): string | null {
   return a != null && a !== "" ? a : null;
 }
 
+// The single best free-text quote to pull out when sharing a review
+// somewhere else (e.g. the Noticeboard) — same question keys buildRows
+// reads, in priority order: a general highlight, then a staff shout-out,
+// then the raw OTA review text.
+export function bestGuestComment(answers: Answer[]): string | null {
+  return (
+    ans(answers, "What was the highlight of your stay? Comment") ??
+    ans(answers, "Did any particular team member stand out? If so, why? Comment") ??
+    ans(answers, "Review")
+  );
+}
+
 function num(answers: Answer[], question: string | null): number | null {
   if (!question) return null;
   const a = ans(answers, question);

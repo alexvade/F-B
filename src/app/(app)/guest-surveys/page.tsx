@@ -1,12 +1,13 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { ChevronDown, ChevronUp, ExternalLink, Trash2 } from "lucide-react";
+import { ChevronDown, ChevronUp, ExternalLink, Share2, Trash2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useProfile } from "@/lib/profile-context";
 import { useFeatureFlag } from "@/lib/feature-flags-context";
 import { Section } from "@/components/section";
 import { GuestSurveyInsights, GuestSurveyMentions } from "@/components/guest-survey-insights";
+import { bestGuestComment } from "@/lib/guest-survey-dashboard";
 import { bg, border, ink, inkSoft } from "@/lib/design-tokens";
 
 type Answer = { question: string; answer: string | null };
@@ -58,6 +59,8 @@ export default function GuestSurveysPage() {
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [tab, setTab] = useState<"responses" | "insights" | "mentions">("responses");
   const [filters, setFilters] = useState<ResponseFilters>(emptyResponseFilters());
+  const [sharingId, setSharingId] = useState<number | null>(null);
+  const [sharedMessage, setSharedMessage] = useState<{ surveyId: number; text: string } | null>(null);
 
   const loadData = useCallback(async () => {
     const { data } = await supabase
@@ -84,6 +87,38 @@ export default function GuestSurveysPage() {
     if (!confirm(`Delete ${survey.guest_name}'s survey response? This can't be undone.`)) return;
     await supabase.from("guest_surveys").delete().eq("id", survey.id);
     loadData();
+  };
+
+  // Super-admin-only — see profile.is_super_admin gate on the button below.
+  // Posts as a normal Noticeboard post (same push-notification path as the
+  // composer), just pre-filled from the review instead of typed by hand.
+  const shareToNoticeboard = async (survey: Survey) => {
+    setSharingId(survey.id);
+    setSharedMessage(null);
+    try {
+      const comment = bestGuestComment(survey.answers);
+      const scoreBit = survey.overall_score != null ? ` — scored ${survey.overall_score}/10${survey.nps_category ? ` (${survey.nps_category})` : ""}` : "";
+      const header = `Guest review from ${survey.guest_name}${scoreBit}`;
+      const text = comment ? `${header}\n\n"${comment}"` : header;
+      const { data: inserted, error } = await supabase
+        .from("posts")
+        .insert({ author_id: profile.id, text })
+        .select("id")
+        .single();
+      if (error) throw error;
+      if (inserted) {
+        fetch("/api/push/notify-post", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ postId: inserted.id }),
+        }).catch(() => {});
+      }
+      setSharedMessage({ surveyId: survey.id, text: `Shared ${survey.guest_name}'s review to the Noticeboard.` });
+    } catch {
+      setSharedMessage({ surveyId: survey.id, text: "Couldn't share that review — try again." });
+    } finally {
+      setSharingId(null);
+    }
   };
 
   if (!canView) {
@@ -293,7 +328,7 @@ export default function GuestSurveysPage() {
                         </div>
                       ))}
                     </div>
-                    <div className="flex items-center gap-3 pt-2" style={{ borderTop: `1px solid ${border}` }}>
+                    <div className="flex items-center gap-3 pt-2 flex-wrap" style={{ borderTop: `1px solid ${border}` }}>
                       {s.response_url && (
                         <a
                           href={s.response_url}
@@ -305,6 +340,16 @@ export default function GuestSurveysPage() {
                           <ExternalLink size={13} /> View in ReviewPro
                         </a>
                       )}
+                      {profile.is_super_admin && (
+                        <button
+                          onClick={() => shareToNoticeboard(s)}
+                          disabled={sharingId === s.id}
+                          className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-2xl disabled:opacity-60"
+                          style={{ background: "#FFFFFF", color: ink, border: `1px solid ${border}` }}
+                        >
+                          <Share2 size={13} /> {sharingId === s.id ? "Sharing…" : "Share to Noticeboard"}
+                        </button>
+                      )}
                       {isAdmin && (
                         <button
                           onClick={() => deleteSurvey(s)}
@@ -315,6 +360,11 @@ export default function GuestSurveysPage() {
                         </button>
                       )}
                     </div>
+                    {sharedMessage?.surveyId === s.id && (
+                      <p className="text-xs mt-2" style={{ color: inkSoft }}>
+                        {sharedMessage.text}
+                      </p>
+                    )}
                   </div>
                 )}
               </div>
