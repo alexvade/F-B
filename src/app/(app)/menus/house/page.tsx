@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { AlertTriangle, GlassWater } from "lucide-react";
+import { AlertTriangle, Crown, GlassWater } from "lucide-react";
 import { useProfile } from "@/lib/profile-context";
 import { HOUSE_COCKTAILS, type HouseCocktail } from "@/lib/house-cocktails";
 import { bg, border, fill, ink, inkSoft, navyText, orange } from "@/lib/design-tokens";
@@ -17,6 +17,17 @@ const FILTERS: { key: Filter; label: string }[] = [
 ];
 
 const price = (n: number) => `£${n % 1 === 0 ? n : n.toFixed(2)}`;
+
+function SignatureBadge() {
+  return (
+    <span
+      className="inline-flex items-center gap-1 text-xs font-semibold tracking-wide px-2.5 py-1 rounded-full"
+      style={{ background: ink, color: bg }}
+    >
+      <Crown size={12} fill={bg} /> SIGNATURE
+    </span>
+  );
+}
 
 function SpecNote({ text }: { text: string }) {
   return (
@@ -40,6 +51,11 @@ function Detail({ drink, isAdmin, onBack }: { drink: HouseCocktail; isAdmin: boo
 
       <div className="flex items-start justify-between gap-3 mb-5">
         <div>
+          {drink.signature && (
+            <div className="mb-2">
+              <SignatureBadge />
+            </div>
+          )}
           <div className="text-xs font-semibold mb-1 tracking-wide" style={{ color: orange }}>
             {drink.kind === "alcohol-free" ? "ALCOHOL-FREE" : "COCKTAIL"} · {drink.glass.toUpperCase()}
           </div>
@@ -47,9 +63,11 @@ function Detail({ drink, isAdmin, onBack }: { drink: HouseCocktail; isAdmin: boo
             {drink.name}
           </h2>
         </div>
-        <div className="text-2xl font-semibold shrink-0" style={{ color: navyText }}>
-          {price(drink.price)}
-        </div>
+        {drink.price != null && (
+          <div className="text-2xl font-semibold shrink-0" style={{ color: navyText }}>
+            {price(drink.price)}
+          </div>
+        )}
       </div>
 
       {drink.specNote && <SpecNote text={drink.specNote} />}
@@ -116,7 +134,7 @@ function Detail({ drink, isAdmin, onBack }: { drink: HouseCocktail; isAdmin: boo
         </div>
       </div>
 
-      {isAdmin && (
+      {isAdmin && drink.cost != null && drink.gp != null && drink.targetGp != null && (
         <div className="p-4 rounded-2xl mb-4" style={{ background: fill, border: `1px solid ${border}` }}>
           <div className="text-xs font-semibold mb-3" style={{ color: orange }}>
             COSTING · ADMINS ONLY
@@ -167,6 +185,7 @@ export default function HouseMenuPage() {
   if (active) return <Detail drink={active} isAdmin={isAdmin} onBack={() => setActive(null)} />;
 
   const shown = HOUSE_COCKTAILS.filter((d) => filter === "all" || d.kind === filter);
+  const signatures = shown.filter((d) => d.signature);
   const groups: { kind: HouseCocktail["kind"]; label: string }[] = [
     { kind: "cocktail", label: "COCKTAILS" },
     { kind: "alcohol-free", label: "ALCOHOL-FREE" },
@@ -203,8 +222,45 @@ export default function HouseMenuPage() {
         })}
       </div>
 
+      {signatures.map((d) => (
+        <button
+          key={d.slug}
+          onClick={() => setActive(d)}
+          className="w-full text-left rounded-3xl overflow-hidden mb-8 flex flex-col sm:flex-row"
+          style={{ background: bg, border: `2px solid ${border}` }}
+        >
+          <div className="relative w-full sm:w-1/2 shrink-0" style={{ aspectRatio: "4 / 5" }}>
+            <Image src={d.image} alt={d.name} fill sizes="(max-width: 640px) 100vw, 360px" className="object-cover" preload />
+            <span className="absolute" style={{ top: 12, left: 12 }}>
+              <SignatureBadge />
+            </span>
+          </div>
+          <div className="p-5 flex flex-col justify-center" style={{ borderTop: `2px solid ${border}` }}>
+            <div className="flex items-center gap-1.5 text-xs font-semibold tracking-wide mb-2" style={{ color: orange }}>
+              <Crown size={13} /> OUR SIGNATURE COCKTAIL
+            </div>
+            <div className="flex items-baseline justify-between gap-3">
+              <h2 className="text-2xl font-semibold leading-tight" style={{ color: navyText }}>
+                {d.name}
+              </h2>
+              {d.price != null && (
+                <span className="text-xl font-semibold shrink-0" style={{ color: ink }}>
+                  {price(d.price)}
+                </span>
+              )}
+            </div>
+            <p className="text-sm mt-2 leading-relaxed" style={{ color: inkSoft }}>
+              {d.ingredients.map((i) => i.item).join(" · ")}
+            </p>
+            <div className="text-xs mt-3 font-medium" style={{ color: ink }}>
+              {d.glass} · tap for the full spec →
+            </div>
+          </div>
+        </button>
+      ))}
+
       {groups.map(({ kind, label }) => {
-        const drinks = shown.filter((d) => d.kind === kind);
+        const drinks = shown.filter((d) => d.kind === kind && !d.signature);
         if (drinks.length === 0) return null;
         return (
           <div key={kind} className="mb-8">
@@ -236,9 +292,11 @@ export default function HouseMenuPage() {
                       <span className="text-sm font-semibold leading-tight" style={{ color: ink }}>
                         {d.name}
                       </span>
-                      <span className="text-sm font-semibold shrink-0" style={{ color: ink }}>
-                        {price(d.price)}
-                      </span>
+                      {d.price != null && (
+                        <span className="text-sm font-semibold shrink-0" style={{ color: ink }}>
+                          {price(d.price)}
+                        </span>
+                      )}
                     </div>
                     <div className="text-xs mt-0.5" style={{ color: inkSoft }}>
                       {d.glass}

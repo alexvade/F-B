@@ -11,7 +11,10 @@ export type HouseCocktail = {
   slug: string;
   name: string;
   kind: "cocktail" | "alcohol-free";
-  price: number;
+  // Featured at the top of the House Menu.
+  signature?: boolean;
+  // Optional for drinks that haven't been costed / priced yet.
+  price?: number;
   glass: string;
   image: string;
   ingredients: { qty: string; item: string }[];
@@ -24,14 +27,38 @@ export type HouseCocktail = {
   // Something on the spec sheet itself that looks wrong and needs checking.
   specNote?: string;
   // From the costing system — shown to admins only.
-  cost: number;
-  gp: number;
-  targetGp: number;
-  epos: string;
-  specDate: string;
+  cost?: number;
+  gp?: number;
+  targetGp?: number;
+  epos?: string;
+  specDate?: string;
 };
 
 export const HOUSE_COCKTAILS: HouseCocktail[] = [
+  {
+    slug: "white-rose-martini",
+    name: "White Rose Martini",
+    kind: "cocktail",
+    signature: true,
+    glass: "Coupe",
+    image: "/house-cocktails/white-rose-martini.jpg",
+    ingredients: [
+      { qty: "50 ml", item: "Masons vodka infused with Camillia's White Jasmine & Peach tea" },
+      { qty: "25 ml", item: "Lillet Blanc" },
+      { qty: "25 ml", item: "Gomme syrup" },
+      { qty: "15 ml", item: "Egg white / Miraculous Foamer" },
+      { qty: "15 ml", item: "Fresh lime juice" },
+    ],
+    method: [
+      "Add the infused vodka, Lillet Blanc, gomme syrup, lime juice and egg white (or foamer) to the shaker. Don't add ice yet.",
+      "Shake hard for 15 seconds without ice to build a stable foam.",
+      "Add plenty of ice and shake hard for another 10–15 seconds until well chilled.",
+      "Double strain into a chilled coupe. Let the foam settle for a few seconds so the surface is smooth and even.",
+      "Lay a narrow, straight line of the dried tea across the centre of the foam, from one side of the glass to the other. Keep it neat rather than scattered.",
+    ],
+    garnish: "A neat line of Camillia's White Jasmine & Peach tea leaves",
+    allergens: ["Eggs (when made with egg white)"],
+  },
   {
     slug: "amaretto-sour",
     name: "Amaretto Sour",
