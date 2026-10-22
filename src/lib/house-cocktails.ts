@@ -56,8 +56,6 @@ export const HOUSE_COCKTAILS: HouseCocktail[] = [
     ],
     garnish: "Angostura drops on the foam",
     allergens: [],
-    specNote:
-      "This method was written in-house — the spec sheet in the costing system still has the Malfy Martini's method and needs updating to match.",
     cost: 3.98,
     gp: 63.26,
     targetGp: 75,
