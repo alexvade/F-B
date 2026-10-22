@@ -14,7 +14,7 @@ const CLOUD_PATH = "M7 19a4.5 4.5 0 0 1-.5-8.98A6 6 0 0 1 18 9a4.5 4.5 0 0 1-1 8
 
 function SunIcon({ size = 24, style }: WeatherIconProps) {
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" style={style}>
+    <svg width={size} height={size} viewBox="0 0 24 24" style={style} className="dark-mode-invert">
       <circle cx="12" cy="12" r="8" fill="currentColor" />
     </svg>
   );
@@ -22,7 +22,7 @@ function SunIcon({ size = 24, style }: WeatherIconProps) {
 
 function PartlyCloudyIcon({ size = 24, style }: WeatherIconProps) {
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" style={style}>
+    <svg width={size} height={size} viewBox="0 0 24 24" style={style} className="dark-mode-invert">
       <circle cx="16.5" cy="7.5" r="5" fill="currentColor" />
       <path d={CLOUD_PATH} fill="currentColor" />
     </svg>
@@ -31,7 +31,7 @@ function PartlyCloudyIcon({ size = 24, style }: WeatherIconProps) {
 
 function CloudyIcon({ size = 24, style }: WeatherIconProps) {
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" style={style}>
+    <svg width={size} height={size} viewBox="0 0 24 24" style={style} className="dark-mode-invert">
       <path d={CLOUD_PATH} fill="currentColor" />
     </svg>
   );
@@ -39,7 +39,7 @@ function CloudyIcon({ size = 24, style }: WeatherIconProps) {
 
 function FogIcon({ size = 24, style }: WeatherIconProps) {
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" style={style}>
+    <svg width={size} height={size} viewBox="0 0 24 24" style={style} className="dark-mode-invert">
       <path d={CLOUD_PATH} fill="currentColor" opacity="0.85" />
       <rect x="4" y="20.2" width="16" height="1.6" rx="0.8" fill="currentColor" />
       <rect x="7" y="22.4" width="10" height="1.6" rx="0.8" fill="currentColor" />
@@ -49,7 +49,7 @@ function FogIcon({ size = 24, style }: WeatherIconProps) {
 
 function RainIcon({ size = 24, style }: WeatherIconProps) {
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" style={style}>
+    <svg width={size} height={size} viewBox="0 0 24 24" style={style} className="dark-mode-invert">
       <path d={CLOUD_PATH} fill="currentColor" />
       <path d="M8 19.3c0-.9.7-1.6 1-2.3.3.7 1 1.4 1 2.3a1 1 0 0 1-2 0Z" fill="currentColor" />
       <path d="M12.8 19.3c0-.9.7-1.6 1-2.3.3.7 1 1.4 1 2.3a1 1 0 0 1-2 0Z" fill="currentColor" />
@@ -60,7 +60,7 @@ function RainIcon({ size = 24, style }: WeatherIconProps) {
 
 function SnowIcon({ size = 24, style }: WeatherIconProps) {
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" style={style}>
+    <svg width={size} height={size} viewBox="0 0 24 24" style={style} className="dark-mode-invert">
       <path d={CLOUD_PATH} fill="currentColor" />
       <circle cx="9" cy="19.3" r="1.3" fill="currentColor" />
       <circle cx="13.8" cy="19.3" r="1.3" fill="currentColor" />
@@ -71,7 +71,7 @@ function SnowIcon({ size = 24, style }: WeatherIconProps) {
 
 function StormIcon({ size = 24, style }: WeatherIconProps) {
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" style={style}>
+    <svg width={size} height={size} viewBox="0 0 24 24" style={style} className="dark-mode-invert">
       <path d={CLOUD_PATH} fill="currentColor" />
       <path d="M13.2 16.5 9.8 21.2h2.6l-1 3.1 4.3-5.4h-2.6l1.1-2.4Z" fill="currentColor" />
     </svg>
@@ -97,6 +97,10 @@ type WeatherData = {
 // colours and the Insights charts) — just the icon itself, so it reads at a
 // glance the way a phone's own weather app does; everything else on this
 // widget (numbers, labels, the hourly chart) stays plain black/white.
+// Each icon carries "dark-mode-invert" (see globals.css) so it keeps its
+// true colour under dark mode's whole-app invert filter, same as a photo
+// or the cocktail-glass illustrations — without it, the sun would render
+// blue instead of yellow with dark mode on.
 const CONDITIONS: Record<number, { label: string; Icon: (props: WeatherIconProps) => React.ReactElement; color: string }> = {
   0: { label: "Clear sky", Icon: SunIcon, color: "#F2A900" },
   1: { label: "Mostly clear", Icon: SunIcon, color: "#F2A900" },
