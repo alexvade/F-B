@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { Martini, Wine } from "lucide-react";
+import { GlassWater, Martini, Wine } from "lucide-react";
+import { HOUSE_COCKTAILS } from "@/lib/house-cocktails";
 import { createClient } from "@/lib/supabase/server";
 import { bg, border, inkSoft, navyText, orange } from "@/lib/design-tokens";
 import { statusTierOf, effectivePageAccess } from "@/lib/page-access";
@@ -34,6 +35,7 @@ export default async function MenusPage() {
   }
 
   const tiles = [
+    { href: "/menus/house", label: "House Menu", icon: GlassWater, subtitle: `${HOUSE_COCKTAILS.length} drinks` },
     { href: "/menus/cocktails", label: "Cocktails", icon: Martini, subtitle: `${cocktailCount ?? 0} drinks` },
     { href: "/menus/wines", label: "Wines", icon: Wine, subtitle: `${wineCount ?? 0} wines` },
   ];

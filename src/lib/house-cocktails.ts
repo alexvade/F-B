@@ -1,0 +1,373 @@
+/**
+ * The house cocktail menu ("M -" specs), taken from the recipe/costing
+ * spec sheets exported on 15/10/26 and 22/10/26. Static rather than in the
+ * `cocktails` table because these are the official costed specs — prices,
+ * cost and GP come from the costing system, so they're updated by
+ * re-exporting the sheets rather than edited in-app.
+ *
+ * Photos live in /public/house-cocktails/.
+ */
+export type HouseCocktail = {
+  slug: string;
+  name: string;
+  kind: "cocktail" | "alcohol-free";
+  price: number;
+  glass: string;
+  image: string;
+  ingredients: { qty: string; item: string }[];
+  method: string[];
+  garnish: string;
+  allergens: string[];
+  // True when the allergens are listed on the spec as "may contain"
+  // rather than definitely present.
+  allergensMayContain?: boolean;
+  // Something on the spec sheet itself that looks wrong and needs checking.
+  specNote?: string;
+  // From the costing system — shown to admins only.
+  cost: number;
+  gp: number;
+  targetGp: number;
+  epos: string;
+  specDate: string;
+};
+
+export const HOUSE_COCKTAILS: HouseCocktail[] = [
+  {
+    slug: "amaretto-sour",
+    name: "Amaretto Sour",
+    kind: "cocktail",
+    price: 13,
+    glass: "Martini glass",
+    image: "/house-cocktails/amaretto-sour.jpg",
+    ingredients: [
+      { qty: "50 ml", item: "Lazzaroni Amaretto" },
+      { qty: "30 ml", item: "Rabbit Hole Heigold Bourbon" },
+      { qty: "20 g", item: "Funkin Pure Lemon" },
+      { qty: "3 ml", item: "Angostura Bitters" },
+      { qty: "2 ml", item: "Ms Better's Miraculous Foamer" },
+    ],
+    method: [],
+    garnish: "—",
+    allergens: [],
+    specNote:
+      "The method on this spec sheet is the Malfy Martini's, copied by mistake — the costing system needs the correct Amaretto Sour method adding.",
+    cost: 3.98,
+    gp: 63.26,
+    targetGp: 75,
+    epos: "219500001",
+    specDate: "15/10/26",
+  },
+  {
+    slug: "aperol-spritz",
+    name: "Aperol Spritz",
+    kind: "cocktail",
+    price: 15,
+    glass: "Goblet",
+    image: "/house-cocktails/aperol-spritz.jpg",
+    ingredients: [
+      { qty: "50 ml", item: "Aperol" },
+      { qty: "100 ml", item: "Fili Prosecco" },
+      { qty: "50 ml", item: "Fever-Tree soda water" },
+      { qty: "1 wheel", item: "Orange" },
+    ],
+    method: [
+      "Add the Aperol to the goblet.",
+      "Top up with Prosecco.",
+      "Put cubed ice carefully into the goblet and give a quick stir.",
+    ],
+    garnish: "Orange wheel",
+    allergens: ["Sulphur dioxide"],
+    cost: 2.51,
+    gp: 79.92,
+    targetGp: 75,
+    epos: "219500002",
+    specDate: "15/10/26",
+  },
+  {
+    slug: "blood-orange-negroni",
+    name: "Blood Orange Negroni",
+    kind: "cocktail",
+    price: 14,
+    glass: "Rocks glass",
+    image: "/house-cocktails/blood-orange-negroni.jpg",
+    ingredients: [
+      { qty: "30 ml", item: "Malfy Con Arancia gin" },
+      { qty: "30 ml", item: "Lillet Rosé" },
+      { qty: "30 ml", item: "Aperol" },
+      { qty: "½ wheel", item: "Orange" },
+    ],
+    method: [
+      "Add all three spirits into the glass and stir.",
+      "Fill the rocks glass with fresh ice cubes and give one more stir.",
+    ],
+    garnish: "Half a wheel of orange",
+    allergens: ["Sulphur dioxide"],
+    cost: 2.32,
+    gp: 80.11,
+    targetGp: 75,
+    epos: "219500003",
+    specDate: "15/10/26",
+  },
+  {
+    slug: "bloody-mary",
+    name: "Bloody Mary",
+    kind: "cocktail",
+    price: 14,
+    glass: "Hi-ball",
+    image: "/house-cocktails/bloody-mary.jpg",
+    ingredients: [
+      { qty: "25 ml", item: "Absolut Blue vodka" },
+      { qty: "200 ml", item: "Big Tom spiced tomato juice" },
+      { qty: "15 g", item: "Funkin Pure Lemon" },
+      { qty: "1 wheel", item: "Lemon" },
+      { qty: "1 stick", item: "Celery" },
+      { qty: "1 crack", item: "Coarse black pepper" },
+    ],
+    method: [
+      "Add the vodka into a hi-ball.",
+      "Add ice and half the spiced tomato juice, stir, then add the rest. Top up with ice if needed.",
+    ],
+    garnish: "Lemon wheel on the side of the glass, a crack of black pepper on top",
+    allergens: ["Gluten", "Barley", "Celery", "Mustard"],
+    cost: 1.48,
+    gp: 87.31,
+    targetGp: 75,
+    epos: "219500004",
+    specDate: "15/10/26",
+  },
+  {
+    slug: "chardonnay-spritz",
+    name: "Chardonnay Spritz",
+    kind: "cocktail",
+    price: 15,
+    glass: "Goblet",
+    image: "/house-cocktails/chardonnay-spritz.jpg",
+    ingredients: [
+      { qty: "125 ml", item: "Doolhof Sparkling Chardonnay" },
+      { qty: "50 ml", item: "Italicus" },
+      { qty: "50 ml", item: "Fever-Tree soda water" },
+      { qty: "1 twist", item: "Lemon" },
+    ],
+    method: [
+      "Put cubed ice into the goblet.",
+      "Add the Italicus.",
+      "Top up with sparkling Chardonnay and soda.",
+      "Top up with ice carefully and give a quick stir.",
+    ],
+    garnish: "Lemon twist",
+    allergens: [],
+    cost: 3.13,
+    gp: 74.96,
+    targetGp: 75,
+    epos: "219500005",
+    specDate: "15/10/26",
+  },
+  {
+    slug: "espresso-martini",
+    name: "Espresso Martini",
+    kind: "cocktail",
+    price: 13,
+    glass: "Martini glass",
+    image: "/house-cocktails/espresso-martini.jpg",
+    ingredients: [
+      { qty: "40 ml", item: "Absolut Blue vodka" },
+      { qty: "20 ml", item: "Kahlúa" },
+      { qty: "11 g", item: "Peak & Wild Santa Izabel coffee (single shot)" },
+    ],
+    method: [
+      "Put ice in the martini glass to chill it.",
+      "Add everything except the garnish beans to the shaker.",
+      "Add ice and wet shake for 8–10 seconds.",
+      "Double strain into the martini glass — you want a good ‘head’ or crema.",
+    ],
+    garnish: "3 coffee beans (the alcohol-free version gets 1)",
+    allergens: [],
+    cost: 1.44,
+    gp: 86.71,
+    targetGp: 75,
+    epos: "219500006",
+    specDate: "15/10/26",
+  },
+  {
+    slug: "malfy-martini",
+    name: "Malfy Martini",
+    kind: "cocktail",
+    price: 15,
+    glass: "Martini glass",
+    image: "/house-cocktails/malfy-martini.jpg",
+    ingredients: [
+      { qty: "50 ml", item: "Malfy Con Limone gin" },
+      { qty: "15 ml", item: "Italicus" },
+      { qty: "1 twist", item: "Lemon" },
+    ],
+    method: [
+      "Fill a shaker base or mixing glass with cubed ice.",
+      "Pour in the Malfy Con Limone and the Italicus and stir for 10–15 seconds.",
+      "Strain into a martini glass through a Hawthorne strainer.",
+    ],
+    garnish: "Spritz, wipe and twist of lemon",
+    allergens: [],
+    cost: 2.48,
+    gp: 80.16,
+    targetGp: 75,
+    epos: "219500007",
+    specDate: "15/10/26",
+  },
+  {
+    slug: "mojito",
+    name: "Mojito",
+    kind: "cocktail",
+    price: 13,
+    glass: "Hi-ball",
+    image: "/house-cocktails/mojito.jpg",
+    ingredients: [
+      { qty: "50 ml", item: "Havana Club 3 Year Old" },
+      { qty: "15 ml", item: "Monin gomme syrup" },
+      { qty: "⅔", item: "Lime, cubed" },
+      { qty: "10 g", item: "Mint" },
+      { qty: "100 ml", item: "Fever-Tree soda water" },
+    ],
+    method: [
+      "Put the Havana Club, lime cubes and sugar syrup in a hi-ball and press gently with the muddler.",
+      "Add cubed ice, the soda and the mint, and pull through.",
+      "Serve with a straw.",
+    ],
+    garnish: "Mint sprig and a wedge of lime",
+    allergens: [],
+    cost: 2.08,
+    gp: 80.8,
+    targetGp: 75,
+    epos: "219500008",
+    specDate: "15/10/26",
+  },
+  {
+    slug: "old-fashioned",
+    name: "Old Fashioned",
+    kind: "cocktail",
+    price: 12,
+    glass: "Rocks glass",
+    image: "/house-cocktails/old-fashioned.jpg",
+    ingredients: [
+      { qty: "50 ml", item: "Chivas Regal" },
+      { qty: "10 ml", item: "Monin gomme syrup" },
+      { qty: "3 ml", item: "Fee Brothers orange bitters" },
+      { qty: "1 twist", item: "Orange" },
+    ],
+    method: [
+      "Put the sugar syrup into a rocks glass, add the orange bitters and give it a quick stir.",
+      "Add the Chivas.",
+      "Add cubed ice and stir again.",
+    ],
+    garnish: "Twist and spritz of orange",
+    allergens: [],
+    cost: 1.95,
+    gp: 80.5,
+    targetGp: 75,
+    epos: "219500009",
+    specDate: "15/10/26",
+  },
+  {
+    slug: "fauxito",
+    name: "Fauxito",
+    kind: "alcohol-free",
+    price: 14,
+    glass: "Hi-ball",
+    image: "/house-cocktails/fauxito.jpg",
+    ingredients: [
+      { qty: "70 ml", item: "Lyre's White Cane Spirit (0%)" },
+      { qty: "15 ml", item: "Monin gomme syrup" },
+      { qty: "⅔", item: "Lime, cubed" },
+      { qty: "10 g", item: "Mint" },
+      { qty: "100 ml", item: "Fever-Tree ginger ale" },
+    ],
+    method: [
+      "Put the white cane spirit, lime cubes and sugar syrup in a hi-ball and press gently with the muddler.",
+      "Add cubed ice, the ginger ale and the mint, and pull through.",
+      "Serve with a straw.",
+    ],
+    garnish: "Mint sprig and a wedge of lime",
+    allergens: [],
+    cost: 2.81,
+    gp: 75.91,
+    targetGp: 75,
+    epos: "234000001",
+    specDate: "22/10/26",
+  },
+  {
+    slug: "italian-spritz",
+    name: "Italian Spritz",
+    kind: "alcohol-free",
+    price: 14,
+    glass: "Goblet",
+    image: "/house-cocktails/italian-spritz.jpg",
+    ingredients: [
+      { qty: "60 ml", item: "Lyre's Italian Spritz (0%)" },
+      { qty: "90 ml", item: "Sea Change 0% Sparkling" },
+      { qty: "1 wheel", item: "Orange" },
+    ],
+    method: [
+      "Add the Italian Spritz to the goblet.",
+      "Top up with the 0% sparkling.",
+      "Put cubed ice carefully into the goblet.",
+    ],
+    garnish: "Orange wheel",
+    allergens: [],
+    specNote:
+      "The spec's ingredients list Sea Change 0% Sparkling, but its method says to top up with Wild Life Botanicals Nude — check which one we're using.",
+    cost: 2.5,
+    gp: 78.57,
+    targetGp: 75,
+    epos: "234000002",
+    specDate: "22/10/26",
+  },
+  {
+    slug: "nogroni",
+    name: "Nogroni",
+    kind: "alcohol-free",
+    price: 14,
+    glass: "Rocks glass",
+    image: "/house-cocktails/nogroni.jpg",
+    ingredients: [
+      { qty: "30 ml", item: "Lyre's London Dry (0%)" },
+      { qty: "30 ml", item: "Lyre's Italian Spritz (0%)" },
+      { qty: "30 ml", item: "Lyre's Vermouth Rosso (0%)" },
+      { qty: "½ wheel", item: "Orange" },
+    ],
+    method: ["Add all three non-alcoholic products to the glass and stir.", "Fill the rocks glass with fresh ice cubes."],
+    garnish: "Half a wheel of orange",
+    allergens: [],
+    cost: 2.67,
+    gp: 77.11,
+    targetGp: 75,
+    epos: "234000003",
+    specDate: "22/10/26",
+  },
+  {
+    slug: "virgin-espresso-martini",
+    name: "Virgin Espresso Martini",
+    kind: "alcohol-free",
+    price: 13,
+    glass: "Martini glass",
+    image: "/house-cocktails/espresso-martini.jpg",
+    ingredients: [
+      { qty: "45 ml", item: "Lyre's Coffee Originale (0%)" },
+      { qty: "15 ml", item: "Lyre's White Cane Spirit (0%)" },
+      { qty: "10.65 g", item: "Peak & Wild Santa Izabel coffee (single shot)" },
+      { qty: "10 ml", item: "Da Vinci vanilla syrup" },
+    ],
+    method: [
+      "Put ice in the martini glass to chill it.",
+      "Add everything except the garnish bean to the shaker.",
+      "Add ice and wet shake for 8–10 seconds.",
+      "Double strain into the martini glass — you want a good ‘head’ or crema.",
+    ],
+    garnish: "1 coffee bean (the alcoholic version gets 3)",
+    allergens: ["Gluten", "Eggs", "Milk", "Soya", "Celery", "Sulphur dioxide"],
+    allergensMayContain: true,
+    cost: 2.04,
+    gp: 81.17,
+    targetGp: 75,
+    epos: "234000004",
+    specDate: "22/10/26",
+  },
+];
