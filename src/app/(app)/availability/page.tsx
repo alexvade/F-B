@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Trash2 } from "lucide-react";
+import { Info, Trash2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useProfile } from "@/lib/profile-context";
 import { todayISO, weekStartOf, addDaysISO, weekDates, formatTimeHHMM } from "@/lib/dates";
@@ -16,6 +16,58 @@ type Entry = {
   end_time: string | null;
   note: string | null;
 };
+
+const STAFF_STEPS = [
+  "Pick the first and last date you can't work. For a single day, leave both the same.",
+  "Leave “All day” ticked, or untick it and set the hours you can't work — e.g. 09:00 to 12:00 if you can only start after midday.",
+  "Add a reason if you like (holiday, college, another job) — it helps, but it's optional.",
+  "Tap Add. Each day appears in your list below.",
+];
+
+const STAFF_GOOD_TO_KNOW = [
+  "Any day you haven't marked counts as available, so you could be put on the rota for it.",
+  "Managers check this page when they build the rota. It's not a request that gets approved — if it's short notice or the rota is already out, speak to a manager as well.",
+  "Only you and the managers can see your dates and reasons.",
+  "Plans changed? Tap the bin next to a date to remove it.",
+  "Past dates drop off your list automatically. You can add up to about three months in one go.",
+];
+
+function HowItWorks() {
+  return (
+    <div className="p-4 rounded-2xl mb-6" style={{ background: bg, border: `1px solid ${border}` }}>
+      <div className="flex items-center gap-2 mb-3">
+        <Info size={16} style={{ color: ink }} />
+        <h2 className="text-sm font-semibold" style={{ color: navyText }}>
+          How this works
+        </h2>
+      </div>
+      <ol className="flex flex-col gap-2 mb-4">
+        {STAFF_STEPS.map((step, i) => (
+          <li key={i} className="flex gap-3 text-sm leading-relaxed" style={{ color: ink }}>
+            <span
+              className="flex items-center justify-center shrink-0 rounded-full text-xs font-medium"
+              style={{ width: 20, height: 20, border: `1px solid ${border}`, color: navyText, marginTop: 2 }}
+            >
+              {i + 1}
+            </span>
+            <span>{step}</span>
+          </li>
+        ))}
+      </ol>
+      <div className="text-xs font-semibold mb-2" style={{ color: orange }}>
+        GOOD TO KNOW
+      </div>
+      <ul className="flex flex-col gap-1.5">
+        {STAFF_GOOD_TO_KNOW.map((tip, i) => (
+          <li key={i} className="flex gap-2 text-xs leading-relaxed" style={{ color: ink }}>
+            <span>•</span>
+            <span>{tip}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
 
 function formatDateLabel(iso: string): string {
   return new Date(iso + "T00:00:00Z").toLocaleDateString("en-GB", {
@@ -141,6 +193,8 @@ export default function AvailabilityPage() {
 
   return (
     <Section title="Availability" subtitle="Mark dates you can't work — everything else is assumed available">
+      {isCasual && <HowItWorks />}
+
       {isCasual && (
         <div className="mb-8">
           <h2 className="text-sm font-semibold mb-1" style={{ color: navyText }}>
@@ -259,7 +313,9 @@ export default function AvailabilityPage() {
             Casual staff availability
           </h2>
           <p className="text-xs mb-3" style={{ color: inkSoft }}>
-            Who can&apos;t work, by day — blank means available
+            Who can&apos;t work, by day — a dash means available. These are the dates casual staff have marked
+            themselves; they aren&apos;t approved or declined here, so follow up directly if something clashes with
+            the rota.
           </p>
           <div className="flex gap-1.5 overflow-x-auto mb-4 pb-1" style={{ scrollbarWidth: "thin" }}>
             <button
