@@ -314,13 +314,11 @@ export const HOUSE_COCKTAILS: HouseCocktail[] = [
     ],
     method: [
       "Add the Italian Spritz to the goblet.",
-      "Top up with the 0% sparkling.",
+      "Top up with Sea Change 0% Sparkling.",
       "Put cubed ice carefully into the goblet.",
     ],
     garnish: "Orange wheel",
     allergens: [],
-    specNote:
-      "The spec's ingredients list Sea Change 0% Sparkling, but its method says to top up with Wild Life Botanicals Nude — check which one we're using.",
     cost: 2.5,
     gp: 78.57,
     targetGp: 75,
