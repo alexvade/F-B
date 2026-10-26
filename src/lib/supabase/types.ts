@@ -503,6 +503,28 @@ export interface Database {
           sort_order?: number;
         }
       >;
+      dm_instructions: Table<
+        {
+          id: number;
+          title: string;
+          steps: string[];
+          photos: string[];
+          source_file_url: string | null;
+          source_file_name: string | null;
+          sort_order: number;
+          created_at: string;
+        },
+        {
+          id?: number;
+          title: string;
+          steps?: string[];
+          photos?: string[];
+          source_file_url?: string | null;
+          source_file_name?: string | null;
+          sort_order?: number;
+          created_at?: string;
+        }
+      >;
       nominations: Table<
         { id: number; nominee_name: string; reason: string; nominated_by: string | null; created_at: string },
         {

@@ -25,6 +25,7 @@ import {
   SlidersHorizontal,
   Star,
   CalendarOff,
+  LifeBuoy,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useProfile } from "@/lib/profile-context";
@@ -46,6 +47,7 @@ export const NAV_ITEMS = [
   { href: "/menus", label: "Drinks", icon: Martini, adminOnly: true, staffFlag: "page_access_menus" },
   { href: "/rota", label: "Rota", icon: CalendarDays, adminOnly: true, staffFlag: "page_access_rota" },
   { href: "/sops", label: "SOPs", icon: BookOpen, adminOnly: true, staffFlag: "page_access_sops" },
+  { href: "/dm-instructions", label: "DM Instructions", icon: LifeBuoy, adminOnly: true, staffFlag: "page_access_dm_instructions" },
   { href: "/colleague-of-the-month", label: "Colleague of the Month", icon: Award, adminOnly: true, staffFlag: "page_access_colleague_of_the_month" },
   { href: "/running-order", label: "Running Order", icon: ListOrdered, adminOnly: true, staffFlag: "page_access_running_order" },
   { href: "/stock-orders", label: "Stock Orders", icon: ClipboardList, adminOnly: true, staffFlag: "stock_orders_edit" },

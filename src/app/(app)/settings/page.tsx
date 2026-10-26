@@ -50,6 +50,11 @@ const FLAG_GROUPS: { group: string; flags: Flag[] }[] = [
         description: "Let staff see the SOPs page.",
       },
       {
+        key: "page_access_dm_instructions",
+        label: "DM Instructions",
+        description: "Let staff see the DM Instructions page.",
+      },
+      {
         key: "page_access_colleague_of_the_month",
         label: "Colleague of the Month",
         description: "Let staff see the Colleague of the Month page.",
@@ -108,6 +113,11 @@ const FLAG_GROUPS: { group: string; flags: Flag[] }[] = [
         key: "sops_edit",
         label: "SOPs",
         description: "Let staff add, edit, and delete standard operating procedures.",
+      },
+      {
+        key: "dm_instructions_edit",
+        label: "DM Instructions",
+        description: "Let staff add, edit, and delete DM Instructions guides.",
       },
       {
         key: "wines_edit",
@@ -176,6 +186,7 @@ export default function SettingsPage() {
   const rotaFlag = useFeatureFlag("page_access_rota");
   const checklistsFlag = useFeatureFlag("page_access_checklists");
   const sopsFlag = useFeatureFlag("page_access_sops");
+  const dmInstructionsFlag = useFeatureFlag("page_access_dm_instructions");
   const colleagueFlag = useFeatureFlag("page_access_colleague_of_the_month");
   const functionSheetsFlag = useFeatureFlag("page_access_function_sheets");
   const eventsFlag = useFeatureFlag("page_access_events");
@@ -190,6 +201,7 @@ export default function SettingsPage() {
     page_access_rota: rotaFlag,
     page_access_checklists: checklistsFlag,
     page_access_sops: sopsFlag,
+    page_access_dm_instructions: dmInstructionsFlag,
     page_access_colleague_of_the_month: colleagueFlag,
     page_access_function_sheets: functionSheetsFlag,
     page_access_events: eventsFlag,
