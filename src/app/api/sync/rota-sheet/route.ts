@@ -82,6 +82,32 @@ export async function POST(request: Request) {
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
+  // A blank cell in the sheet (not OFF, not HOL, not a time) produces no
+  // parsed shift at all — parseRotaSheet just skips it — which otherwise
+  // leaves whatever was PREVIOUSLY synced for that person/date sitting in
+  // rota_shifts forever once their cell is cleared back to blank. Clear
+  // exactly those (staff, date) pairs the sheet has an opinion on (a row
+  // and a day column both present this tab) but didn't produce a shift
+  // for, same "this tab is now the full truth for its dates" treatment
+  // daily_events already gets below.
+  let shiftsCleared = 0;
+  if (parsed.staffOrder.length && parsed.dates.length) {
+    const populated = new Set(parsed.shifts.map((s) => `${s.staffName}|${s.date}`));
+    const blankPairs = parsed.staffOrder.flatMap((staffName) =>
+      parsed.dates.filter((date) => !populated.has(`${staffName}|${date}`)).map((date) => ({ staffName, date }))
+    );
+    if (blankPairs.length) {
+      const results = await Promise.all(
+        blankPairs.map(({ staffName, date }) =>
+          supabase.from("rota_shifts").delete().eq("staff_name", staffName).eq("date", date)
+        )
+      );
+      const failed = results.find((r) => r.error);
+      if (failed?.error) return NextResponse.json({ error: failed.error.message }, { status: 500 });
+      shiftsCleared = blankPairs.length;
+    }
+  }
+
   if (parsed.dates.length) {
     const { error: deleteError } = await supabase
       .from("daily_events")
@@ -109,6 +135,7 @@ export async function POST(request: Request) {
     ok: true,
     datesSynced: parsed.dates,
     shiftsWritten: shiftRows.length,
+    shiftsCleared,
     eventsWritten: parsed.events.length,
     unmatched: Array.from(unmatched),
     coloursSynced: colorGrid !== null,
