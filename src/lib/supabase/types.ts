@@ -152,6 +152,26 @@ export interface Database {
           created_at?: string;
         }
       >;
+      notifications: Table<
+        {
+          id: number;
+          staff_id: string;
+          title: string;
+          body: string;
+          url: string | null;
+          read_at: string | null;
+          created_at: string;
+        },
+        {
+          id?: number;
+          staff_id: string;
+          title: string;
+          body: string;
+          url?: string | null;
+          read_at?: string | null;
+          created_at?: string;
+        }
+      >;
       daily_covers: Table<
         {
           date: string;

@@ -30,6 +30,7 @@ import {
 import { createClient } from "@/lib/supabase/client";
 import { useProfile } from "@/lib/profile-context";
 import { usePresenceTracking } from "@/lib/presence";
+import { NotificationCentre } from "@/components/notification-centre";
 import type { FeatureFlags } from "@/lib/feature-flags-context";
 import { bg, bgText, bgTextSoft, border, ink, inkSoft, navy, orange, panel, surface } from "@/lib/design-tokens";
 import { ThemeContext } from "@/lib/theme-context";
@@ -265,6 +266,8 @@ export function NavShell({
       >
         <MenuIcon size={20} style={{ color: orange }} />
       </button>
+
+      <NotificationCentre dark={dark} />
 
       {/* All-tabs menu (mobile) */}
       {menuOpen && (

@@ -28,10 +28,15 @@ export type PushPayload = {
   url?: string;
 };
 
-/** Sends one push to every subscribed device for each of the given staff ids. Silently no-ops if VAPID isn't configured yet, or there's nothing to send to. */
+/** Sends one push to every subscribed device for each of the given staff ids, and always logs it to the in-app Notification Centre (see the `notifications` table) regardless of whether web push itself is configured or delivered. Silently no-ops if there's nothing to send to. */
 export async function sendPushToStaff(staffIds: string[], payload: PushPayload): Promise<void> {
   const uniqueIds = Array.from(new Set(staffIds)).filter(Boolean);
   if (uniqueIds.length === 0) return;
+
+  const supabase = createAdminClient();
+  await supabase.from("notifications").insert(
+    uniqueIds.map((staff_id) => ({ staff_id, title: payload.title, body: payload.body, url: payload.url ?? null }))
+  );
 
   try {
     ensureConfigured();
@@ -39,7 +44,6 @@ export async function sendPushToStaff(staffIds: string[], payload: PushPayload):
     return;
   }
 
-  const supabase = createAdminClient();
   const { data: subs } = await supabase
     .from("push_subscriptions")
     .select("id, endpoint, p256dh, auth")
