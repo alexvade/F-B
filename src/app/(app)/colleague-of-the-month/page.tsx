@@ -78,10 +78,6 @@ export default function ColleagueOfTheMonthPage() {
       .single();
     if (data) {
       await supabase.from("nomination_votes").insert({ nomination_id: data.id, user_id: profile.id });
-      await supabase.from("posts").insert({
-        author_id: profile.id,
-        text: `🏆 Nominated ${nominee} for Colleague of the Month — "${reason}"`,
-      });
     }
     setNewNominee("");
     setNewReason("");

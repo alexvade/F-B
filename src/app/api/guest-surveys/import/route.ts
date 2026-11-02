@@ -3,19 +3,6 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { sendPushToAll } from "@/lib/push";
 import { buildRoster, applyManualRosterOverrides, buildRows } from "@/lib/guest-survey-dashboard";
 
-// Congratulation openers for the auto-post below — one is picked at
-// random per shout-out so the Noticeboard doesn't read like a form letter.
-const SHOUTOUT_OPENERS = [
-  (n: string) => `🌟 Shout-out time — ${n} just made a guest's day!`,
-  (n: string) => `👏 Nice one, ${n}! A guest took the time to say thanks.`,
-  (n: string) => `🎉 ${n}, you're a legend — spotted in today's reviews!`,
-  (n: string) => `⭐ Guests are talking — ${n} got a lovely mention!`,
-  (n: string) => `🙌 Well done ${n} — another happy guest shout-out!`,
-  (n: string) => `💫 ${n} strikes again! Another guest singled them out.`,
-  (n: string) => `🌟 Round of applause for ${n} — guest review love incoming!`,
-  (n: string) => `👏 ${n}, someone noticed! Great work.`,
-];
-
 // Called by the scheduled cloud agent that checks Gmail for new ReviewPro
 // survey emails (see docs/guest-surveys-import.md). The agent does the
 // Gmail search and parsing (it has the Gmail connector but not this app's
@@ -53,13 +40,13 @@ export async function POST(request: Request) {
     // `data` here is only the rows the upsert actually inserted (duplicates
     // are skipped by `ignoreDuplicates`), so every shout-out below is for a
     // genuinely new review — no separate dedup check needed.
-    await postStaffShoutouts(supabase, data);
+    await sendStaffShoutoutPushes(supabase, data);
   }
 
   return NextResponse.json({ ok: true, imported: data?.length ?? 0 });
 }
 
-async function postStaffShoutouts(
+async function sendStaffShoutoutPushes(
   supabase: ReturnType<typeof createAdminClient>,
   rows: { id: number; guest_name: string; response_date: string | null; overall_score: number | null; nps_category: string | null; room: string | null; check_in: string | null; check_out: string | null; answers: { question: string; answer: string | null }[] }[]
 ) {
@@ -70,14 +57,11 @@ async function postStaffShoutouts(
   const built = buildRows(rows, roster);
 
   for (const row of built) {
-    const praised = new Map<string, string>(); // canonical name -> quote
-    for (const s of row.staff) if (s.tone === "praise" && !praised.has(s.name)) praised.set(s.name, s.quote);
+    const praised = new Set<string>();
+    for (const s of row.staff) if (s.tone === "praise") praised.add(s.name);
 
-    for (const [name, quote] of praised) {
+    for (const name of praised) {
       const firstName = name.split(" ")[0];
-      const opener = SHOUTOUT_OPENERS[Math.floor(Math.random() * SHOUTOUT_OPENERS.length)](firstName);
-      const snippet = quote.length > 220 ? quote.slice(0, 220) + "…" : quote;
-      await supabase.from("posts").insert({ author_id: null, text: `${opener}\n\n"${snippet}"` });
       await sendPushToAll({ title: "⭐ Staff shout-out", body: `${firstName} was just praised by a guest!`, url: "/updates" });
     }
   }
