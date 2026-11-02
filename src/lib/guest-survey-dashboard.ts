@@ -62,20 +62,28 @@ export const DIMS: [string, string][] = [
 // Category -> the dedicated free-text comment question for it, where one
 // exists in the export. Categories without one fall back to the general
 // "what could be improved" comment for anyone who scored them low.
-const NOTE_QUESTIONS: Record<string, string> = {
-  q_checkin: "Check in improvements - other comments Comment",
-  q_checkout: "Check out comment box Comment",
-  friendly: "Friendliness staff improvements Comment",
-  room_clean: "Bedroom Cleanliness improvement Comment",
-  room_fac: "Bedroom Facilities comment box Comment",
-  bk_service: "Breakfast service comment box Comment",
-  bk_food: "Breakfast quality comment box Comment",
-  rest_service: "Restaurant Service comment box Comment",
-  rest_food: "Food Quality comment box Comment",
-  bar_service: "Bar or Lounge service comment box Comment",
-  bar_quality: "Bar or Lounge Food and Drink Quality comment box Comment",
-  spa_clean: "Spa Cleanliness comment box Comment",
-  grounds: "Presentation and Gardens improvements Comment",
+// Each entry lists every label ReviewPro has used for that question — see
+// the comment on `ansAny` above. A few categories (friendly, spa_clean,
+// grounds) only ever had the old "... Comment" label and have no
+// surviving equivalent in the post-rename export — nothing to add there.
+const NOTE_QUESTIONS: Record<string, string[]> = {
+  q_checkin: ["Check in improvements", "Check in improvements - other comments Comment", "Check in improvements - other comments"],
+  q_checkout: ["Check out improvements", "Check out comment box Comment"],
+  friendly: ["Friendliness staff improvements Comment"],
+  room_clean: ["Bedroom Cleanliness improvement", "Bedroom Cleanliness improvement Comment"],
+  room_fac: ["Bedroom Facilities improvements", "Bedroom Facilities comment box", "Bedroom Facilities comment box Comment"],
+  bk_service: ["Breakfast service improvements", "Breakfast service comment box", "Breakfast service comment box Comment"],
+  bk_food: ["Breakfast quality improvements", "Breakfast quality comment box", "Breakfast quality comment box Comment"],
+  rest_service: ["Restaurant Service improvements", "Restaurant Service comment box Comment"],
+  rest_food: ["Food Quality Improvements", "Food Quality comment box", "Food Quality comment box Comment"],
+  bar_service: ["Bar or Lounge service improvements", "Bar or Lounge service comment box Comment"],
+  bar_quality: [
+    "Bar or Lounge Food and Drink Quality improvements",
+    "Bar or Lounge Food and Drink Quality comment box",
+    "Bar or Lounge Food and Drink Quality comment box Comment",
+  ],
+  spa_clean: ["Spa Cleanliness comment box Comment"],
+  grounds: ["Presentation and Gardens improvements Comment"],
 };
 
 export type StaffMention = { name: string; tone: "praise" | "critical"; dept: string | null; quote: string; field: string };
@@ -137,14 +145,37 @@ function ans(answers: Answer[], question: string): string | null {
   return a != null && a !== "" ? a : null;
 }
 
+// Same as `ans`, but tries each question label in turn and returns the
+// first that has an answer. ReviewPro silently renamed most of its
+// free-text question labels (dropping a trailing " Comment", and in a
+// handful of cases rewording entirely — "Check out comment box Comment"
+// became "Check out improvements") around 18 October 2026, with no
+// notice and no overlap period for most fields. A plain `ans()` call
+// using only the old label went quietly blank for every response after
+// that — not an error, just an empty string — so every reader of this
+// data (staff mentions, theme detection, the Insights dashboard, Noticeboard
+// shout-outs) silently lost all free-text since. Every lookup liable to
+// have been renamed goes through this instead of `ans()` directly.
+function ansAny(answers: Answer[], ...questions: string[]): string | null {
+  for (const q of questions) {
+    const v = ans(answers, q);
+    if (v != null) return v;
+  }
+  return null;
+}
+
 // The single best free-text quote to pull out when sharing a review
 // somewhere else (e.g. the Noticeboard) — same question keys buildRows
 // reads, in priority order: a general highlight, then a staff shout-out,
 // then the raw OTA review text.
 export function bestGuestComment(answers: Answer[]): string | null {
   return (
-    ans(answers, "What was the highlight of your stay? Comment") ??
-    ans(answers, "Did any particular team member stand out? If so, why? Comment") ??
+    ansAny(answers, "What was the highlight of your stay? Comment", "What was the highlight of your stay?") ??
+    ansAny(
+      answers,
+      "Did any particular team member stand out? If so, why? Comment",
+      "Did any particular team member stand out? If so, why?"
+    ) ??
     ans(answers, "Review")
   );
 }
@@ -437,11 +468,21 @@ export function buildRows(surveys: SurveyInput[], roster: RosterPerson[] = []): 
     const checkout = s.check_out;
     const nights = nightsBetween(checkin, checkout);
 
-    const highlight = ans(a, "What was the highlight of your stay? Comment") ?? "";
-    const improve = ans(a, "What could have been improved? Comment") ?? "";
-    const standout = ans(a, "Did any particular team member stand out? If so, why? Comment") ?? "";
-    const issue_text = ans(a, "Please describe what happened Comment") ?? "";
-    const additional = ans(a, "Thank you so much for your input. Please provide any additional comments that you would like to share: Comment") ?? "";
+    const highlight = ansAny(a, "What was the highlight of your stay? Comment", "What was the highlight of your stay?") ?? "";
+    const improve = ansAny(a, "What could have been improved? Comment", "What could have been improved?") ?? "";
+    const standout =
+      ansAny(
+        a,
+        "Did any particular team member stand out? If so, why? Comment",
+        "Did any particular team member stand out? If so, why?"
+      ) ?? "";
+    const issue_text = ansAny(a, "Please describe what happened Comment", "Please describe what happened") ?? "";
+    const additional =
+      ansAny(
+        a,
+        "Thank you so much for your input. Please provide any additional comments that you would like to share: Comment",
+        "Thank you so much for your input. Please provide any additional comments that you would like to share:"
+      ) ?? "";
     const event_comment =
       ans(a, "Please tell us the reasons for your scores about the function Comment") ??
       ans(a, "Please tell us the reasons for your wedding function scores Comment") ??
@@ -449,8 +490,8 @@ export function buildRows(surveys: SurveyInput[], roster: RosterPerson[] = []): 
     const review = ans(a, "Review") ?? "";
 
     const notes: Record<string, string> = {};
-    for (const [key, q] of Object.entries(NOTE_QUESTIONS)) {
-      const v = ans(a, q);
+    for (const [key, candidates] of Object.entries(NOTE_QUESTIONS)) {
+      const v = ansAny(a, ...candidates);
       if (v) notes[key] = v;
     }
 
