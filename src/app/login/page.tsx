@@ -128,6 +128,7 @@ export default function LoginPage() {
         style={{ background: surface, border: `1px solid ${border}` }}
       >
         <div className="mb-6">
+          <img src="/icons/mark-black.png" alt="" width={36} height={36} className="mb-3" style={{ display: "block" }} />
           <div className="text-base font-semibold" style={{ color: ink }}>
             Team Ops
           </div>
