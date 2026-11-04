@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Trash2 } from "lucide-react";
+import { Check, Pencil, Trash2, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useProfile } from "@/lib/profile-context";
 import { usePresenceViewer } from "@/lib/presence";
@@ -32,6 +32,9 @@ export default function StaffAdminPage() {
   const [role, setRole] = useState<Role>("staff");
   const [inviting, setInviting] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editName, setEditName] = useState("");
+  const [renaming, setRenaming] = useState(false);
 
   const loadStaff = useCallback(async () => {
     const { data } = await supabase.from("profiles_directory").select("*").order("name");
@@ -101,6 +104,49 @@ export default function StaffAdminPage() {
     };
     setStaff((prev) => prev.map((s) => (s.id === member.id ? { ...s, ...patch } : s)));
     await supabase.from("profiles").update(patch).eq("id", member.id);
+  };
+
+  const startRename = (member: StaffRow) => {
+    setEditingId(member.id);
+    setEditName(member.name);
+    setMessage(null);
+  };
+
+  const cancelRename = () => {
+    setEditingId(null);
+    setEditName("");
+  };
+
+  const saveRename = async (member: StaffRow) => {
+    const trimmed = editName.trim();
+    if (!trimmed || trimmed === member.name) {
+      cancelRename();
+      return;
+    }
+    setRenaming(true);
+    setMessage(null);
+    try {
+      const res = await fetch("/api/admin/rename-staff", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: member.id, name: trimmed }),
+      });
+      const body = await res.json();
+      if (!res.ok) {
+        setMessage(body.error || "Couldn't rename that account.");
+        return;
+      }
+      const linked = body.rotaRowsRenamed as number | undefined;
+      setMessage(
+        `Renamed ${member.name} to ${trimmed}.` +
+          (linked ? ` Updated ${linked} rota shift${linked === 1 ? "" : "s"} to match.` : "")
+      );
+      setEditingId(null);
+      setEditName("");
+      loadStaff();
+    } finally {
+      setRenaming(false);
+    }
   };
 
   const deleteStaff = async (member: StaffRow) => {
@@ -180,13 +226,14 @@ export default function StaffAdminPage() {
           >
             {inviting ? "Sending invite…" : "Send invite"}
           </button>
-          {message && (
-            <div className="text-xs" style={{ color: navy }}>
-              {message}
-            </div>
-          )}
         </div>
       </div>
+
+      {message && (
+        <div className="text-xs mb-3" style={{ color: navy }}>
+          {message}
+        </div>
+      )}
 
       <div className="flex flex-col gap-1">
         {staff.map((s) => {
@@ -194,22 +241,58 @@ export default function StaffAdminPage() {
           const statusLabel = status === "online" ? "Online" : status === "idle" ? "Idle" : "Offline";
           return (
           <div key={s.id} className="flex items-center justify-between p-3 rounded-2xl" style={{ border: `1px solid ${border}` }}>
-            <div>
-              <div className="text-sm font-medium flex items-center gap-1.5">
-                <span
-                  aria-hidden
-                  style={{
-                    width: 8,
-                    height: 8,
-                    borderRadius: "50%",
-                    flexShrink: 0,
-                    background: status === "online" ? "#000000" : "transparent",
-                    border: `1.5px solid ${border}`,
-                    opacity: status ? 1 : 0.3,
-                  }}
-                />
-                {s.name}
-              </div>
+            <div className="min-w-0">
+              {editingId === s.id ? (
+                <div className="flex items-center gap-1.5 mb-1">
+                  <input
+                    autoFocus
+                    value={editName}
+                    onChange={(e) => setEditName(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") saveRename(s);
+                      if (e.key === "Escape") cancelRename();
+                    }}
+                    disabled={renaming}
+                    className="text-sm px-3 py-1 rounded-full outline-none disabled:opacity-60"
+                    style={inputStyle}
+                  />
+                  <button
+                    onClick={() => saveRename(s)}
+                    disabled={renaming}
+                    aria-label={`Save name for ${s.name}`}
+                    style={{ color: "#000000" }}
+                  >
+                    <Check size={15} />
+                  </button>
+                  <button
+                    onClick={cancelRename}
+                    disabled={renaming}
+                    aria-label="Cancel rename"
+                    style={{ color: inkSoft }}
+                  >
+                    <X size={15} />
+                  </button>
+                </div>
+              ) : (
+                <div className="text-sm font-medium flex items-center gap-1.5">
+                  <span
+                    aria-hidden
+                    style={{
+                      width: 8,
+                      height: 8,
+                      borderRadius: "50%",
+                      flexShrink: 0,
+                      background: status === "online" ? "#000000" : "transparent",
+                      border: `1.5px solid ${border}`,
+                      opacity: status ? 1 : 0.3,
+                    }}
+                  />
+                  {s.name}
+                  <button onClick={() => startRename(s)} aria-label={`Edit ${s.name}'s name`} style={{ color: inkSoft }}>
+                    <Pencil size={12} />
+                  </button>
+                </div>
+              )}
               <div className="text-xs" style={{ color: inkSoft }}>
                 {statusLabel} · {s.email} {s.contract_hours ? `· ${s.contract_hours}h contract` : ""}
               </div>
