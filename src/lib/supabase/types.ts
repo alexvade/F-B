@@ -769,46 +769,6 @@ export interface Database {
           updated_at?: string | null;
         }
       >;
-      linen_order_items: Table<
-        {
-          article: string;
-          category: string;
-          sort_order: number;
-          total_sent: number | null;
-          colour: string | null;
-          increase_required: number | null;
-          decrease_required: number | null;
-          reject: number | null;
-          updated_at: string;
-        },
-        {
-          article: string;
-          category: string;
-          sort_order: number;
-          total_sent?: number | null;
-          colour?: string | null;
-          increase_required?: number | null;
-          decrease_required?: number | null;
-          reject?: number | null;
-          updated_at?: string;
-        }
-      >;
-      linen_order_meta: Table<
-        {
-          id: number;
-          your_name: string | null;
-          labels_colour: string | null;
-          empty_bags_cages: number | null;
-          updated_at: string;
-        },
-        {
-          id?: number;
-          your_name?: string | null;
-          labels_colour?: string | null;
-          empty_bags_cages?: number | null;
-          updated_at?: string;
-        }
-      >;
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;

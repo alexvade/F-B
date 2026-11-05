@@ -10,7 +10,7 @@ import { bg, border, ink, inkSoft, navy } from "@/lib/design-tokens";
 import { uploadAttachment, getAttachmentUrl, deleteAttachment } from "@/lib/storage";
 import { NAV_ITEMS, DEFAULT_ISLAND_LEFT, DEFAULT_ISLAND_RIGHT } from "@/components/nav-shell";
 import type { StatusTier } from "@/lib/page-access";
-import { User, Users, ChevronRight, Shirt } from "lucide-react";
+import { User, Users, ChevronRight } from "lucide-react";
 
 type Flag = { key: string; label: string; description: string };
 type FlagRow = { enabled: boolean; casual_enabled: boolean; supervisor_enabled: boolean; team_member_enabled: boolean };
@@ -608,22 +608,6 @@ export default function SettingsPage() {
             <span className="flex items-center gap-2 text-sm font-medium">
               <Users size={16} style={{ color: inkSoft }} />
               Manage staff
-            </span>
-            <ChevronRight size={16} style={{ color: inkSoft }} />
-          </Link>
-        </Section>
-      )}
-
-      {profile.is_super_admin && (
-        <Section title="Linen Order" subtitle="Daily order sent to Fisher Services — visible only to you">
-          <Link
-            href="/linen-order"
-            className="flex items-center justify-between p-4 rounded-2xl"
-            style={{ background: bg, border: `1px solid ${border}`, color: ink }}
-          >
-            <span className="flex items-center gap-2 text-sm font-medium">
-              <Shirt size={16} style={{ color: inkSoft }} />
-              Linen Order
             </span>
             <ChevronRight size={16} style={{ color: inkSoft }} />
           </Link>
