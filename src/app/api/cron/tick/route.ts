@@ -25,6 +25,10 @@ const BIRTHDAY_MINUTE_WINDOW = 15;
 // How long before a shift's end_time its "finish the checklist" push fires.
 const CHECKLIST_REMINDER_LEAD_MINUTES = 30;
 
+const LINEN_REMINDER_HOUR = 8;
+const LINEN_REMINDER_MINUTE_WINDOW = 15;
+const LINEN_REMINDER_TITLE = "🧺 Linen count";
+
 async function runBirthdays(supabase: ReturnType<typeof createAdminClient>, now: Date) {
   const local = londonWallClock(now);
   if (local.getUTCHours() !== BIRTHDAY_HOUR || local.getUTCMinutes() >= BIRTHDAY_MINUTE_WINDOW) {
@@ -110,6 +114,41 @@ async function runChecklistReminders(supabase: ReturnType<typeof createAdminClie
   return { reminded: dueShifts.length };
 }
 
+// Personal daily reminder for whoever's super-admin (currently just Alex) to
+// send Fisher Services the linen count — not tied to any in-app page, just
+// a nudge. Looked up by is_super_admin rather than a hardcoded id, since
+// account ids aren't stable (an account deleted and re-invited gets a new
+// one — see 0059_rota_shifts_staff_id_set_null.sql's own history of this).
+async function runLinenReminder(supabase: ReturnType<typeof createAdminClient>, now: Date) {
+  const local = londonWallClock(now);
+  if (local.getUTCHours() !== LINEN_REMINDER_HOUR || local.getUTCMinutes() >= LINEN_REMINDER_MINUTE_WINDOW) {
+    return { ran: false };
+  }
+
+  const { data: admins } = await supabase.from("profiles").select("id").eq("is_super_admin", true);
+  if (!admins || admins.length === 0) return { ran: true, sent: 0 };
+
+  const startOfDay = new Date(Date.UTC(local.getUTCFullYear(), local.getUTCMonth(), local.getUTCDate())).toISOString();
+  let sent = 0;
+  for (const admin of admins) {
+    const { data: existing } = await supabase
+      .from("notifications")
+      .select("id")
+      .eq("staff_id", admin.id)
+      .eq("title", LINEN_REMINDER_TITLE)
+      .gte("created_at", startOfDay)
+      .limit(1);
+    if (existing && existing.length > 0) continue;
+
+    await sendPushToStaff([admin.id], {
+      title: LINEN_REMINDER_TITLE,
+      body: "Send today's linen count to Fisher Services.",
+    });
+    sent++;
+  }
+  return { ran: true, sent };
+}
+
 export async function GET(request: Request) {
   if (!isAuthorized(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -117,10 +156,11 @@ export async function GET(request: Request) {
 
   const supabase = createAdminClient();
   const now = new Date();
-  const [birthdays, checklists] = await Promise.all([
+  const [birthdays, checklists, linenReminder] = await Promise.all([
     runBirthdays(supabase, now),
     runChecklistReminders(supabase, now),
+    runLinenReminder(supabase, now),
   ]);
 
-  return NextResponse.json({ ok: true, birthdays, checklists });
+  return NextResponse.json({ ok: true, birthdays, checklists, linenReminder });
 }
