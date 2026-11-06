@@ -3,7 +3,6 @@
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import {
-  Clock,
   Sparkles,
   Users,
   BedDouble,
@@ -24,6 +23,7 @@ import { computeShiftStatus, initials } from "@/lib/shift-status";
 import type { EventContent } from "@/lib/event-content";
 import { EmojiText } from "@/components/emoji-text";
 import { WeatherWidget } from "@/components/weather-widget";
+import { DashboardCalendar } from "@/components/dashboard-calendar";
 import {
   bg,
   border,
@@ -353,16 +353,6 @@ export default function DashboardPage() {
   };
 
   const nowMinutes = now.getHours() * 60 + now.getMinutes();
-  const dateLabel = now.toLocaleDateString(undefined, {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-  });
-  const timeLabel = now.toLocaleTimeString(undefined, {
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-  });
 
   const guestsDate = addDaysISO(today, guestsDayOffset);
   const guestsCovers = coversByDate.get(guestsDate) ?? null;
@@ -383,23 +373,9 @@ export default function DashboardPage() {
         Here&apos;s what&apos;s happening on shift today
       </p>
 
-      {/* Date & time, and weather, side by side */}
-      <div className="grid grid-cols-2 gap-4 mb-4">
-        <div
-          className="flex items-center justify-between p-4 rounded-2xl"
-          style={{ background: bg, border: `1px solid ${border}`, minHeight: 76 }}
-        >
-          <div>
-            <div className="text-xs mb-1" style={{ color: inkSoft }}>
-              {dateLabel}
-            </div>
-            <div className="text-2xl font-semibold tabular-nums" style={{ color: navyText }}>
-              {timeLabel}
-            </div>
-          </div>
-          <Clock size={32} style={{ color: orange, opacity: 0.8 }} />
-        </div>
-
+      {/* Calendar, and weather, side by side */}
+      <div className="grid sm:grid-cols-2 gap-4 mb-4 items-start">
+        <DashboardCalendar events={events} birthdays={birthdays} />
         <WeatherWidget />
       </div>
 

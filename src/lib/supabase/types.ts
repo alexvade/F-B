@@ -172,6 +172,22 @@ export interface Database {
           created_at?: string;
         }
       >;
+      calendar_notes: Table<
+        {
+          id: number;
+          note_date: string;
+          text: string;
+          added_by: string | null;
+          created_at: string;
+        },
+        {
+          id?: number;
+          note_date: string;
+          text: string;
+          added_by?: string | null;
+          created_at?: string;
+        }
+      >;
       daily_covers: Table<
         {
           date: string;
