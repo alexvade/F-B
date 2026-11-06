@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { CalendarDays, ChevronLeft, ChevronRight, X } from "lucide-react";
+import { CalendarDays, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useProfile } from "@/lib/profile-context";
 import { todayISO } from "@/lib/dates";
@@ -47,6 +47,7 @@ export function DashboardCalendar({ events, birthdays }: { events: EventRow[]; b
   const [viewYear, setViewYear] = useState(today.year);
   const [viewMonth, setViewMonth] = useState(today.month);
   const [selected, setSelected] = useState<YMD | null>(today);
+  const [expanded, setExpanded] = useState(false);
   const [notes, setNotes] = useState<CalendarNote[]>([]);
   const [draftText, setDraftText] = useState("");
   const [saving, setSaving] = useState(false);
@@ -144,6 +145,19 @@ export function DashboardCalendar({ events, birthdays }: { events: EventRow[]; b
   const selectedDetails = selected ? detailsFor(selected.year, selected.month, selected.day) : null;
   const selectedHasAny = !!selectedDetails && (selectedDetails.titles.length + selectedDetails.names.length + selectedDetails.labels.length) > 0;
 
+  const todayDetails = detailsFor(today.year, today.month, today.day);
+  const todaySummary = (() => {
+    const parts: string[] = [];
+    if (todayDetails.labels.length) parts.push(todayDetails.labels[0]);
+    if (todayDetails.names.length) {
+      parts.push(todayDetails.names.length === 1 ? `🎂 ${todayDetails.names[0]}` : `🎂 ${todayDetails.names.length} birthdays`);
+    }
+    if (todayDetails.titles.length) {
+      parts.push(todayDetails.titles.length === 1 ? todayDetails.titles[0] : `${todayDetails.titles.length} events`);
+    }
+    return parts.length ? parts.join(" · ") : "Nothing marked today";
+  })();
+
   const addNote = async () => {
     const text = draftText.trim();
     if (!text || !selected || saving) return;
@@ -164,7 +178,43 @@ export function DashboardCalendar({ events, birthdays }: { events: EventRow[]; b
   };
 
   return (
-    <div className="p-4 rounded-2xl" style={{ background: bg, border: `1px solid ${border}` }}>
+    <>
+      <div
+        className="relative overflow-hidden p-4 rounded-2xl"
+        style={{ background: bg, border: `1px solid ${border}`, minHeight: 76 }}
+      >
+        <div className="relative flex items-center justify-between">
+          <div>
+            <div className="flex items-center gap-1 text-xs mb-1" style={{ color: inkSoft }}>
+              <CalendarDays size={11} /> Today
+            </div>
+            <div className="flex items-baseline gap-2">
+              <span className="text-4xl font-semibold tabular-nums leading-none" style={{ color: navyText }}>
+                {today.day}
+              </span>
+              <span className="text-sm" style={{ color: ink }}>
+                {WEEKDAY_FULL[new Date(today.year, today.month, today.day).getDay()]}, {MONTH_NAMES[today.month]}
+              </span>
+            </div>
+            <div className="text-xs mt-1" style={{ color: inkSoft }}>
+              <EmojiText text={todaySummary} />
+            </div>
+          </div>
+          <div className="flex flex-col items-center gap-1 shrink-0">
+            <CalendarDays size={26} style={{ color: inkSoft, opacity: 0.8 }} />
+            <button
+              onClick={() => setExpanded((e) => !e)}
+              aria-label={expanded ? "Hide calendar" : "Show full calendar"}
+              style={{ color: inkSoft }}
+            >
+              {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {expanded && (
+    <div className="p-4 rounded-2xl" style={{ gridColumn: "1 / -1", background: bg, border: `1px solid ${border}` }}>
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <CalendarDays size={15} style={{ color: ink }} />
@@ -346,5 +396,7 @@ export function DashboardCalendar({ events, birthdays }: { events: EventRow[]; b
         )}
       </div>
     </div>
+      )}
+    </>
   );
 }
