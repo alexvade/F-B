@@ -202,13 +202,8 @@ export function NavShell({
       >
         <div className="mb-6 px-2 flex items-center gap-2.5">
           <img src="/icons/mark-black.png" alt="" width={28} height={28} style={{ display: "block" }} />
-          <div>
-            <div className="text-sm font-semibold" style={{ color: bgText }}>
-              Team Ops
-            </div>
-            <div className="text-xs" style={{ color: bgTextSoft }}>
-              Operations hub
-            </div>
+          <div className="text-sm font-semibold" style={{ color: bgText }}>
+            Team Ops
           </div>
         </div>
         <nav className="flex flex-col gap-1">
