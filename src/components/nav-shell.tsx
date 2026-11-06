@@ -32,7 +32,8 @@ import { useProfile } from "@/lib/profile-context";
 import { usePresenceTracking } from "@/lib/presence";
 import { NotificationCentre } from "@/components/notification-centre";
 import { NotificationPrompt } from "@/components/notification-prompt";
-import type { FeatureFlags } from "@/lib/feature-flags-context";
+import { ViewAsToggle } from "@/components/view-as-toggle";
+import { useFeatureFlags, type FeatureFlags } from "@/lib/feature-flags-context";
 import { bg, bgText, bgTextSoft, border, ink, inkSoft, navy, orange, panel, surface } from "@/lib/design-tokens";
 import { ThemeContext } from "@/lib/theme-context";
 
@@ -85,20 +86,17 @@ export const DEFAULT_ISLAND_RIGHT = ["/events", "/function-sheets", "/sops"];
 
 export function NavShell({
   name,
-  isAdmin,
-  isSuperAdmin,
-  flags,
   children,
 }: {
   name: string;
-  isAdmin: boolean;
-  isSuperAdmin: boolean;
-  flags: FeatureFlags;
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
   const router = useRouter();
   const profile = useProfile();
+  const isAdmin = profile.role === "admin";
+  const isSuperAdmin = profile.is_super_admin;
+  const flags = useFeatureFlags();
   const [menuOpen, setMenuOpen] = useState(false);
   const [dark, setDark] = useState(false);
 
@@ -273,6 +271,7 @@ export function NavShell({
 
       <NotificationCentre dark={dark} />
       <NotificationPrompt dark={dark} />
+      <ViewAsToggle dark={dark} />
 
       {/* All-tabs menu (mobile) */}
       {menuOpen && (
