@@ -28,6 +28,7 @@ import {
   LifeBuoy,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import LineSidebar from "@/components/line-sidebar";
 import { useProfile } from "@/lib/profile-context";
 import { usePresenceTracking } from "@/lib/presence";
 import { NotificationCentre } from "@/components/notification-centre";
@@ -182,6 +183,12 @@ export function NavShell({
   const islandLeft = taskBar.slice(0, 3);
   const islandRight = taskBar.slice(3, 6);
 
+  const sidebarVisible = NAV_ITEMS.filter((item) => canSeeNavItem(item, isAdmin, isSuperAdmin, flags, profile.is_casual));
+  const sidebarDashboard = sidebarVisible.find((item) => item.href === "/dashboard");
+  const sidebarRest = sidebarVisible.filter((item) => item.href !== "/dashboard");
+  const sidebarOrdered = sidebarDashboard ? [sidebarDashboard, ...sidebarRest] : sidebarRest;
+  const sidebarActiveIndex = sidebarOrdered.findIndex((item) => isActive(item.href));
+
   const handleSignOut = async () => {
     const supabase = createClient();
     await supabase.auth.signOut();
@@ -197,7 +204,7 @@ export function NavShell({
     >
       {/* Sidebar (desktop) */}
       <div
-        className={`hidden sm:flex flex-col w-56 shrink-0 p-4 overflow-y-auto${dark ? " dark-mode" : ""}`}
+        className={`hidden sm:flex flex-col w-64 shrink-0 p-4 overflow-y-auto${dark ? " dark-mode" : ""}`}
         style={{ borderRight: `1px solid rgba(0,0,0,0.15)` }}
       >
         <div className="mb-6 px-2 flex items-center gap-2.5">
@@ -206,33 +213,27 @@ export function NavShell({
             Team Ops
           </div>
         </div>
-        <nav className="flex flex-col gap-1">
-          {(() => {
-            const visible = NAV_ITEMS.filter((item) => canSeeNavItem(item, isAdmin, isSuperAdmin, flags, profile.is_casual));
-            const dashboardItem = visible.find((item) => item.href === "/dashboard");
-            const rest = visible.filter((item) => item.href !== "/dashboard");
-            const ordered = dashboardItem ? [dashboardItem, ...rest] : rest;
-            return ordered.map(({ href, label, icon: Icon }, i) => {
-              const active = isActive(href);
-              return (
-                <Link
-                  key={href}
-                  href={href}
-                  className="flex items-center gap-2 px-4 py-2.5 rounded-full text-sm text-left"
-                  style={{
-                    background: active ? navy : "transparent",
-                    color: active ? bg : bgTextSoft,
-                    fontWeight: active ? 600 : 400,
-                    marginBottom: i === 0 && dashboardItem ? 12 : 0,
-                  }}
-                >
-                  <Icon size={16} style={{ color: active ? bg : bgTextSoft }} />
-                  {label}
-                </Link>
-              );
-            });
-          })()}
-        </nav>
+        <LineSidebar
+          key={pathname}
+          items={sidebarOrdered.map((item) => item.label)}
+          accentColor={ink}
+          textColor="rgba(0,0,0,0.4)"
+          markerColor="rgba(0,0,0,0.22)"
+          showIndex
+          showMarker
+          proximityRadius={70}
+          maxShift={10}
+          falloff="smooth"
+          markerLength={22}
+          markerGap={6}
+          tickScale={0.5}
+          scaleTick
+          itemGap={10}
+          fontSize={0.875}
+          smoothing={100}
+          defaultActive={sidebarActiveIndex === -1 ? null : sidebarActiveIndex}
+          onItemClick={(index) => router.push(sidebarOrdered[index].href)}
+        />
         <div className="mt-auto pt-4" style={{ borderTop: `1px solid rgba(0,0,0,0.15)` }}>
           <div className="px-2 py-2 text-sm" style={{ color: bgText }}>
             {name}
