@@ -12,6 +12,7 @@ import { NAV_ITEMS, DEFAULT_ISLAND_LEFT, DEFAULT_ISLAND_RIGHT } from "@/componen
 import { usePushNotifications } from "@/lib/use-push-notifications";
 import type { StatusTier } from "@/lib/page-access";
 import { User, Users, ChevronRight } from "lucide-react";
+import BellToggle from "@/components/bell-toggle";
 
 type Flag = { key: string; label: string; description: string };
 type FlagRow = { enabled: boolean; casual_enabled: boolean; supervisor_enabled: boolean; team_member_enabled: boolean };
@@ -233,6 +234,32 @@ export default function SettingsPage() {
     disable: disablePush,
   } = usePushNotifications();
 
+  // Same count the bell in the nav bar shows (see NotificationCentre) — so
+  // the toggle's badge here agrees with it instead of tracking its own.
+  const [unreadCount, setUnreadCount] = useState(0);
+  useEffect(() => {
+    const loadUnread = async () => {
+      const { count } = await supabase
+        .from("notifications")
+        .select("id", { count: "exact", head: true })
+        .eq("staff_id", profile.id)
+        .is("read_at", null);
+      setUnreadCount(count ?? 0);
+    };
+    loadUnread();
+    const channel = supabase
+      .channel(`settings-notifications-${profile.id}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "notifications", filter: `staff_id=eq.${profile.id}` },
+        loadUnread
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [supabase, profile.id]);
+
   const loadData = useCallback(async () => {
     const { data } = await supabase
       .from("feature_flags")
@@ -448,18 +475,31 @@ export default function SettingsPage() {
                     Get notified for new Noticeboard posts, guest surveys, rota changes, birthdays, and a reminder
                     to finish your checklist near the end of your shift.
                   </p>
-                  <button
-                    onClick={pushEnabled ? disablePush : enablePush}
+                  <BellToggle
+                    offLabel="Notify me"
+                    onLabel="You'll be notified"
+                    color="#f5f5f5"
+                    background="#27272a"
+                    onColor="#18181b"
+                    onBackground="#f5f5f5"
+                    size="md"
+                    radius={22}
+                    ringAmplitude={17}
+                    ringPasses={5}
+                    ringDecay={1}
+                    ringDuration={820}
+                    ringPivot={16}
+                    crossfadeMs={200}
+                    revealBounce={0}
+                    count={unreadCount}
+                    badge
+                    badgeColor="#ef4444"
+                    waves
+                    clapper={false}
+                    pressed={pushEnabled}
+                    onChange={(next) => (next ? enablePush() : disablePush())}
                     disabled={pushBusy}
-                    className="text-xs font-medium px-4 py-2 rounded-full disabled:opacity-60"
-                    style={{
-                      background: pushEnabled ? "#FFFFFF" : navy,
-                      color: pushEnabled ? "#000000" : "#FFFFFF",
-                      border: `1px solid ${border}`,
-                    }}
-                  >
-                    {pushBusy ? "Working…" : pushEnabled ? "Disable notifications" : "Enable notifications"}
-                  </button>
+                  />
                   {pushError && (
                     <p className="text-xs mt-2" style={{ color: "#B3261E" }}>
                       {pushError}
