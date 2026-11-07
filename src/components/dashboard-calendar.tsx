@@ -16,6 +16,7 @@ const MONTH_NAMES = [
 ];
 const WEEKDAY_FULL = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 const WEEKDAY_LETTERS = ["M", "T", "W", "T", "F", "S", "S"];
+const WEEKDAY_SHORT_SUN = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 type EventRow = { id: number; title: string; content: EventContent | null };
 type BirthdayRow = { id: number; name: string; day: number; month: number };
@@ -158,6 +159,16 @@ export function DashboardCalendar({ events, birthdays }: { events: EventRow[]; b
     return parts.length ? parts.join(" · ") : "Nothing marked today";
   })();
 
+  // Sun-start mini month grid for the collapsed lock-screen-widget-style preview.
+  const miniCells = useMemo(() => {
+    const daysInMonth = new Date(today.year, today.month + 1, 0).getDate();
+    const firstWeekday = new Date(today.year, today.month, 1).getDay(); // 0 = Sun
+    const cells: { day: number | null; isToday: boolean }[] = [];
+    for (let i = 0; i < firstWeekday; i++) cells.push({ day: null, isToday: false });
+    for (let d = 1; d <= daysInMonth; d++) cells.push({ day: d, isToday: d === today.day });
+    return cells;
+  }, [today]);
+
   const addNote = async () => {
     const text = draftText.trim();
     if (!text || !selected || saving) return;
@@ -180,36 +191,61 @@ export function DashboardCalendar({ events, birthdays }: { events: EventRow[]; b
   return (
     <>
       <div
-        className="relative overflow-hidden p-4 rounded-2xl"
-        style={{ background: bg, border: `1px solid ${border}`, minHeight: 76 }}
+        role="button"
+        tabIndex={0}
+        onClick={() => setExpanded((e) => !e)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            setExpanded((v) => !v);
+          }
+        }}
+        aria-label={expanded ? "Hide calendar" : "Show full calendar"}
+        className="relative overflow-hidden p-4 rounded-2xl cursor-pointer select-none"
+        style={{ background: bg, border: `1px solid ${border}` }}
       >
-        <div className="relative flex items-center justify-between">
-          <div>
-            <div className="flex items-center gap-1 text-xs mb-1" style={{ color: inkSoft }}>
-              <CalendarDays size={11} /> Today
-            </div>
-            <div className="flex items-baseline gap-2">
-              <span className="text-4xl font-semibold tabular-nums leading-none" style={{ color: navyText }}>
-                {today.day}
-              </span>
-              <span className="text-sm" style={{ color: ink }}>
-                {WEEKDAY_FULL[new Date(today.year, today.month, today.day).getDay()]}, {MONTH_NAMES[today.month]}
-              </span>
-            </div>
-            <div className="text-xs mt-1" style={{ color: inkSoft }}>
-              <EmojiText text={todaySummary} />
-            </div>
-          </div>
-          <div className="flex flex-col items-center gap-1 shrink-0">
-            <CalendarDays size={26} style={{ color: inkSoft, opacity: 0.8 }} />
-            <button
-              onClick={() => setExpanded((e) => !e)}
-              aria-label={expanded ? "Hide calendar" : "Show full calendar"}
-              style={{ color: inkSoft }}
-            >
-              {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-            </button>
-          </div>
+        <div className="flex items-center justify-between mb-2.5">
+          <span className="text-[11px]" style={{ color: inkSoft, opacity: 0.55 }}>
+            {WEEKDAY_FULL[new Date(today.year, today.month, today.day).getDay()]}, {MONTH_NAMES[today.month]} {today.day} · {today.year}
+          </span>
+          <span style={{ color: inkSoft, opacity: 0.55 }}>
+            {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+          </span>
+        </div>
+
+        <div className="grid grid-cols-7 gap-y-1 mb-3">
+          {WEEKDAY_SHORT_SUN.map((w) => (
+            <span key={w} className="text-center text-[9px]" style={{ color: inkSoft, opacity: 0.4 }}>
+              {w}
+            </span>
+          ))}
+          {miniCells.map((cell, i) => (
+            <span key={i} className="flex items-center justify-center mx-auto" style={{ width: 18, height: 18 }}>
+              {cell.day !== null && (
+                <span
+                  className="flex items-center justify-center text-[10px] tabular-nums leading-none rounded-full"
+                  style={{
+                    width: 18,
+                    height: 18,
+                    color: cell.isToday ? bg : ink,
+                    background: cell.isToday ? navy : "transparent",
+                    opacity: cell.isToday ? 1 : 0.4,
+                    fontWeight: cell.isToday ? 600 : 400,
+                  }}
+                >
+                  {cell.day}
+                </span>
+              )}
+            </span>
+          ))}
+        </div>
+
+        <div className="text-4xl font-bold leading-[0.95] tracking-tight" style={{ color: navyText }}>
+          {MONTH_NAMES[today.month]}
+          <span>.</span>
+        </div>
+        <div className="text-xs mt-1.5" style={{ color: inkSoft, opacity: 0.6 }}>
+          <EmojiText text={todaySummary} />
         </div>
       </div>
 
