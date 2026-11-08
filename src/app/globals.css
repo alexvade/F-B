@@ -19,6 +19,13 @@
   --to-bg: #ffffff;
   --to-fg: #000000;
   --to-accent: #000000;
+  /* Soft/secondary accent (navySoft/orangeSoft in design-tokens.ts — chip
+     and soft-highlight fills). Defaults to --to-bg, same as every token
+     resolved to pure white before schemes existed; a scheme only needs to
+     set this explicitly when it wants a second accent distinct from
+     --to-accent (see "Mocha" below), rather than one colour doing both
+     jobs. */
+  --to-accent-soft: var(--to-bg);
   /* r,g,b triplet (no alpha) matching --to-fg, for the handful of
      hairline-divider colours written as rgba(var(--to-line-rgb), X) so
      they stay visible against the themed background instead of staying
@@ -58,12 +65,17 @@ html[data-scheme="electric"] {
   --to-line-rgb: 250, 199, 225;
 }
 
-/* "Mocha" scheme — Mocha Green / Soft Sand / Watermelon Pink. */
+/* "Mocha" scheme — Watermelon Pink background, black text, and the two
+   remaining swatches split across the two accent roles: Mocha Green is the
+   solid accent (buttons, active states, badges), Soft Sand is the soft
+   accent (chip/highlight fills) — so both show up around the app instead
+   of just one. */
 html[data-scheme="mocha"] {
-  --to-bg: #474329;
-  --to-fg: #f0e5db;
-  --to-accent: #fc75b4;
-  --to-line-rgb: 240, 229, 219;
+  --to-bg: #fc75b4;
+  --to-fg: #000000;
+  --to-accent: #474329;
+  --to-accent-soft: #f0e5db;
+  --to-line-rgb: 0, 0, 0;
 }
 
 /* A colour scheme fully replaces the legacy invert-based dark mode

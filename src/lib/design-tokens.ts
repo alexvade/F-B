@@ -11,9 +11,11 @@
 // override the custom properties under `html[data-scheme="…"]`, which
 // re-themes every component that already imports these tokens without
 // touching the components themselves. See src/lib/theme-schemes.ts for the
-// scheme registry and globals.css for the three CSS-var groups each scheme
-// fills in: --to-bg (background), --to-fg (text/border), --to-accent
-// (buttons/highlights/badges).
+// scheme registry and globals.css for the CSS-var groups each scheme fills
+// in: --to-bg (background), --to-fg (text/border), --to-accent (buttons/
+// active states/badges), and the optional --to-accent-soft (chip/highlight
+// fills — defaults to --to-bg, only set separately by a scheme that wants
+// two distinct accent colours in play, e.g. "Mocha").
 export const ink = "var(--to-fg)";
 export const inkSoft = "var(--to-fg)";
 export const bg = "var(--to-bg)";
@@ -25,8 +27,8 @@ export const good = "var(--to-accent)";
 export const warn = "var(--to-accent)";
 export const navy = "var(--to-accent)";
 export const orange = "var(--to-accent)";
-export const navySoft = "var(--to-bg)";
-export const orangeSoft = "var(--to-bg)";
+export const navySoft = "var(--to-accent-soft)";
+export const orangeSoft = "var(--to-accent-soft)";
 export const navyText = "var(--to-fg)";
 export const bgText = "var(--to-fg)";
 export const bgTextSoft = "var(--to-fg)";
