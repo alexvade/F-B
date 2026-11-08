@@ -78,6 +78,30 @@ html[data-scheme="mocha"] {
   --to-line-rgb: 0, 0, 0;
 }
 
+/* "Sky" scheme — Sky Blue / White / Hot Pink. */
+html[data-scheme="sky"] {
+  --to-bg: #0593c6;
+  --to-fg: #fcffff;
+  --to-accent: #d83995;
+  --to-line-rgb: 252, 255, 255;
+}
+
+/* "Midnight Black" scheme — Midnight Black / Electric Blue / Cantaloupe Orange. */
+html[data-scheme="midnight-black"] {
+  --to-bg: #02070a;
+  --to-fg: #fc734d;
+  --to-accent: #0297de;
+  --to-line-rgb: 252, 115, 77;
+}
+
+/* "Deep" scheme — Deep Blue / Pure White / Bubblegum Pink. */
+html[data-scheme="deep"] {
+  --to-bg: #09318d;
+  --to-fg: #ffffff;
+  --to-accent: #fd91cc;
+  --to-line-rgb: 255, 255, 255;
+}
+
 /* A colour scheme fully replaces the legacy invert-based dark mode
    (NavShell's Moon/Sun toggle) rather than stacking with it — inverting an
    already-themed palette doesn't produce a sensible result the way it does

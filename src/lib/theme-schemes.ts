@@ -53,4 +53,32 @@ export const THEME_SCHEMES: ThemeScheme[] = [
       { name: "Watermelon Pink", hex: "#FC75B4" },
     ],
   },
+  {
+    key: "sky",
+    name: "Sky",
+    swatches: [
+      { name: "Sky Blue", hex: "#0593C6" },
+      { name: "White", hex: "#FCFFFF" },
+      { name: "Hot Pink", hex: "#D83995" },
+    ],
+  },
+  {
+    // Full two-word name to avoid colliding with the "Midnight" (Navy) scheme.
+    key: "midnight-black",
+    name: "Midnight Black",
+    swatches: [
+      { name: "Midnight Black", hex: "#02070A" },
+      { name: "Electric Blue", hex: "#0297DE" },
+      { name: "Cantaloupe Orange", hex: "#FC734D" },
+    ],
+  },
+  {
+    key: "deep",
+    name: "Deep",
+    swatches: [
+      { name: "Deep Blue", hex: "#09318D" },
+      { name: "Pure White", hex: "#FFFFFF" },
+      { name: "Bubblegum Pink", hex: "#FD91CC" },
+    ],
+  },
 ];
