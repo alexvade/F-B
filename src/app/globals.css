@@ -34,6 +34,38 @@ html[data-scheme="obsidian"] {
   --to-line-rgb: 223, 229, 235;
 }
 
+/* "Midnight" scheme — Midnight Navy / Soft Blue / Coral Orange. */
+html[data-scheme="midnight"] {
+  --to-bg: #002941;
+  --to-fg: #b6dfed;
+  --to-accent: #fd6e6e;
+  --to-line-rgb: 182, 223, 237;
+}
+
+/* "Raven" scheme — Raven Black / Powder Blue / Poppy Red. */
+html[data-scheme="raven"] {
+  --to-bg: #0d0d0d;
+  --to-fg: #b0e0e6;
+  --to-accent: #e63946;
+  --to-line-rgb: 176, 224, 230;
+}
+
+/* "Electric" scheme — Electric Blue / Flamingo Pink / Plum Pink. */
+html[data-scheme="electric"] {
+  --to-bg: #004afd;
+  --to-fg: #fac7e1;
+  --to-accent: #a5467c;
+  --to-line-rgb: 250, 199, 225;
+}
+
+/* "Mocha" scheme — Mocha Green / Soft Sand / Watermelon Pink. */
+html[data-scheme="mocha"] {
+  --to-bg: #474329;
+  --to-fg: #f0e5db;
+  --to-accent: #fc75b4;
+  --to-line-rgb: 240, 229, 219;
+}
+
 /* A colour scheme fully replaces the legacy invert-based dark mode
    (NavShell's Moon/Sun toggle) rather than stacking with it — inverting an
    already-themed palette doesn't produce a sensible result the way it does
