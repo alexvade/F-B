@@ -81,4 +81,42 @@ export const THEME_SCHEMES: ThemeScheme[] = [
       { name: "Bubblegum Pink", hex: "#FD91CC" },
     ],
   },
+  {
+    // Named "Lime" (not "Midnight Black") to avoid colliding with the
+    // existing "Midnight Black" scheme's name — different hex, same name.
+    key: "lime",
+    name: "Lime",
+    swatches: [
+      { name: "Midnight Black", hex: "#0B0B0C" },
+      { name: "Pure White", hex: "#FFFFFF" },
+      { name: "Lime Green", hex: "#C6F432" },
+    ],
+  },
+  {
+    key: "burgundy",
+    name: "Burgundy",
+    swatches: [
+      { name: "Wine Black", hex: "#1D1015" },
+      { name: "Burgundy", hex: "#421B29" },
+      { name: "Rosewood", hex: "#702B40" },
+    ],
+  },
+  {
+    key: "forest",
+    name: "Forest",
+    swatches: [
+      { name: "Forest Black", hex: "#17251F" },
+      { name: "Forest Green", hex: "#344B3A" },
+      { name: "Sage", hex: "#65745A" },
+    ],
+  },
+  {
+    key: "leather",
+    name: "Leather",
+    swatches: [
+      { name: "Leather Black", hex: "#211713" },
+      { name: "Leather Brown", hex: "#493126" },
+      { name: "Tan", hex: "#78533B" },
+    ],
+  },
 ];

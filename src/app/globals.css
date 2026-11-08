@@ -102,6 +102,44 @@ html[data-scheme="deep"] {
   --to-line-rgb: 255, 255, 255;
 }
 
+/* "Lime" scheme — Midnight Black / Pure White / Lime Green. */
+html[data-scheme="lime"] {
+  --to-bg: #0b0b0c;
+  --to-fg: #ffffff;
+  --to-accent: #c6f432;
+  --to-line-rgb: 255, 255, 255;
+}
+
+/* "Burgundy" scheme — tonal wine palette (Wine Black / Burgundy /
+   Rosewood). All three shades sit close in lightness, so body text reads
+   noticeably dimmer than the other schemes — true to the palette given,
+   but worth knowing going in. */
+html[data-scheme="burgundy"] {
+  --to-bg: #1d1015;
+  --to-fg: #702b40;
+  --to-accent: #421b29;
+  --to-line-rgb: 112, 43, 64;
+}
+
+/* "Forest" scheme — tonal green palette (Forest Black / Forest Green /
+   Sage). Same low-contrast trade-off as Burgundy — a true-to-the-palette
+   tonal look rather than a high-contrast one. */
+html[data-scheme="forest"] {
+  --to-bg: #17251f;
+  --to-fg: #65745a;
+  --to-accent: #344b3a;
+  --to-line-rgb: 101, 116, 90;
+}
+
+/* "Leather" scheme — tonal brown palette (Leather Black / Leather Brown /
+   Tan). Same low-contrast trade-off as Burgundy/Forest. */
+html[data-scheme="leather"] {
+  --to-bg: #211713;
+  --to-fg: #78533b;
+  --to-accent: #493126;
+  --to-line-rgb: 120, 83, 59;
+}
+
 /* A colour scheme fully replaces the legacy invert-based dark mode
    (NavShell's Moon/Sun toggle) rather than stacking with it — inverting an
    already-themed palette doesn't produce a sensible result the way it does
