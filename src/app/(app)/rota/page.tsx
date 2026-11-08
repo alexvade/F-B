@@ -295,7 +295,13 @@ export default function RotaPage() {
                   return (
                     <td
                       key={d.date}
-                      className="text-center p-2"
+                      // The sheet's own colour-coding is a real colour, not a
+                      // light/dark UI tone — dark mode's filter:invert(1)
+                      // (NavShell) would otherwise turn it into its visual
+                      // opposite. dark-mode-invert cancels that back out,
+                      // same trick already used for photos and the cocktail
+                      // glass SVGs (see globals.css).
+                      className={`text-center p-2${cellColor ? " dark-mode-invert" : ""}`}
                       style={{
                         background: cellColor ?? fill,
                         color: cellColor ? readableTextColor(cellColor) : undefined,
