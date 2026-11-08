@@ -6,21 +6,25 @@ export const plexMono = IBM_Plex_Mono({ subsets: ["latin"], weight: ["500", "600
 
 // Shared editorial look (serif headings, sage/gold palette) for both the
 // Events guide and the Menus guide — a printed-guide feel distinct from the
-// app's navy/orange dashboard system. Scoped under .event-guide-wrap so
-// nothing here leaks into the rest of the app, and vice versa. Menu-specific
-// classes (eg-item-*) live alongside the event ones since both guides share
-// the same wrapper and tokens.
+// app's navy/orange dashboard system, laid out independently of it below.
+// Its *colours*, though, follow the same scheme vars as everything else
+// (see design-tokens.ts / globals.css's html[data-scheme="…"] blocks) so an
+// owner-picked colour scheme reaches this card too, rather than leaving a
+// white tile stranded against a themed background. Scoped under
+// .event-guide-wrap so nothing else here leaks into the rest of the app,
+// and vice versa. Menu-specific classes (eg-item-*) live alongside the
+// event ones since both guides share the same wrapper and tokens.
 export const GUIDE_STYLES = `
 .event-guide-wrap {
-  --eg-bg: #FFFFFF;
-  --eg-surface: #FFFFFF;
-  --eg-ink: #000000;
-  --eg-muted: #000000;
-  --eg-accent: #000000;
-  --eg-accent-soft: #FFFFFF;
-  --eg-gold: #000000;
-  --eg-gold-soft: #FFFFFF;
-  --eg-border: rgba(0,0,0,0.2);
+  --eg-bg: var(--to-bg);
+  --eg-surface: var(--to-bg);
+  --eg-ink: var(--to-fg);
+  --eg-muted: var(--to-fg);
+  --eg-accent: var(--to-accent);
+  --eg-accent-soft: var(--to-bg);
+  --eg-gold: var(--to-accent);
+  --eg-gold-soft: var(--to-bg);
+  --eg-border: rgba(var(--to-line-rgb), 0.2);
   --eg-shadow: 0 1px 2px rgba(0,0,0,0.06), 0 6px 18px -8px rgba(0,0,0,0.12);
   background: var(--eg-bg);
   color: var(--eg-ink);
