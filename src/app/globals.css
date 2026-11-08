@@ -11,6 +11,40 @@
 :root {
   --background: #ffffff;
   --foreground: #000000;
+
+  /* design-tokens.ts's role groups — default = the approved black & white
+     brief, unchanged for every user. Only the owner-only scheme picker
+     (theme-scheme-toggle.tsx) ever sets data-scheme on <html>, which is
+     the only thing that overrides these. */
+  --to-bg: #ffffff;
+  --to-fg: #000000;
+  --to-accent: #000000;
+  /* r,g,b triplet (no alpha) matching --to-fg, for the handful of
+     hairline-divider colours written as rgba(var(--to-line-rgb), X) so
+     they stay visible against the themed background instead of staying
+     literal black. */
+  --to-line-rgb: 0, 0, 0;
+}
+
+/* "Obsidian" scheme — Obsidian Black / Ice Grey / Racing Red. */
+html[data-scheme="obsidian"] {
+  --to-bg: #111217;
+  --to-fg: #dfe5eb;
+  --to-accent: #ef233c;
+  --to-line-rgb: 223, 229, 235;
+}
+
+/* A colour scheme fully replaces the legacy invert-based dark mode
+   (NavShell's Moon/Sun toggle) rather than stacking with it — inverting an
+   already-themed palette doesn't produce a sensible result the way it does
+   for plain black/white. NavShell stops applying the "dark-mode" class
+   while a scheme is active, but this is a belt-and-suspenders guard in CSS
+   too. */
+html[data-scheme] .dark-mode,
+html[data-scheme] .dark-mode img,
+html[data-scheme] .dark-mode .cocktail-glass-svg,
+html[data-scheme] .dark-mode .dark-mode-invert {
+  filter: none;
 }
 
 @theme inline {

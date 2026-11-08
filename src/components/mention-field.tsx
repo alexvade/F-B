@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { border, ink } from "@/lib/design-tokens";
+import { bg, border, ink } from "@/lib/design-tokens";
 import type { MentionablePerson } from "@/lib/mentions";
 
 // Finds the "@word" the caret is currently sitting inside of, if any —
@@ -164,7 +164,7 @@ function MentionFieldBase({
       {query && matches.length > 0 && (
         <div
           className="absolute z-20 rounded-xl overflow-hidden py-1"
-          style={{ background: "#FFFFFF", border: `1px solid ${border}`, boxShadow: "0 2px 10px rgba(0,0,0,0.15)", minWidth: 180, top: "100%", left: 0, marginTop: 4 }}
+          style={{ background: bg, border: `1px solid ${border}`, boxShadow: "0 2px 10px rgba(0,0,0,0.15)", minWidth: 180, top: "100%", left: 0, marginTop: 4 }}
         >
           {matches.map((p, i) => (
             <button

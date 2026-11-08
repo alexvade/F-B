@@ -301,7 +301,7 @@ export function DashboardCalendar({ events, birthdays }: { events: EventRow[]; b
               style={{
                 height: 36,
                 background: cell.isToday ? navy : "transparent",
-                color: cell.isToday ? bg : cell.inMonth ? ink : "rgba(0,0,0,0.32)",
+                color: cell.isToday ? bg : cell.inMonth ? ink : "rgba(var(--to-line-rgb), 0.32)",
                 border: cell.isSelected && !cell.isToday ? `1.5px solid ${border}` : "1.5px solid transparent",
               }}
             >
@@ -331,7 +331,7 @@ export function DashboardCalendar({ events, birthdays }: { events: EventRow[]; b
         })}
       </div>
 
-      <div className="flex items-center gap-3 flex-wrap mt-3 pt-2.5" style={{ borderTop: `1px solid rgba(0,0,0,0.15)` }}>
+      <div className="flex items-center gap-3 flex-wrap mt-3 pt-2.5" style={{ borderTop: `1px solid rgba(var(--to-line-rgb), 0.15)` }}>
         <span className="flex items-center gap-1.5 text-[11px]" style={{ color: ink }}>
           <span style={{ width: 4, height: 4, borderRadius: "50%", background: ink, display: "inline-block" }} /> Event
         </span>
@@ -353,7 +353,7 @@ export function DashboardCalendar({ events, birthdays }: { events: EventRow[]; b
         </span>
       </div>
 
-      <div className="mt-3 pt-3" style={{ borderTop: `1px solid rgba(0,0,0,0.15)` }}>
+      <div className="mt-3 pt-3" style={{ borderTop: `1px solid rgba(var(--to-line-rgb), 0.15)` }}>
         {selected ? (
           <>
             <div className="text-xs font-semibold mb-1.5" style={{ color: ink }}>
@@ -385,7 +385,7 @@ export function DashboardCalendar({ events, birthdays }: { events: EventRow[]; b
             )}
 
             {/* Team notes — shared with everyone, not personal */}
-            <div className="mt-2.5 pt-2.5" style={{ borderTop: "1px dashed rgba(0,0,0,0.25)" }}>
+            <div className="mt-2.5 pt-2.5" style={{ borderTop: "1px dashed rgba(var(--to-line-rgb), 0.25)" }}>
               <div className="text-[11px] font-semibold mb-1.5" style={{ color: ink }}>
                 Team notes
               </div>

@@ -33,6 +33,7 @@ import { usePresenceTracking } from "@/lib/presence";
 import { NotificationCentre } from "@/components/notification-centre";
 import { NotificationPrompt } from "@/components/notification-prompt";
 import { ViewAsToggle } from "@/components/view-as-toggle";
+import { ThemeSchemeToggle } from "@/components/theme-scheme-toggle";
 import { useFeatureFlags, type FeatureFlags } from "@/lib/feature-flags-context";
 import { bg, bgText, bgTextSoft, border, ink, inkSoft, navy, orange, panel, surface } from "@/lib/design-tokens";
 import { ThemeContext } from "@/lib/theme-context";
@@ -101,6 +102,22 @@ export function NavShell({
   const [dark, setDark] = useState(false);
 
   usePresenceTracking(profile.id, profile.name);
+
+  // A colour scheme (owner-only, see ThemeSchemeToggle) fully replaces the
+  // invert-based dark mode below rather than stacking with it — inverting
+  // an already-themed palette doesn't land anywhere sensible. `dark` still
+  // tracks the user's actual toggle/device preference (so it's there again
+  // if they clear the scheme); `effectiveDark` is what actually renders.
+  const schemeActive = Boolean(profile.theme_scheme);
+  const effectiveDark = dark && !schemeActive;
+
+  useEffect(() => {
+    if (profile.theme_scheme) {
+      document.documentElement.setAttribute("data-scheme", profile.theme_scheme);
+    } else {
+      document.documentElement.removeAttribute("data-scheme");
+    }
+  }, [profile.theme_scheme]);
 
   useEffect(() => {
     let stored: string | null = null;
@@ -190,15 +207,15 @@ export function NavShell({
   };
 
   return (
-    <ThemeContext.Provider value={{ dark }}>
+    <ThemeContext.Provider value={{ dark: effectiveDark }}>
     <div
       className="flex w-full h-screen overflow-hidden"
-      style={{ background: dark ? "#000000" : bg, color: bgText }}
+      style={{ background: effectiveDark ? "#000000" : bg, color: bgText }}
     >
       {/* Sidebar (desktop) */}
       <div
-        className={`hidden sm:flex flex-col w-56 shrink-0 p-4 overflow-y-auto${dark ? " dark-mode" : ""}`}
-        style={{ borderRight: `1px solid rgba(0,0,0,0.15)` }}
+        className={`hidden sm:flex flex-col w-56 shrink-0 p-4 overflow-y-auto${effectiveDark ? " dark-mode" : ""}`}
+        style={{ borderRight: `1px solid rgba(var(--to-line-rgb), 0.15)` }}
       >
         <div className="mb-6 px-2 flex items-center gap-2.5">
           <img src="/icons/mark-black.png" alt="" width={28} height={28} style={{ display: "block" }} />
@@ -233,7 +250,7 @@ export function NavShell({
             });
           })()}
         </nav>
-        <div className="mt-auto pt-4" style={{ borderTop: `1px solid rgba(0,0,0,0.15)` }}>
+        <div className="mt-auto pt-4" style={{ borderTop: `1px solid rgba(var(--to-line-rgb), 0.15)` }}>
           <div className="px-2 py-2 text-sm" style={{ color: bgText }}>
             {name}
           </div>
@@ -257,21 +274,22 @@ export function NavShell({
       {/* Menu button (mobile) */}
       <button
         onClick={() => setMenuOpen(true)}
-        className={`sm:hidden fixed top-4 left-4 z-20 p-2.5 rounded-full${dark ? " dark-mode" : ""}`}
+        className={`sm:hidden fixed top-4 left-4 z-20 p-2.5 rounded-full${effectiveDark ? " dark-mode" : ""}`}
         style={{ background: bg, border: `1px solid ${border}`, boxShadow: "0 2px 10px rgba(0,0,0,0.10)" }}
         aria-label="Open menu"
       >
         <MenuIcon size={20} style={{ color: orange }} />
       </button>
 
-      <NotificationCentre dark={dark} />
-      <NotificationPrompt dark={dark} />
-      <ViewAsToggle dark={dark} />
+      <NotificationCentre dark={effectiveDark} />
+      <NotificationPrompt dark={effectiveDark} />
+      <ViewAsToggle dark={effectiveDark} />
+      <ThemeSchemeToggle dark={effectiveDark} />
 
       {/* All-tabs menu (mobile) */}
       {menuOpen && (
         <div
-          className={`sm:hidden fixed inset-0 z-30 flex flex-col justify-end${dark ? " dark-mode" : ""}`}
+          className={`sm:hidden fixed inset-0 z-30 flex flex-col justify-end${effectiveDark ? " dark-mode" : ""}`}
           style={{ background: "rgba(0,0,0,0.4)", height: "100dvh" }}
           onClick={() => setMenuOpen(false)}
         >
@@ -331,7 +349,7 @@ export function NavShell({
 
       {/* Bottom nav island (mobile) */}
       <div
-        className={`sm:hidden fixed bottom-4 left-4 right-4 z-10 flex items-center justify-between px-2 py-2 rounded-full${dark ? " dark-mode" : ""}`}
+        className={`sm:hidden fixed bottom-4 left-4 right-4 z-10 flex items-center justify-between px-2 py-2 rounded-full${effectiveDark ? " dark-mode" : ""}`}
         style={{ background: surface, border: `1px solid ${border}`, boxShadow: "0 8px 24px rgba(0,0,0,0.14)" }}
       >
         <div className="flex items-center gap-1">
@@ -343,7 +361,7 @@ export function NavShell({
                 key={href}
                 href={href}
                 className="p-2.5 rounded-full"
-                style={{ background: active ? navy : "transparent", color: active ? "#FFFFFF" : inkSoft }}
+                style={{ background: active ? navy : "transparent", color: active ? bg : inkSoft }}
               >
                 <Icon size={20} />
               </Link>
@@ -354,7 +372,7 @@ export function NavShell({
         <Link
           href="/dashboard"
           className="p-3 rounded-full -mt-6"
-          style={{ background: navy, color: "#FFFFFF", border: `4px solid ${surface}`, boxShadow: "0 4px 12px rgba(0,0,0,0.2)" }}
+          style={{ background: navy, color: bg, border: `4px solid ${surface}`, boxShadow: "0 4px 12px rgba(0,0,0,0.2)" }}
         >
           <LayoutDashboard size={22} />
         </Link>
@@ -368,7 +386,7 @@ export function NavShell({
                 key={href}
                 href={href}
                 className="p-2.5 rounded-full"
-                style={{ background: active ? navy : "transparent", color: active ? "#FFFFFF" : inkSoft }}
+                style={{ background: active ? navy : "transparent", color: active ? bg : inkSoft }}
               >
                 <Icon size={20} />
               </Link>
@@ -378,7 +396,7 @@ export function NavShell({
       </div>
 
       {/* Main content */}
-      <div className={`flex-1 overflow-y-auto p-3 sm:p-4${dark ? " dark-mode" : ""}`}>
+      <div className={`flex-1 overflow-y-auto p-3 sm:p-4${effectiveDark ? " dark-mode" : ""}`}>
         <div
           className="rounded-3xl px-5 sm:px-10 pt-16 sm:pt-8 pb-28 sm:pb-8 max-w-3xl"
           style={{ background: panel, minHeight: "calc(100vh - 24px)" }}

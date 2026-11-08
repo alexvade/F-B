@@ -38,6 +38,7 @@ export interface Database {
           task_bar: string[] | null;
           is_casual: boolean;
           is_supervisor: boolean;
+          theme_scheme: string | null;
         },
         {
           id: string;
@@ -51,6 +52,7 @@ export interface Database {
           task_bar?: string[] | null;
           is_casual?: boolean;
           is_supervisor?: boolean;
+          theme_scheme?: string | null;
         }
       >;
       // Read-only view — returns `email` only for a viewer's own row or for
@@ -71,6 +73,7 @@ export interface Database {
           task_bar: string[] | null;
           is_casual: boolean;
           is_supervisor: boolean;
+          theme_scheme: string | null;
         },
         {
           id: string;
@@ -84,6 +87,7 @@ export interface Database {
           task_bar?: string[] | null;
           is_casual?: boolean;
           is_supervisor?: boolean;
+          theme_scheme?: string | null;
         }
       >;
       rota_shifts: Table<
