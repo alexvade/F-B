@@ -379,18 +379,31 @@ export default function DashboardPage() {
         <WeatherWidget />
       </div>
 
-      {/* Birthdays today — only shown when it's actually someone's birthday */}
+      {/* Birthdays today — only shown when it's actually someone's birthday.
+          A deliberate, scoped exception to the app's black-and-white system
+          (same exception WeatherWidget already carries for its condition
+          icons): real colour, regardless of theme or active colour scheme,
+          so the one day that matters actually stands out. dark-mode-invert
+          cancels NavShell's filter:invert(1) the same way the rota's
+          sheet-coloured cells do, so it stays this colour — not its visual
+          opposite — when the legacy dark-mode toggle is on. */}
       {todaysBirthdays.length > 0 && (
-        <div className="p-4 rounded-2xl mb-4" style={{ background: bg, border: `1px solid ${border}` }}>
+        <div
+          className="p-4 rounded-2xl mb-4 dark-mode-invert"
+          style={{
+            background: "linear-gradient(135deg, #FF5F9E 0%, #B259F5 50%, #FFB454 100%)",
+            border: "1px solid rgba(255,255,255,0.4)",
+          }}
+        >
           <div className="flex items-center gap-2 mb-3">
-            <Cake size={15} style={{ color: orange }} />
-            <span className="text-sm font-medium" style={{ color: navyText }}>
+            <Cake size={15} style={{ color: "#FFFFFF" }} />
+            <span className="text-sm font-semibold" style={{ color: "#FFFFFF" }}>
               Birthdays today
             </span>
           </div>
           <div className="flex flex-col gap-1">
             {todaysBirthdays.map((b) => (
-              <div key={b.id} className="text-sm" style={{ color: ink }}>
+              <div key={b.id} className="text-sm font-medium" style={{ color: "#FFFFFF" }}>
                 <EmojiText text={`🎂 ${b.name}`} />
               </div>
             ))}
