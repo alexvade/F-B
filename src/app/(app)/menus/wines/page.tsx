@@ -16,7 +16,63 @@ type Wine = {
   vintage: string | null;
   tasting_note: string | null;
   delisted: boolean;
+  bottles: number | null;
+  stock_checked_on: string | null;
 };
+
+// Lower-case, accents stripped, so "panoramico" finds "Panorámico".
+const fold = (s: string) =>
+  s
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+
+// Every word typed must appear somewhere in the wine's name, section,
+// region or vintage — so "Panoramico White Rioja" matches the white
+// Panorámico even though "White" is only in its section.
+function matchesSearch(w: Wine, query: string) {
+  const words = fold(query).split(/[\s,]+/).filter(Boolean);
+  if (words.length === 0) return true;
+  const hay = fold([w.name, w.section, w.region ?? "", w.vintage ?? ""].join(" "));
+  return words.every((word) => hay.includes(word));
+}
+
+const isOutOfStock = (w: Wine) => w.bottles === 0;
+
+const checkedOn = (iso: string | null) =>
+  iso ? new Date(iso + "T00:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : null;
+
+function StatusBadges({ w }: { w: Wine }) {
+  if (!isOutOfStock(w) && !w.delisted) return null;
+  return (
+    <div className="flex flex-wrap gap-1.5 mt-1">
+      {isOutOfStock(w) && (
+        <span
+          className="text-[11px] font-bold tracking-wide px-2 py-0.5 rounded-full"
+          style={{ background: "#B42318", color: "#FFFFFF" }}
+        >
+          OUT OF STOCK
+        </span>
+      )}
+      {w.delisted && (
+        <span
+          className="text-[11px] font-bold tracking-wide px-2 py-0.5 rounded-full"
+          style={{ background: ink, color: bg }}
+        >
+          DELISTED
+        </span>
+      )}
+      {w.delisted && !isOutOfStock(w) && w.bottles != null && (
+        <span
+          className="text-[11px] font-semibold px-2 py-0.5 rounded-full"
+          style={{ border: `1px solid ${border}`, color: ink }}
+        >
+          {w.bottles} left — no more once gone
+        </span>
+      )}
+    </div>
+  );
+}
 
 const EMPTY_FORM = {
   id: null as number | null,
@@ -26,6 +82,7 @@ const EMPTY_FORM = {
   vintage: "",
   tasting_note: "",
   delisted: false,
+  bottles: "",
 };
 
 export default function WinesPage() {
@@ -65,6 +122,7 @@ export default function WinesPage() {
             vintage: w.vintage ?? "",
             tasting_note: w.tasting_note ?? "",
             delisted: w.delisted,
+            bottles: w.bottles == null ? "" : String(w.bottles),
           }
         : { ...EMPTY_FORM }
     );
@@ -74,6 +132,10 @@ export default function WinesPage() {
     if (!form || !form.section.trim() || !form.name.trim()) return;
     setSaving(true);
     try {
+      const bottlesText = form.bottles.trim();
+      const bottles = bottlesText === "" ? null : Math.max(0, Math.floor(Number(bottlesText)) || 0);
+      const original = form.id ? wines.find((w) => w.id === form.id) : undefined;
+      const bottlesChanged = (original?.bottles ?? null) !== bottles;
       const payload = {
         section: form.section.trim(),
         name: form.name.trim(),
@@ -81,6 +143,8 @@ export default function WinesPage() {
         vintage: form.vintage.trim() || null,
         tasting_note: form.tasting_note.trim() || null,
         delisted: form.delisted,
+        bottles,
+        ...(bottlesChanged ? { stock_checked_on: bottles == null ? null : new Date().toISOString().slice(0, 10) } : {}),
       };
       if (form.id) {
         await supabase.from("wines").update(payload).eq("id", form.id);
@@ -157,6 +221,20 @@ export default function WinesPage() {
             />
             Delisted by supplier
           </label>
+          <label className="flex items-center gap-3 text-sm px-1" style={{ color: ink }}>
+            Bottles in stock
+            <input
+              inputMode="numeric"
+              placeholder="—"
+              value={form.bottles}
+              onChange={(e) => setForm({ ...form, bottles: e.target.value.replace(/[^0-9]/g, "") })}
+              className="text-sm px-4 py-2 rounded-full outline-none w-24"
+              style={{ border: `1px solid ${border}`, background: fill, color: ink }}
+            />
+            <span className="text-xs" style={{ color: inkSoft }}>
+              0 = out of stock
+            </span>
+          </label>
           <button
             onClick={saveForm}
             disabled={saving}
@@ -197,15 +275,18 @@ export default function WinesPage() {
         >
           {active.name}
         </h2>
-        {active.delisted && (
-          <p className="text-sm font-bold mt-2" style={{ color: "#000000" }}>
-            DELISTED
-          </p>
-        )}
-        <p className="text-sm mt-2 mb-4" style={{ color: inkSoft }}>
+        <StatusBadges w={active} />
+        <p className="text-sm mt-2" style={{ color: inkSoft }}>
           {active.region}
           {active.vintage ? ` · ${active.vintage}` : ""}
         </p>
+        {active.bottles != null && (
+          <p className="text-xs mt-1" style={{ color: inkSoft }}>
+            {active.bottles === 0 ? "None in the cellar" : `${active.bottles} bottle${active.bottles === 1 ? "" : "s"} in the cellar`}
+            {active.stock_checked_on ? ` · stock take ${checkedOn(active.stock_checked_on)}` : ""}
+          </p>
+        )}
+        <div className="mb-4" />
         <div className="text-sm font-semibold mb-2" style={{ color: navyText }}>
           Tasting note
         </div>
@@ -216,7 +297,11 @@ export default function WinesPage() {
     );
   }
 
-  const filtered = wines.filter((w) => w.name.toLowerCase().includes(search.trim().toLowerCase()));
+  const filtered = wines.filter((w) => matchesSearch(w, search));
+  const latestCheck = wines.reduce<string | null>(
+    (max, w) => (w.stock_checked_on && (!max || w.stock_checked_on > max) ? w.stock_checked_on : max),
+    null
+  );
 
   return (
     <div>
@@ -242,6 +327,7 @@ export default function WinesPage() {
       </div>
       <p className="text-sm mb-4 mt-2" style={{ color: inkSoft }}>
         Grouped as on the wine list — tap a wine for full details
+        {latestCheck ? `. Stock as of ${checkedOn(latestCheck)}.` : ""}
       </p>
 
       <div className="relative mb-6">
@@ -277,19 +363,15 @@ export default function WinesPage() {
                   className="flex items-center justify-between p-3 rounded-3xl text-left"
                   style={{ background: bg, border: `1px solid ${border}` }}
                 >
-                  <div>
+                  <div style={{ opacity: isOutOfStock(w) ? 0.75 : 1 }}>
                     <div className="text-sm font-medium" style={{ color: ink }}>
                       {w.name}
                     </div>
-                    {w.delisted && (
-                      <div className="text-xs font-bold" style={{ color: "#000000" }}>
-                        DELISTED
-                      </div>
-                    )}
                     <div className="text-xs" style={{ color: inkSoft }}>
                       {w.region}
                       {w.vintage ? ` · ${w.vintage}` : ""}
                     </div>
+                    <StatusBadges w={w} />
                   </div>
                   <ChevronRight size={16} style={{ color: inkSoft }} />
                 </button>

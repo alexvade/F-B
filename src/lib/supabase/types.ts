@@ -617,6 +617,8 @@ export interface Database {
           tasting_note: string | null;
           sort_order: number;
           delisted: boolean;
+          bottles: number | null;
+          stock_checked_on: string | null;
         },
         {
           id?: number;
@@ -629,6 +631,8 @@ export interface Database {
           tasting_note?: string | null;
           sort_order?: number;
           delisted?: boolean;
+          bottles?: number | null;
+          stock_checked_on?: string | null;
         }
       >;
       function_sheets: Table<
