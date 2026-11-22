@@ -18,6 +18,7 @@ type Wine = {
   delisted: boolean;
   bottles: number | null;
   stock_checked_on: string | null;
+  cellar_code: string | null;
 };
 
 // Lower-case, accents stripped, so "panoramico" finds "Panorámico".
@@ -33,7 +34,7 @@ const fold = (s: string) =>
 function matchesSearch(w: Wine, query: string) {
   const words = fold(query).split(/[\s,]+/).filter(Boolean);
   if (words.length === 0) return true;
-  const hay = fold([w.name, w.section, w.region ?? "", w.vintage ?? ""].join(" "));
+  const hay = fold([w.name, w.section, w.region ?? "", w.vintage ?? "", w.cellar_code ?? ""].join(" "));
   return words.every((word) => hay.includes(word));
 }
 
@@ -83,6 +84,7 @@ const EMPTY_FORM = {
   tasting_note: "",
   delisted: false,
   bottles: "",
+  cellar_code: "",
 };
 
 export default function WinesPage() {
@@ -123,6 +125,7 @@ export default function WinesPage() {
             tasting_note: w.tasting_note ?? "",
             delisted: w.delisted,
             bottles: w.bottles == null ? "" : String(w.bottles),
+            cellar_code: w.cellar_code ?? "",
           }
         : { ...EMPTY_FORM }
     );
@@ -143,6 +146,7 @@ export default function WinesPage() {
         vintage: form.vintage.trim() || null,
         tasting_note: form.tasting_note.trim() || null,
         delisted: form.delisted,
+        cellar_code: form.cellar_code.trim() || null,
         bottles,
         ...(bottlesChanged ? { stock_checked_on: bottles == null ? null : new Date().toISOString().slice(0, 10) } : {}),
       };
@@ -187,6 +191,13 @@ export default function WinesPage() {
             value={form.name}
             onChange={(e) => setForm({ ...form, name: e.target.value })}
             className="text-sm px-4 py-2 rounded-full outline-none"
+            style={{ border: `1px solid ${border}`, background: fill, color: ink }}
+          />
+          <input
+            placeholder="Cellar code (e.g. 101)"
+            value={form.cellar_code}
+            onChange={(e) => setForm({ ...form, cellar_code: e.target.value })}
+            className="text-sm px-4 py-2 rounded-full outline-none w-48"
             style={{ border: `1px solid ${border}`, background: fill, color: ink }}
           />
           <div className="flex gap-2">
@@ -276,7 +287,10 @@ export default function WinesPage() {
           {active.name}
         </h2>
         <StatusBadges w={active} />
-        <p className="text-sm mt-2" style={{ color: inkSoft }}>
+        <p className="text-sm font-semibold mt-2" style={{ color: ink }}>
+          {active.cellar_code ? `Cellar code ${active.cellar_code}` : "No cellar code"}
+        </p>
+        <p className="text-sm mt-1" style={{ color: inkSoft }}>
           {active.region}
           {active.vintage ? ` · ${active.vintage}` : ""}
         </p>
@@ -335,7 +349,7 @@ export default function WinesPage() {
         <input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search wines…"
+          placeholder="Search wines or cellar code…"
           className="w-full text-sm pl-10 pr-4 py-2.5 rounded-full outline-none"
           style={{ border: `1px solid ${border}`, color: ink, background: fill }}
         />
@@ -368,8 +382,7 @@ export default function WinesPage() {
                       {w.name}
                     </div>
                     <div className="text-xs" style={{ color: inkSoft }}>
-                      {w.region}
-                      {w.vintage ? ` · ${w.vintage}` : ""}
+                      {w.cellar_code ? `Cellar code ${w.cellar_code}` : "No cellar code"}
                     </div>
                     <StatusBadges w={w} />
                   </div>

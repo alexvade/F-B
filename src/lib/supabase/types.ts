@@ -619,6 +619,7 @@ export interface Database {
           delisted: boolean;
           bottles: number | null;
           stock_checked_on: string | null;
+          cellar_code: string | null;
         },
         {
           id?: number;
@@ -633,6 +634,7 @@ export interface Database {
           delisted?: boolean;
           bottles?: number | null;
           stock_checked_on?: string | null;
+          cellar_code?: string | null;
         }
       >;
       function_sheets: Table<
